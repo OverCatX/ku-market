@@ -1,48 +1,47 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function Header() {
+  const pathName = usePathname();
+
+  const linkClasses = (path: string) =>
+    pathName === path
+      ? "text-[#84B067] font-semibold"
+      : "text-gray-800 hover:text-[#84B067]";
+
   return (
-    <header className="bg-white border-b border-gray-200">
+    <header className="bg-white fixed top-0 left-0 w-full z-50 shadow-sm">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/"
-              className="text-gray-700 hover:text-gray-900 font-medium"
-            >
+          {/* Navigation -> กลางจอ */}
+          <nav className="flex-1 flex justify-center space-x-16">
+            <Link href="/" className={linkClasses("/")}>
               home
             </Link>
-            <Link
-              href="/marketplace"
-              className="text-gray-700 hover:text-gray-900 font-medium"
-            >
+            <Link href="/marketplace" className={linkClasses("/marketplace")}>
               marketplace
             </Link>
-            <Link
-              href="/chats"
-              className="text-gray-700 hover:text-gray-900 font-medium"
-            >
+            <Link href="/chats" className={linkClasses("/chats")}>
               chats
             </Link>
-            <Link
-              href="/about"
-              className="text-gray-700 hover:text-gray-900 font-medium"
-            >
+            <Link href="/about" className={linkClasses("/about")}>
               about us
             </Link>
           </nav>
 
           {/* Right side */}
           <div className="flex items-center space-x-4">
-            <div className="relative hidden sm:block">
+            {/* Search */}
+            <div className="relative">
               <input
                 type="search"
                 placeholder="Search"
-                className="w-64 pl-4 pr-10 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-56 pl-4 pr-10 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
               />
               <svg
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -56,11 +55,13 @@ export function Header() {
               </svg>
             </div>
 
-            <button className="px-3 py-1 text-sm border border-gray-300 rounded-full bg-transparent hover:bg-gray-50 transition-colors">
-              🌐 EN
+            {/* Language Switch */}
+            <button className="flex items-center gap-1 px-3 py-1 text-sm border border-gray-300 rounded-full">
+              🌐 <span className="font-medium text-yellow-600">ES</span>
             </button>
 
-            <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            {/* Cart */}
+            <button className="relative p-2">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -79,7 +80,8 @@ export function Header() {
               </span>
             </button>
 
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            {/* Notification */}
+            <button className="relative p-2">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -93,9 +95,13 @@ export function Header() {
                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                 />
               </svg>
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 text-black text-xs rounded-full flex items-center justify-center">
+                1
+              </span>
             </button>
 
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            {/* Profile */}
+            <button className="p-2">
               <svg
                 className="w-5 h-5"
                 fill="none"
