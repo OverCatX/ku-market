@@ -1,6 +1,16 @@
-import { User, RefreshCw } from "lucide-react";
+"use client";
+
+import { User, RefreshCw, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
+
   return (
     <div className="min-h-screen mt-15 p-8 ">
       <div className="max-w-4xl mx-auto">
@@ -12,6 +22,15 @@ export default function ProfilePage() {
                 <User className="w-16 h-16 text-green-800" />
               </div>
               <h2 className="text-2xl font-semibold text-green-900">Buyer</h2>
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="mt-4 flex items-center gap-2 bg-red-200/80 hover:bg-red-300/80 text-red-900 border border-red-300 rounded-xl px-4 py-2 font-medium shadow-sm transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
             </div>
 
             {/* Profile Form Section */}

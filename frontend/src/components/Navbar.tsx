@@ -76,7 +76,7 @@ export function Header() {
 
             {/* Profile */}
             <Link
-              href="/profile"
+              href="/login"
               className="p-2 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
             >
               <User className="w-5 h-5 text-gray-700" />
