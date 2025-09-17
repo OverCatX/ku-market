@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, ShoppingCart, Bell, User } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function Header() {
   const pathName = usePathname();
+  const [profileLink, setProfileLink] = useState("/login");
 
   const linkClasses = useCallback(
     (path: string) =>
@@ -15,6 +16,11 @@ export function Header() {
         : "text-gray-800 hover:text-[#84B067] relative group",
     [pathName]
   );
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setProfileLink(token ? "/profile" : "/login");
+  }, []);
 
   return (
     <header className="bg-white fixed top-0 left-0 w-full z-50 shadow-sm">
@@ -76,7 +82,7 @@ export function Header() {
 
             {/* Profile */}
             <Link
-              href="/login"
+              href={profileLink}
               className="p-2 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
             >
               <User className="w-5 h-5 text-gray-700" />
@@ -87,7 +93,7 @@ export function Header() {
               href="/language"
               className="flex items-center gap-1 px-3 py-1 text-sm border border-gray-300 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
             >
-              🌐 <span className="font-medium text-yellow-600">ES</span>
+              🌐 <span className="font-medium text-yellow-600">EN</span>
             </Link>
           </div>
         </div>
