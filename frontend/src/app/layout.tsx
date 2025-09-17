@@ -5,11 +5,12 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Header } from "@/components/Navbar";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
-  title: "Cargo Account - Login",
+  title: "KuMarket - Online Marketplace for Students",
   description:
-    "Enter your cargo account to access marketplace, chats, and more",
+    "KuMarket lets you browse products, manage orders, chat with sellers, and shop conveniently online.",
 };
 
 export default function RootLayout({
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className="">
         <Header />
         <Suspense fallback={null}>{children}</Suspense>
+        <Toaster position="top-right" />
       </body>
     </html>
   );
