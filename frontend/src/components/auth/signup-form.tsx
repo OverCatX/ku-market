@@ -71,7 +71,7 @@ export function SignUpForm() {
   };
 
   return (
-    <div className="w-full max-w-md bg-white shadow-lg rounded-2xl border border-gray-200">
+    <div className="w-full max-w-md bg-white shadow-lg rounded-2xl border border-gray-200 mt-5">
       <form onSubmit={handleSignUp}>
         <div className="space-y-6 pt-6 px-6">
           {/* Name */}
