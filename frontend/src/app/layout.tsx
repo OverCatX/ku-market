@@ -8,9 +8,9 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
-  title: "Cargo Account - Login",
+  title: "KuMarket - Online Marketplace for Students",
   description:
-    "Enter your cargo account to access marketplace, chats, and more",
+    "KuMarket lets you browse products, manage orders, chat with sellers, and shop conveniently online.",
 };
 
 export default function RootLayout({
