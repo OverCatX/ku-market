@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import ItemCard from "@/components/Marketplace/ItemCard";
 import Pagination from "@/components/Marketplace/Pagination";
 import debounce from "lodash.debounce";
@@ -59,12 +59,13 @@ export default function MarketPage() {
     }
   }, [page, limit, search, category, status, sortBy, sortOrder]);
 
-  const debouncedSearch = useCallback(
-    debounce((val: string) => {
-      setPage(1);
-      setSearch(val);
-    }, 500),
-    []
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((val: string) => {
+        setPage(1);
+        setSearch(val);
+      }, 500),
+    [setPage, setSearch]
   );
 
   useEffect(() => {
