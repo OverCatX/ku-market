@@ -11,8 +11,8 @@ export function Header() {
   const linkClasses = useCallback(
     (path: string) =>
       pathName === path
-        ? "text-[#84B067] font-semibold"
-        : "text-gray-800 hover:text-[#84B067]",
+        ? "text-[#84B067] font-semibold relative group"
+        : "text-gray-800 hover:text-[#84B067] relative group",
     [pathName]
   );
 
@@ -24,15 +24,19 @@ export function Header() {
           <nav className="flex-1 flex justify-center space-x-16">
             <Link href="/" className={linkClasses("/")}>
               home
+              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-[#84B067] transition-all group-hover:w-full"></span>
             </Link>
             <Link href="/marketplace" className={linkClasses("/marketplace")}>
               marketplace
+              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-[#84B067] transition-all group-hover:w-full"></span>
             </Link>
             <Link href="/chats" className={linkClasses("/chats")}>
               chats
+              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-[#84B067] transition-all group-hover:w-full"></span>
             </Link>
             <Link href="/about" className={linkClasses("/about")}>
               about us
+              <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-[#84B067] transition-all group-hover:w-full"></span>
             </Link>
           </nav>
 
@@ -43,36 +47,48 @@ export function Header() {
               <input
                 type="search"
                 placeholder="Search"
-                className="w-56 pl-4 pr-10 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                className="w-56 pl-4 pr-10 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#84B067] transition"
               />
               <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
             </div>
 
-            {/* Language Switch */}
-            <button className="flex items-center gap-1 px-3 py-1 text-sm border border-gray-300 rounded-full">
-              🌐 <span className="font-medium text-yellow-600">ES</span>
-            </button>
-
             {/* Cart */}
-            <button className="relative p-2">
-              <ShoppingCart className="w-5 h-5" />
+            <Link
+              href="/cart"
+              className="relative p-2 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
+            >
+              <ShoppingCart className="w-5 h-5 text-gray-700" />
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                 2
               </span>
-            </button>
+            </Link>
 
             {/* Notification */}
-            <button className="relative p-2">
-              <Bell className="w-5 h-5" />
+            <Link
+              href="/notifications"
+              className="relative p-2 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
+            >
+              <Bell className="w-5 h-5 text-gray-700" />
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 text-black text-xs rounded-full flex items-center justify-center">
                 1
               </span>
-            </button>
+            </Link>
 
             {/* Profile */}
-            <button className="p-2">
-              <User className="w-5 h-5" />
-            </button>
+            <Link
+              href="/profile"
+              className="p-2 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
+            >
+              <User className="w-5 h-5 text-gray-700" />
+            </Link>
+
+            {/* Language */}
+            <Link
+              href="/language"
+              className="flex items-center gap-1 px-3 py-1 text-sm border border-gray-300 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
+            >
+              🌐 <span className="font-medium text-yellow-600">ES</span>
+            </Link>
           </div>
         </div>
       </div>
