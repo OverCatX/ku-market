@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { signin } from "@/config/api";
+import { signin } from "@/config/auth";
 import toast from "react-hot-toast";
 
 export function LoginForm() {

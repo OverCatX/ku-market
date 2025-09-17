@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { signup } from "@/config/api";
+import { signup } from "@/config/auth";
 import toast from "react-hot-toast";
 
 type FormDataType = {
