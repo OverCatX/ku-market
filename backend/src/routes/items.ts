@@ -6,28 +6,59 @@ import mongoose from "mongoose";
 
 const router = express.Router();
 
-router.post("/create", upload.single("photo"), async (req, res) => {
+router.post("/create", upload.array("photos", 5), async (req, res) => {
     try {
-        if (!req.file) {
-        return res.status(400).json({ error: "No image file uploaded" });
+        if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
+            return res.status(400).json({ error: "No image files uploaded" });
         }
 
-        const imageUrl = await uploadToCloudinary(req.file.buffer);
+        const files = req.files as Express.Multer.File[];
+        
+        if (files.length > 5) {
+            return res.status(400).json({ 
+                error: "Too many files. Maximum 5 photos allowed.",
+                uploaded: files.length,
+                maximum: 5
+            });
+        }
+
+        const imageUrls: string[] = [];
+        
+        for (let i = 0; i < files.length; i++) {
+            try {
+                console.log(`Uploading image ${i + 1}/${files.length}...`);
+                const imageUrl = await uploadToCloudinary(files[i].buffer);
+                imageUrls.push(imageUrl);
+            } catch (uploadError) {
+                console.error(`Failed to upload image ${i + 1}:`, uploadError);
+                return res.status(500).json({ 
+                    error: `Failed to upload image ${i + 1}`,
+                    details: uploadError instanceof Error ? uploadError.message : 'Unknown error'
+                });
+            }
+        }
 
         const newItem: Partial<IItem> = {
-        owner: req.body.owner ? new mongoose.Types.ObjectId(req.body.owner) : undefined, // make sure you send owner ID
-        title: req.body.title,
-        description: req.body.description,
-        category: req.body.category,
-        price: Number(req.body.price),
-        status: "available",
-        photo: [imageUrl],
+            owner: req.body.owner ? new mongoose.Types.ObjectId(req.body.owner) : undefined,
+            title: req.body.title,
+            description: req.body.description,
+            category: req.body.category,
+            price: Number(req.body.price),
+            status: "available",
+            photo: imageUrls,
         };
+
         const item = await Item.create(newItem);
 
-        res.status(201).json({ success: true, item });
+        res.status(201).json({ 
+            success: true, 
+            item,
+            uploadedPhotos: imageUrls.length,
+            message: `Item created successfully with ${imageUrls.length} photo(s)`
+        });
+
     } catch (err: any) {
-        console.error(err);
+        console.error("Create item error:", err);
         res.status(500).json({ error: err.message || "Server error" });
     }
 });
