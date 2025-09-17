@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 type Category = "Electronics" | "Books" | "Fashion" | "Dorm" | "Other";
 type Condition = "New" | "Like New" | "Good" | "Fair";
@@ -230,11 +231,14 @@ export default function NewItemPage() {
                   >
                     {previews[i] ? (
                       <div className="relative h-full w-full overflow-hidden rounded-2xl">
-                        <img
+                        <Image
                           src={previews[i].url}
                           alt={`img-${i}`}
-                          className="h-full w-full object-cover cursor-pointer"
+                          fill
+                          className="object-cover cursor-pointer"
                           onClick={() => setCurrentIndex(i)}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          priority={i === 0} // preload รูปแรก
                         />
                         <button
                           type="button"
