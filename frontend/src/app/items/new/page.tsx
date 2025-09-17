@@ -83,17 +83,18 @@ export default function NewItemPage() {
   }
 
   // --- submit ---
-  async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError(null); setOk(false);
+    setError(null);
+    setOk(false);
 
     if (!title.trim() || !desc.trim() || !price.trim() || !qty.trim()) {
-      setError('Please fill all required fields.');
-      return;
+        setError('Please fill all required fields.');
+        return;
     }
     if (priceError || qtyError) {
-      setError('Fix the errors before submitting.');
-      return;
+        setError('Fix the errors before submitting.');
+        return;
     }
 
     const p = Number(price);
@@ -101,27 +102,45 @@ export default function NewItemPage() {
 
     setSubmitting(true);
     try {
-      const form = new FormData();
-      form.append('title', title.trim());
-      form.append('description', desc.trim());
-      form.append('price', String(p));
-      form.append('quantity', String(q));
-      form.append('category', category);
-      form.append('condition', condition);
-      form.append('delivery', delivery);
-      images.forEach((f) => form.append('images', f, f.name));
+        const form = new FormData();
+        form.append('title', title.trim());
+        form.append('description', desc.trim());
+        form.append('price', String(p));
+        form.append('quantity', String(q));
+        form.append('category', category);
+        form.append('condition', condition);
+        form.append('delivery', delivery);
+        images.forEach((f) => form.append('images', f, f.name));
 
-      const res = await fetch(`${apiBase}/items/create`, { method: 'POST', body: form });
-      if (!res.ok) throw new Error(await res.text());
+        const res = await fetch(`${apiBase}/items/create`, { method: 'POST', body: form });
 
-      setOk(true);
-      setTitle(''); setDesc(''); setPrice(''); setQty('');
-      setCategory('Other'); setCondition('Good'); setDelivery('Meet-up');
-      setImages([]); setCurrentIndex(0);
-    } catch (err: any) {
-      setError(err?.message ?? 'Failed to submit');
-    } finally { setSubmitting(false); }
-  }
+        if (!res.ok) {
+        // try to read text for a clearer backend error message
+        const msg = await res.text().catch(() => '');
+        throw new Error(msg || `Request failed with status ${res.status}`);
+        }
+
+        setOk(true);
+        setTitle('');
+        setDesc('');
+        setPrice('');
+        setQty('');
+        setCategory('Other');
+        setCondition('Good');
+        setDelivery('Meet-up');
+        setImages([]);
+        setCurrentIndex(0);
+    } catch (err) {
+        if (err instanceof Error) {
+        setError(err.message);
+        } else {
+        setError('Failed to submit');
+        }
+    } finally {
+        setSubmitting(false);
+    }
+    }
+
 
   return (
     <div className="min-h-screen" style={{ background: LIGHT }}>
