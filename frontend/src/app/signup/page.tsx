@@ -1,6 +1,8 @@
-import { LoginForm } from "@/components/auth/login-form";
+"use client";
 
-export default function LoginPage() {
+import { SignUpForm } from "@/components/auth/signup-form";
+
+export default function SignupPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto px-6 py-16">
@@ -14,7 +16,7 @@ export default function LoginPage() {
 
           {/* Right side - Login Form */}
           <div className="flex justify-center lg:justify-end">
-            <LoginForm />
+            <SignUpForm />
           </div>
         </div>
       </main>
