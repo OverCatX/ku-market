@@ -106,7 +106,6 @@ router.patch("/update/:id", upload.single("image"), async (req, res) => {
 });
 
 router.delete("/delete/:id", async (req, res) => {
-    console.log("DELETE /delete/:id hit");
     try {
         const { id } = req.params;
         
@@ -255,6 +254,42 @@ router.get("/list", async (req, res) => {
     } catch (err: any) {
         console.error("List items error:", err);
         res.status(500).json({ error: err.message || "Server error" });
+    }
+});
+
+router.get("/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Validate ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ 
+                success: false,
+                error: "Invalid item ID format" 
+            });
+        }
+
+        // Find the item and populate owner details
+        const item = await Item.findById(id).populate('owner', 'name email');
+        
+        if (!item) {
+            return res.status(404).json({ 
+                success: false,
+                error: "Item not found" 
+            });
+        }
+
+        res.status(200).json({ 
+            success: true, 
+            item 
+        });
+
+    } catch (err: any) {
+        console.error("Get item by ID error:", err);
+        res.status(500).json({ 
+            success: false,
+            error: err.message || "Server error" 
+        });
     }
 });
 
