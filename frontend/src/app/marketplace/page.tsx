@@ -6,6 +6,9 @@ import Pagination from "@/components/Marketplace/Pagination";
 import debounce from "lodash.debounce";
 import { listItems, Item, ListItemsResponse } from "../../config/items";
 
+const LIGHT = "#f9f9f7";
+const GREEN = "#69773D";
+
 type SortOptions =
   | "price"
   | "title"
@@ -46,12 +49,8 @@ export default function MarketPage() {
         setItems([]);
         setTotalPages(1);
       }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error("Fetch items error:", err.message);
-      } else {
-        console.error("Fetch items error:", err);
-      }
+    } catch (err) {
+      console.error("Fetch items error:", err);
       setItems([]);
       setTotalPages(1);
     } finally {
@@ -65,7 +64,7 @@ export default function MarketPage() {
         setPage(1);
         setSearch(val);
       }, 500),
-    [setPage, setSearch]
+    []
   );
 
   useEffect(() => {
@@ -84,17 +83,30 @@ export default function MarketPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen" style={{ background: LIGHT }}>
+      {/* Top bar */}
+      <div className="w-full" style={{ background: GREEN }}>
+        <div className="mx-auto max-w-6xl px-6 py-4 text-white font-medium">
+          Marketplace
+        </div>
+      </div>
+
+      {/* Container */}
+      <main className="mx-auto max-w-6xl px-6 py-6 bg-white rounded-2xl shadow mt-6">
+        {/* Breadcrumb */}
+        <p className="text-sm text-gray-500 mb-6">
+          marketplace / <span className="text-gray-700">browse</span>
+        </p>
+
         {/* Search & Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between flex-wrap">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between flex-wrap mb-6">
           <input
             type="text"
             placeholder="Search items..."
             onChange={(e) => debouncedSearch(e.target.value)}
             className="flex-1 p-3 rounded-xl border border-gray-300 focus:border-[#69773D] focus:ring-2 focus:ring-[#69773D] outline-none"
           />
-          <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
+          <div className="flex flex-wrap gap-2">
             <select
               value={status}
               onChange={(e) => {
@@ -156,7 +168,7 @@ export default function MarketPage() {
 
         {/* Items Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {Array.from({ length: limit }).map((_, i) => (
               <div
                 key={i}
@@ -165,12 +177,11 @@ export default function MarketPage() {
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="text-center text-gray-500 py-20">
-            <p className="text-xl font-medium">No items found</p>
-            <p>Try changing your filters or search keyword.</p>
+          <div className="flex flex-col items-center justify-center text-gray-500 py-20">
+            <p className="text-xl font-medium mb-2">No items yet</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {items.map((item) => (
               <ItemCard
                 key={item._id}
@@ -187,13 +198,15 @@ export default function MarketPage() {
 
         {/* Pagination */}
         {items.length > 0 && (
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
+          <div className="mt-8">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
