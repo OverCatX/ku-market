@@ -1,64 +1,74 @@
 import { API_BASE } from "./index";
 
-export type Item = {
+export interface Item {
   _id: string;
-  owner?: { name: string; email: string };
   title: string;
-  description?: string;
-  category?: string;
+  description: string;
   price: number;
-  status: "available" | "reserved" | "sold";
   photo: string[];
-  createAt?: string;
-  updateAt?: string;
-};
+  status: string;
+  category?: string;
+  owner?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
-export type Pagination = {
-  currentPage: number;
-  totalPages: number;
+export interface ListItemsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  status?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export interface Pagination {
   totalItems: number;
-  itemsPerPage: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-  nextPage: number | null;
-  prevPage: number | null;
-};
+  totalPages: number;
+  currentPage: number;
+  limit: number;
+}
 
-export type ListItemsResponse = {
+export interface ListItemsResponse {
   success: boolean;
   data: {
     items: Item[];
     pagination: Pagination;
   };
-};
-
-type ListItemsParams = {
-  page?: number;
-  limit?: number;
-  status?: string;
-  search?: string;
-  category?: string;
-  sortBy?: "price" | "title" | "createAt" | "updateAt" | "relevance";
-  sortOrder?: "asc" | "desc";
-};
-
-async function request<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  const json = (await res.json()) as T & { message?: string };
-  if (!res.ok) throw new Error(json.message || "Request failed");
-  return json;
 }
 
-export function listItems(params: ListItemsParams = {}): Promise<ListItemsResponse> {
-  const query = new URLSearchParams();
-
-  if (params.page) query.append("page", params.page.toString());
-  if (params.limit) query.append("limit", params.limit.toString());
-  if (params.status) query.append("status", params.status);
-  if (params.search) query.append("search", params.search);
-  if (params.category) query.append("category", params.category);
-  if (params.sortBy) query.append("sortBy", params.sortBy);
-  if (params.sortOrder) query.append("sortOrder", params.sortOrder);
-
-  return request(`${API_BASE}/api/items/list?${query.toString()}`);
+export async function listItems(params: ListItemsParams): Promise<ListItemsResponse> {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== "") query.append(key, String(val));
+    });
+  
+    const res = await fetch(`${API_BASE}/api/items/list?${query.toString()}`);
+  
+    let data: ListItemsResponse;
+  
+    try {
+      data = await res.json();
+    } catch {
+      return {
+        success: false,
+        data: {
+          items: [],
+          pagination: { totalItems: 0, totalPages: 1, currentPage: params.page || 1, limit: params.limit || 10 },
+        },
+      };
+    }
+  
+    if (!res.ok || !data.success) {
+      return {
+        success: false,
+        data: {
+          items: [],
+          pagination: { totalItems: 0, totalPages: 1, currentPage: params.page || 1, limit: params.limit || 10 },
+        },
+      };
+    }
+  
+    return data;
 }
