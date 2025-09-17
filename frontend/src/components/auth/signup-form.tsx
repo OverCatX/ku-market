@@ -104,7 +104,7 @@ export function SignUpForm() {
   ];
 
   return (
-    <div className="w-full max-w-md mt-7 bg-white shadow-lg rounded-2xl border border-gray-200 sm:p-8 p-6">
+    <div className="w-full max-w-md bg-white shadow-lg rounded-2xl border border-gray-200 sm:p-8 p-6">
       <h2 className="text-2xl font-semibold text-center text-gray-700 mb-6">
         Create Your Account
       </h2>
