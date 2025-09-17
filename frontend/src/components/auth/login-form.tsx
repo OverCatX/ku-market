@@ -39,6 +39,10 @@ export function LoginForm() {
       const res = await signin({ kuEmail: email, password });
       toast.success(res.message || "Login successful!");
       if (res.token) localStorage.setItem("token", res.token);
+
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
