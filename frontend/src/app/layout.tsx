@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   title: "Cargo Account - Login",
   description:
     "Enter your cargo account to access marketplace, chats, and more",
-  generator: "v0.app",
 };
 
 export default function RootLayout({
