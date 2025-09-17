@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { useMemo, useRef, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useMemo, useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-type Category = 'Electronics' | 'Books' | 'Fashion' | 'Dorm' | 'Other';
-type Condition = 'New' | 'Like New' | 'Good' | 'Fair';
-type Delivery = 'Meet-up' | 'Shipping' | 'Both';
+type Category = "Electronics" | "Books" | "Fashion" | "Dorm" | "Other";
+type Condition = "New" | "Like New" | "Good" | "Fair";
+type Delivery = "Meet-up" | "Shipping" | "Both";
 
 const MAX_IMAGES = 3;
-const GREEN = '#69773D';
-const LIGHT = '#f7f4f1';
+const GREEN = "#69773D";
+const LIGHT = "#f7f4f1";
 
 export default function NewItemPage() {
-  const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
-  const [price, setPrice] = useState<string>('');
-  const [qty, setQty] = useState<string>('');
-  const [category, setCategory] = useState<Category>('Other');
-  const [condition, setCondition] = useState<Condition>('Good');
-  const [delivery, setDelivery] = useState<Delivery>('Meet-up');
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
+  const [price, setPrice] = useState<string>("");
+  const [qty, setQty] = useState<string>("");
+  const [category, setCategory] = useState<Category>("Other");
+  const [condition, setCondition] = useState<Condition>("Good");
+  const [delivery, setDelivery] = useState<Delivery>("Meet-up");
   const [images, setImages] = useState<File[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -29,7 +29,7 @@ export default function NewItemPage() {
   const [priceError, setPriceError] = useState<string | null>(null);
   const [qtyError, setQtyError] = useState<string | null>(null);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000';
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
   // --- image handling ---
   function onFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -42,11 +42,11 @@ export default function NewItemPage() {
       if (f.size > 5 * 1024 * 1024) continue;
       next.push(f);
     }
-    setImages(prev => [...prev, ...next]);
-    e.currentTarget.value = '';
+    setImages((prev) => [...prev, ...next]);
+    e.currentTarget.value = "";
   }
   function removeImage(i: number) {
-    setImages(prev => prev.filter((_, idx) => idx !== i));
+    setImages((prev) => prev.filter((_, idx) => idx !== i));
     if (currentIndex >= images.length - 1) setCurrentIndex(0);
   }
   const previews = useMemo(
@@ -65,36 +65,36 @@ export default function NewItemPage() {
   // --- input validation ---
   function handlePriceChange(val: string) {
     setPrice(val);
-    if (val.trim() === '' || isNaN(Number(val))) {
-      setPriceError('Please enter number');
+    if (val.trim() === "" || isNaN(Number(val))) {
+      setPriceError("Please enter number");
     } else {
       setPriceError(null);
     }
   }
   function handleQtyChange(val: string) {
     setQty(val);
-    if (val.trim() === '' || isNaN(Number(val))) {
-      setQtyError('Please enter number');
+    if (val.trim() === "" || isNaN(Number(val))) {
+      setQtyError("Please enter number");
     } else if (Number(val) < 1) {
-      setQtyError('Quantity must be ≥ 1');
+      setQtyError("Quantity must be ≥ 1");
     } else {
       setQtyError(null);
     }
   }
 
   // --- submit ---
-    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setOk(false);
 
     if (!title.trim() || !desc.trim() || !price.trim() || !qty.trim()) {
-        setError('Please fill all required fields.');
-        return;
+      setError("Please fill all required fields.");
+      return;
     }
     if (priceError || qtyError) {
-        setError('Fix the errors before submitting.');
-        return;
+      setError("Fix the errors before submitting.");
+      return;
     }
 
     const p = Number(price);
@@ -102,54 +102,65 @@ export default function NewItemPage() {
 
     setSubmitting(true);
     try {
-        const form = new FormData();
-        form.append('title', title.trim());
-        form.append('description', desc.trim());
-        form.append('price', String(p));
-        form.append('quantity', String(q));
-        form.append('category', category);
-        form.append('condition', condition);
-        form.append('delivery', delivery);
-        images.forEach((f) => form.append('images', f, f.name));
+      const form = new FormData();
+      form.append("title", title.trim());
+      form.append("description", desc.trim());
+      form.append("price", String(p));
+      form.append("quantity", String(q));
+      form.append("category", category);
+      form.append("condition", condition);
+      form.append("delivery", delivery);
+      images.forEach((f) => form.append("images", f, f.name));
 
-        const res = await fetch(`${apiBase}/items/create`, { method: 'POST', body: form });
+      const res = await fetch(`${apiBase}/items/create`, {
+        method: "POST",
+        body: form,
+      });
 
-        if (!res.ok) {
+      if (!res.ok) {
         // try to read text for a clearer backend error message
-        const msg = await res.text().catch(() => '');
+        const msg = await res.text().catch(() => "");
         throw new Error(msg || `Request failed with status ${res.status}`);
-        }
+      }
 
-        setOk(true);
-        setTitle('');
-        setDesc('');
-        setPrice('');
-        setQty('');
-        setCategory('Other');
-        setCondition('Good');
-        setDelivery('Meet-up');
-        setImages([]);
-        setCurrentIndex(0);
+      setOk(true);
+      setTitle("");
+      setDesc("");
+      setPrice("");
+      setQty("");
+      setCategory("Other");
+      setCondition("Good");
+      setDelivery("Meet-up");
+      setImages([]);
+      setCurrentIndex(0);
     } catch (err) {
-        if (err instanceof Error) {
+      if (err instanceof Error) {
         setError(err.message);
-        } else {
-        setError('Failed to submit');
-        }
+      } else {
+        setError("Failed to submit");
+      }
     } finally {
-        setSubmitting(false);
+      setSubmitting(false);
     }
-    }
-
+  }
 
   return (
     <div className="min-h-screen" style={{ background: LIGHT }}>
       {/* Top bar */}
-      <motion.div {...{ initial: { opacity: 0 }, animate: { opacity: 1 } }} className="w-full" style={{ background: GREEN }}>
-        <div className="mx-auto max-w-6xl px-6 py-4 text-white font-medium">Add Item</div>
+      <motion.div
+        {...{ initial: { opacity: 0 }, animate: { opacity: 1 } }}
+        className="w-full"
+        style={{ background: GREEN }}
+      >
+        <div className="mx-auto max-w-6xl px-6 py-4 text-white font-medium">
+          Add Item
+        </div>
       </motion.div>
 
-      <motion.div {...{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }} className="mx-auto max-w-6xl px-6 py-6 bg-white rounded-2xl shadow mt-6">
+      <motion.div
+        {...{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
+        className="mx-auto max-w-6xl px-6 py-6 bg-white rounded-2xl shadow mt-6"
+      >
         <form onSubmit={handleSubmit}>
           <div className="grid lg:grid-cols-2 gap-8 items-start">
             {/* LEFT: slideshow + insert boxes */}
@@ -172,10 +183,20 @@ export default function NewItemPage() {
 
                 {previews.length > 1 && (
                   <>
-                    <button type="button" onClick={prevImage}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow">‹</button>
-                    <button type="button" onClick={nextImage}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow">›</button>
+                    <button
+                      type="button"
+                      onClick={prevImage}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      onClick={nextImage}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 rounded-full p-2 shadow"
+                    >
+                      ›
+                    </button>
                   </>
                 )}
               </div>
@@ -184,17 +205,29 @@ export default function NewItemPage() {
               {previews.length > 1 && (
                 <div className="flex justify-center mt-3 gap-2">
                   {previews.map((_, i) => (
-                    <button key={i} onClick={() => setCurrentIndex(i)} type="button"
-                      className={`w-3 h-3 rounded-full ${i === currentIndex ? 'bg-[rgba(122,74,34,0.9)]' : 'bg-gray-300'}`} />
+                    <button
+                      key={i}
+                      onClick={() => setCurrentIndex(i)}
+                      type="button"
+                      className={`w-3 h-3 rounded-full ${
+                        i === currentIndex
+                          ? "bg-[rgba(122,74,34,0.9)]"
+                          : "bg-gray-300"
+                      }`}
+                    />
                   ))}
                 </div>
               )}
 
               {/* insert boxes */}
               <div className="mt-6 grid grid-cols-3 gap-6">
-                {[0,1,2].map((i) => (
-                  <motion.div key={i} whileHover={{ y: -2 }}
-                    className="aspect-square rounded-2xl border-2" style={{ borderColor: GREEN }}>
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    whileHover={{ y: -2 }}
+                    className="aspect-square rounded-2xl border-2"
+                    style={{ borderColor: GREEN }}
+                  >
                     {previews[i] ? (
                       <div className="relative h-full w-full overflow-hidden rounded-2xl">
                         <img
@@ -203,12 +236,22 @@ export default function NewItemPage() {
                           className="h-full w-full object-cover cursor-pointer"
                           onClick={() => setCurrentIndex(i)}
                         />
-                        <button type="button" onClick={() => removeImage(i)}
-                          className="absolute top-2 right-2 text-xs bg-white/90 border px-2 py-1 rounded">remove</button>
+                        <button
+                          type="button"
+                          onClick={() => removeImage(i)}
+                          className="absolute top-2 right-2 text-xs bg-white/90 border px-2 py-1 rounded"
+                        >
+                          remove
+                        </button>
                       </div>
                     ) : (
                       <label className="h-full w-full flex items-center justify-center cursor-pointer">
-                        <input type="file" accept="image/*" className="hidden" onChange={onFilesChange} />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={onFilesChange}
+                        />
                         <PlusMark color={GREEN} />
                       </label>
                     )}
@@ -220,7 +263,7 @@ export default function NewItemPage() {
             {/* RIGHT: details */}
             <div>
               <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800 mb-2 break-words leading-tight">
-                {title.trim() ? title : 'Your Item Title'}
+                {title.trim() ? title : "Your Item Title"}
               </h1>
 
               {/* Condition + Delivery */}
@@ -228,13 +271,13 @@ export default function NewItemPage() {
                 <CustomSelect<Condition>
                   label="Condition"
                   value={condition}
-                  options={['New','Like New','Good','Fair']}
+                  options={["New", "Like New", "Good", "Fair"]}
                   onChange={setCondition}
                 />
                 <CustomSelect<Delivery>
                   label="Delivery"
                   value={delivery}
-                  options={['Meet-up','Shipping','Both']}
+                  options={["Meet-up", "Shipping", "Both"]}
                   onChange={setDelivery}
                 />
               </div>
@@ -242,7 +285,9 @@ export default function NewItemPage() {
               {/* Title + Price */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Title<span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium mb-1">
+                    Title<span className="text-red-500">*</span>
+                  </label>
                   <input
                     className="w-full rounded-xl border p-3 outline-none"
                     value={title}
@@ -252,16 +297,22 @@ export default function NewItemPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Price (THB)<span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium mb-1">
+                    Price (THB)<span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    className={`w-full rounded-xl border p-3 outline-none ${priceError ? 'border-red-500' : ''}`}
+                    className={`w-full rounded-xl border p-3 outline-none ${
+                      priceError ? "border-red-500" : ""
+                    }`}
                     value={price}
-                    onChange={(e)=>handlePriceChange(e.target.value)}
+                    onChange={(e) => handlePriceChange(e.target.value)}
                     placeholder="120"
                     required
                   />
-                  {priceError && <p className="text-sm text-red-600">{priceError}</p>}
+                  {priceError && (
+                    <p className="text-sm text-red-600">{priceError}</p>
+                  )}
                 </div>
               </div>
 
@@ -270,31 +321,39 @@ export default function NewItemPage() {
                 <CustomSelect<Category>
                   label="Category"
                   value={category}
-                  options={['Electronics','Books','Fashion','Dorm','Other']}
+                  options={["Electronics", "Books", "Fashion", "Dorm", "Other"]}
                   onChange={setCategory}
                 />
                 <div>
-                  <label className="block text-sm font-medium mb-1">Quantity<span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium mb-1">
+                    Quantity<span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    className={`w-full rounded-xl border p-3 outline-none ${qtyError ? 'border-red-500' : ''}`}
+                    className={`w-full rounded-xl border p-3 outline-none ${
+                      qtyError ? "border-red-500" : ""
+                    }`}
                     value={qty}
-                    onChange={(e)=>handleQtyChange(e.target.value)}
+                    onChange={(e) => handleQtyChange(e.target.value)}
                     placeholder="1"
                     required
                   />
-                  {qtyError && <p className="text-sm text-red-600">{qtyError}</p>}
+                  {qtyError && (
+                    <p className="text-sm text-red-600">{qtyError}</p>
+                  )}
                 </div>
               </div>
 
               {/* Description */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-1">Description<span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium mb-1">
+                  Description<span className="text-red-500">*</span>
+                </label>
                 <textarea
                   className="w-full min-h-[120px] rounded-xl border p-3 outline-none"
                   placeholder="Condition, meet-up place, extra details…"
                   value={desc}
-                  onChange={(e)=>setDesc(e.target.value)}
+                  onChange={(e) => setDesc(e.target.value)}
                   required
                 />
               </div>
@@ -308,11 +367,13 @@ export default function NewItemPage() {
                 className="rounded-xl px-6 py-3 font-semibold text-white shadow disabled:opacity-60"
                 style={{ background: GREEN }}
               >
-                {submitting ? 'Adding…' : 'Add to Marketplace'}
+                {submitting ? "Adding…" : "Add to Marketplace"}
               </motion.button>
 
               {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-              {ok && <p className="mt-3 text-sm text-green-600">Item posted! 🎉</p>}
+              {ok && (
+                <p className="mt-3 text-sm text-green-600">Item posted! 🎉</p>
+              )}
             </div>
           </div>
         </form>
@@ -331,7 +392,15 @@ function EmptyImage() {
 }
 function PlusMark({ color }: { color: string }) {
   return (
-    <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round">
+    <svg
+      width="46"
+      height="46"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    >
       <path d="M12 5v14M5 12h14" />
     </svg>
   );
@@ -347,20 +416,31 @@ function useOutsideClose<T extends HTMLElement>(
       if (!ref.current) return;
       if (!ref.current.contains(e.target as Node)) onClose();
     }
-    document.addEventListener('mousedown', handle);
-    return () => document.removeEventListener('mousedown', handle);
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
   }, [ref, onClose]);
 }
 
-function ChevronDown({ className = '' }) {
+function ChevronDown({ className = "" }) {
   return (
-    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      className={className}
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M6 9l6 6 6-6" />
     </svg>
   );
 }
 function CustomSelect<T extends string | number>({
-  label, value, options, onChange,
+  label,
+  value,
+  options,
+  onChange,
 }: {
   label: string;
   value: T;
@@ -377,11 +457,13 @@ function CustomSelect<T extends string | number>({
       <div className="relative">
         <button
           type="button"
-          onClick={() => setOpen(o => !o)}
+          onClick={() => setOpen((o) => !o)}
           className="w-full rounded-xl border p-3 text-left flex items-center justify-between hover:border-[rgba(122,74,34,0.7)] transition"
         >
           <span>{String(value)}</span>
-          <ChevronDown className={`ml-2 transition ${open ? 'rotate-180' : ''}`} />
+          <ChevronDown
+            className={`ml-2 transition ${open ? "rotate-180" : ""}`}
+          />
         </button>
 
         <AnimatePresence>
@@ -398,13 +480,27 @@ function CustomSelect<T extends string | number>({
                 return (
                   <li
                     key={String(opt)}
-                    onClick={() => { onChange(opt); setOpen(false); }}
+                    onClick={() => {
+                      onChange(opt);
+                      setOpen(false);
+                    }}
                     className={`px-3 py-2 cursor-pointer flex items-center justify-between
-                                ${isSelected ? 'font-medium text-[rgba(122,74,34,0.95)]' : 'text-gray-700'}`}
+                                ${
+                                  isSelected
+                                    ? "font-medium text-[rgba(122,74,34,0.95)]"
+                                    : "text-gray-700"
+                                }`}
                   >
                     <span>{String(opt)}</span>
                     {isSelected && (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
                         <path d="M20 6L9 17l-5-5" />
                       </svg>
                     )}
