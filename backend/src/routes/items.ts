@@ -101,4 +101,130 @@ router.delete("/delete/:id", async (req, res) => {
     }
 });
 
+router.get("/list", async (req, res) => {
+    try {
+        const page = Math.max(1, parseInt(req.query.page as string) || 1);
+        const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10)); 
+        const skip = (page - 1) * limit;
+        
+        const filters: any = {};
+        
+        if (req.query.status && ["available", "reserved", "sold"].includes(req.query.status as string)) {
+            filters.status = req.query.status;
+        }
+        
+        if (req.query.category) {
+            filters.category = new RegExp(req.query.category as string, 'i'); 
+        }
+        
+        // Price range filter
+        if (req.query.minPrice || req.query.maxPrice) {
+            filters.price = {};
+            if (req.query.minPrice) {
+                filters.price.$gte = Number(req.query.minPrice);
+            }
+            if (req.query.maxPrice) {
+                filters.price.$lte = Number(req.query.maxPrice);
+            }
+        }
+        
+        // Owner filter
+        if (req.query.owner && mongoose.Types.ObjectId.isValid(req.query.owner as string)) {
+            filters.owner = new mongoose.Types.ObjectId(req.query.owner as string);
+        }
+        
+        // Search in title and description
+        if (req.query.search) {
+            filters.$text = { $search: req.query.search as string };
+        }
+        
+        // Sorting
+        let sortOption: any = { createAt: -1 };
+        
+        if (req.query.sortBy) {
+            const sortBy = req.query.sortBy as string;
+            const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+            
+            switch (sortBy) {
+                case 'price':
+                    sortOption = { price: sortOrder };
+                    break;
+                case 'title':
+                    sortOption = { title: sortOrder };
+                    break;
+                case 'createAt':
+                    sortOption = { createAt: sortOrder };
+                    break;
+                case 'updateAt':
+                    sortOption = { updateAt: sortOrder };
+                    break;
+                case 'relevance':
+                    if (req.query.search) {
+                        sortOption = { score: { $meta: "textScore" } };
+                    }
+                    break;
+            }
+        }
+        
+        const pipeline = [
+            { $match: filters },
+            { $sort: sortOption },
+            { $skip: skip },
+            { $limit: limit },
+            {
+                $lookup: {
+                    from: "users", 
+                    localField: "owner",
+                    foreignField: "_id",
+                    as: "ownerInfo",
+                    pipeline: [
+                        { $project: { name: 1, email: 1 } }
+                    ]
+                }
+            },
+            {
+                $addFields: {
+                    owner: { $arrayElemAt: ["$ownerInfo", 0] }
+                }
+            },
+            {
+                $project: {
+                    ownerInfo: 0,
+                    __v: 0 
+                }
+            }
+        ];
+        
+        const [items, totalCount] = await Promise.all([
+            Item.aggregate(pipeline),
+            Item.countDocuments(filters)
+        ]);
+        
+        const totalPages = Math.ceil(totalCount / limit);
+        const hasNextPage = page < totalPages;
+        const hasPrevPage = page > 1;
+        
+        res.status(200).json({
+            success: true,
+            data: {
+                items,
+                pagination: {
+                    currentPage: page,
+                    totalPages,
+                    totalItems: totalCount,
+                    itemsPerPage: limit,
+                    hasNextPage,
+                    hasPrevPage,
+                    nextPage: hasNextPage ? page + 1 : null,
+                    prevPage: hasPrevPage ? page - 1 : null
+                }
+            }
+        });
+        
+    } catch (err: any) {
+        console.error("List items error:", err);
+        res.status(500).json({ error: err.message || "Server error" });
+    }
+});
+
 export default router;
