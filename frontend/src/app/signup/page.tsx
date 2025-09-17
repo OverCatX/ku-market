@@ -4,18 +4,22 @@ import { SignUpForm } from "@/components/auth/signup-form";
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="container mx-auto px-6 py-16">
-        <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[600px]">
+    <div className="min-h-screen bg-gray-50 flex items-center">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-16 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[600px]">
           {/* Left side - Heading */}
-          <div className="space-y-6">
-            <h1 className="text-5xl lg:text-6xl font-bold text-[#69773D] leading-tight">
-              Enter the requested data to enter your cargo account
+          <div className="text-center lg:text-left space-y-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#69773D] leading-snug">
+              Join KU Market Today
             </h1>
+            <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
+              Create your account to access the KU Market platform. List
+              products, manage orders, and connect with buyers all in one place.
+            </p>
           </div>
 
-          {/* Right side - Login Form */}
-          <div className="flex justify-center lg:justify-end">
+          {/* Right side - SignUp Form */}
+          <div className="flex justify-center lg:justify-end mt-8 lg:mt-0">
             <SignUpForm />
           </div>
         </div>

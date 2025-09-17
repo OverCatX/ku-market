@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Header } from "@/components/Navbar";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "Cargo Account - Login",
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className="">
         <Header />
         <Suspense fallback={null}>{children}</Suspense>
+        <Toaster position="top-right" />
       </body>
     </html>
   );
