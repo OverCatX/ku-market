@@ -1,0 +1,63 @@
+name: Feature CI
+
+on:
+  push:
+    branches:
+      - "features/**"
+
+jobs:
+  # ===== FRONTEND =====
+  fe-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --prefix frontend
+
+  fe-lint:
+    runs-on: ubuntu-latest
+    needs: fe-install
+    steps:
+      - run: npm run lint --prefix frontend
+
+  fe-build:
+    runs-on: ubuntu-latest
+    needs: fe-lint
+    steps:
+      - run: npm run build --prefix frontend
+
+  fe-unit-test:
+    runs-on: ubuntu-latest
+    needs: fe-build
+    steps:
+      - run: npm test --prefix frontend
+
+  # ===== BACKEND =====
+  be-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci --prefix backend
+
+  be-lint:
+    runs-on: ubuntu-latest
+    needs: be-install
+    steps:
+      - run: npm run lint --prefix backend
+
+  be-build:
+    runs-on: ubuntu-latest
+    needs: be-lint
+    steps:
+      - run: npm run build --prefix backend
+
+  be-unit-test:
+    runs-on: ubuntu-latest
+    needs: be-build
+    steps:
+      - run: npm test --prefix backend

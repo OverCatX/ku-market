@@ -1,0 +1,40 @@
+name: Auto Pull Request
+
+on:
+  push:
+    branches:
+      - "features/**"
+      - develop
+
+jobs:
+  auto-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node (if needed)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Determine PR base
+        id: pr_base
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == "develop" ]]; then
+            echo "base=main" >> $GITHUB_OUTPUT
+          else
+            echo "base=develop" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: ${{ github.ref_name }}
+          base: ${{ steps.pr_base.outputs.base }}
+          title: "Auto PR: ${{ github.ref_name }} → ${{ steps.pr_base.outputs.base }}"
+          body: "This PR is automatically created by workflow."
+          commit-message: "Auto PR commit: ${{ github.ref_name }}"
+          draft: false
+          labels: auto-pr
+          # สามารถตั้ง reviewers, assignees, หรือ teams เพิ่มได้
