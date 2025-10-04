@@ -259,7 +259,7 @@ export default function MarketPage() {
             {items.map((item) => (
               <Link
                 key={item._id}
-                href={`/market/${item._id}`}
+                href={`/marketplace/${item._id}`}
                 className="block"
               >
                 <ItemCard
