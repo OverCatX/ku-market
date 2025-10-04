@@ -45,14 +45,21 @@ export async function listItems(
 ): Promise<ListItemsResponse> {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, val]) => {
-    if (val !== undefined && val !== "") query.append(key, String(val));
+    if (val !== undefined && val !== "") {
+      query.append(key, String(val));
+    }
   });
 
-  // API_BASE should be like http://localhost:5050/api
-  const url = `${API_BASE}/items/list?${query.toString()}`;
+  const url = `${API_BASE}/api/items/list?${query.toString()}`;
 
   try {
-    const res = await fetch(url, { signal, cache: "no-store" });
+    const res = await fetch(url, {
+      signal,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
 
     if (!res.ok) {
       const errorText = await res.text();
@@ -72,11 +79,19 @@ export async function listItems(
       };
     }
 
-    const data: ListItemsResponse = (await res.json()) as ListItemsResponse;
+    const data: ListItemsResponse = await res.json();
+
+    if (!data.success) {
+      console.error("API returned success: false", data);
+    }
+
     return data;
   } catch (err: unknown) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    console.error("Fetch error:", err);
+    if (err instanceof Error) {
+      if (err.name === "AbortError") throw err;
+      console.error("Fetch error:", err.message);
+    }
+
     return {
       success: false,
       data: {
@@ -93,28 +108,36 @@ export async function listItems(
   }
 }
 
+// --- Get single item by ID ---
 export interface GetItemResponse {
   success: boolean;
   item: Item | null;
   error?: string;
 }
 
-// --- Get single item by ID ---
 export async function getItem(id: string): Promise<GetItemResponse> {
-  // API_BASE is like http://localhost:5050/api
-  const url = `${API_BASE}/items/${id}`; // no extra /api
+  const url = `${API_BASE}/api/items/${id}`; // แก้ให้ตรงกับ listItems
 
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+
     if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`API Error (${res.status}):`, errorText);
       return { success: false, item: null, error: `HTTP ${res.status}` };
     }
+
     const data = (await res.json()) as { item?: Item } | Item;
-    // backend may return { item } or the item itself
-    const item = "item" in data ? (data.item ?? null) : (data as Item);
+    const item = "item" in data ? data.item ?? null : (data as Item);
+
     return { success: true, item };
   } catch (err: unknown) {
-    console.error("getItem error:", err);
+    if (err instanceof Error) {
+      console.error("getItem error:", err.message);
+    }
     return { success: false, item: null, error: "Network error" };
   }
 }
