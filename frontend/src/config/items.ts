@@ -44,27 +44,19 @@ export async function listItems(
   signal?: AbortSignal
 ): Promise<ListItemsResponse> {
   const query = new URLSearchParams();
-  
   Object.entries(params).forEach(([key, val]) => {
-    if (val !== undefined && val !== "") {
-      query.append(key, String(val));
-    }
+    if (val !== undefined && val !== "") query.append(key, String(val));
   });
 
-  const url = `${API_BASE}/api/items/list?${query.toString()}`;
+  // API_BASE should be like http://localhost:5050/api
+  const url = `${API_BASE}/items/list?${query.toString()}`;
 
   try {
-    const res = await fetch(url, {
-      signal,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const res = await fetch(url, { signal, cache: "no-store" });
 
     if (!res.ok) {
       const errorText = await res.text();
       console.error(`API Error (${res.status}):`, errorText);
-      
       return {
         success: false,
         data: {
@@ -80,21 +72,11 @@ export async function listItems(
       };
     }
 
-    const data: ListItemsResponse = await res.json();
-
-    if (!data.success) {
-      console.error("API returned success: false", data);
-    }
-
+    const data: ListItemsResponse = (await res.json()) as ListItemsResponse;
     return data;
-  } catch (err) {
-    if (err instanceof Error) {
-      if (err.name === "AbortError") {
-        throw err; // Re-throw abort errors
-      }
-      console.error("Fetch error:", err.message);
-    }
-
+  } catch (err: unknown) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    console.error("Fetch error:", err);
     return {
       success: false,
       data: {
@@ -108,5 +90,31 @@ export async function listItems(
       },
       error: "Network error",
     };
+  }
+}
+
+export interface GetItemResponse {
+  success: boolean;
+  item: Item | null;
+  error?: string;
+}
+
+// --- Get single item by ID ---
+export async function getItem(id: string): Promise<GetItemResponse> {
+  // API_BASE is like http://localhost:5050/api
+  const url = `${API_BASE}/items/${id}`; // no extra /api
+
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) {
+      return { success: false, item: null, error: `HTTP ${res.status}` };
+    }
+    const data = (await res.json()) as { item?: Item } | Item;
+    // backend may return { item } or the item itself
+    const item = "item" in data ? (data.item ?? null) : (data as Item);
+    return { success: true, item };
+  } catch (err: unknown) {
+    console.error("getItem error:", err);
+    return { success: false, item: null, error: "Network error" };
   }
 }
