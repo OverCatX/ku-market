@@ -21,7 +21,7 @@ export default function MarketPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(12); // removed setLimit since it's not used
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
@@ -45,7 +45,7 @@ export default function MarketPage() {
     try {
       const res: ListItemsResponse = await listItems(
         {
-          page,
+          page: currentPage,
           limit,
           search,
           category,
@@ -59,6 +59,7 @@ export default function MarketPage() {
       if (res.success) {
         setItems(res.data.items);
         setTotalPages(res.data.pagination.totalPages);
+        setCurrentPage(res.data.pagination.currentPage);
       } else {
         setItems([]);
         setTotalPages(1);
@@ -76,12 +77,12 @@ export default function MarketPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, search, category, status, sortBy, sortOrder]);
+  }, [currentPage, limit, search, category, status, sortBy, sortOrder]);
 
   // Cleanup debounce on unmount
   const debouncedSearch = useMemo(() => {
     const fn = debounce((val: string) => {
-      setPage(1);
+      setCurrentPage(1);
       setSearch(val);
     }, 500);
 
@@ -143,7 +144,7 @@ export default function MarketPage() {
             <select
               value={status}
               onChange={(e) => {
-                setPage(1);
+                setCurrentPage(1);
                 setStatus(e.target.value);
               }}
               className="p-2 rounded-xl border border-gray-300"
@@ -159,7 +160,7 @@ export default function MarketPage() {
             <select
               value={category}
               onChange={(e) => {
-                setPage(1);
+                setCurrentPage(1);
                 setCategory(e.target.value);
               }}
               className="p-2 rounded-xl border border-gray-300"
@@ -175,7 +176,7 @@ export default function MarketPage() {
             <select
               value={sortBy}
               onChange={(e) => {
-                setPage(1);
+                setCurrentPage(1);
                 setSortBy(e.target.value as SortOptions);
               }}
               className="p-2 rounded-xl border border-gray-300"
@@ -272,9 +273,9 @@ export default function MarketPage() {
         {items.length > 0 && (
           <div className="mt-8">
             <Pagination
-              currentPage={page}
+              currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setPage}
+              onPageChange={setCurrentPage}
             />
           </div>
         )}
