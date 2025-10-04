@@ -1,0 +1,220 @@
+name: Auto Pull Request
+
+on:
+  # Strategy 1: Feature branches → สร้างทันที (Fast Feedback)
+  push:
+    branches:
+      - "features/**"
+      - "feature/**"
+      - "feat/**"
+
+  # Strategy 2: Develop → Main → รอ CI ผ่าน (Quality Gate)
+  workflow_run:
+    workflows: ["Develop CI"]
+    types:
+      - completed
+    branches:
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  actions: read
+
+jobs:
+  # ===== JOB 1: Feature Branches (Fast) =====
+  feature-pr:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine base branch
+        id: base
+        run: echo "branch=develop" >> $GITHUB_OUTPUT
+
+      - name: Create PR body
+        id: content
+        run: |
+          BODY="## ✨ Feature Branch → Develop
+
+          **Branch:** \`${{ github.ref_name }}\`
+          **Author:** @${{ github.actor }}
+
+          ### 📝 Description
+          <!-- Please describe your changes -->
+
+          ### 🧪 Testing Status
+          ⏳ CI tests are running... Check status below.
+
+          ### ✅ Checklist
+          - [ ] Code follows team standards
+          - [ ] Tests added/updated
+          - [ ] Documentation updated
+          - [ ] Ready for review
+
+          ---
+          🤖 _Auto-created on push. CI status will update automatically._"
+
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "${BODY}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Check if PR exists
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR=$(gh pr list \
+            --head "${{ github.ref_name }}" \
+            --base "develop" \
+            --state open \
+            --json number \
+            --jq '.[0].number')
+
+          if [ -n "$PR" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "number=${PR}" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PR
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr create \
+            --base "develop" \
+            --head "${{ github.ref_name }}" \
+            --title "🚀 ${{ github.ref_name }} → develop" \
+            --body "${{ steps.content.outputs.body }}" \
+            --label "auto-pr,feature,needs-review"
+
+      - name: Update PR
+        if: steps.check.outputs.exists == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment ${{ steps.check.outputs.number }} \
+            --body "🔄 New commits pushed by @${{ github.actor }} at $(date -u '+%Y-%m-%d %H:%M UTC')"
+
+  # ===== JOB 2: Develop → Main (Quality Gate) =====
+  develop-pr:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'develop'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Create PR body
+        id: content
+        run: |
+          BODY="## 🎯 Develop → Main (Production Ready)
+
+          ✅ **All CI checks passed on develop branch**
+
+          ### 📊 Test Results
+          - Frontend: ✅ Passed
+          - Backend: ✅ Passed  
+          - Integration: ✅ Passed
+          - Docker Build: ✅ Passed
+
+          ### 📋 Pre-Deployment Checklist
+          - [ ] Code reviewed by team lead
+          - [ ] All features tested
+          - [ ] Documentation updated
+          - [ ] Database migrations ready (if any)
+          - [ ] Environment variables checked
+
+          ### 🔗 Links
+          - [CI Run](${{ github.event.workflow_run.html_url }})
+          - [Commit](${{ github.event.workflow_run.head_sha }})
+
+          ---
+          🤖 _Auto-created after successful CI on develop_"
+
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "${BODY}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Check if PR exists
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR=$(gh pr list \
+            --head "develop" \
+            --base "main" \
+            --state open \
+            --json number \
+            --jq '.[0].number')
+
+          if [ -n "$PR" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "number=${PR}" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PR
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr create \
+            --base "main" \
+            --head "develop" \
+            --title "🚀 Release: develop → main" \
+            --body "${{ steps.content.outputs.body }}" \
+            --label "auto-pr,release,ci-passed,needs-review"
+
+      - name: Update PR
+        if: steps.check.outputs.exists == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          COMMENT="## ✅ New Changes Ready for Production
+
+          **Updated:** $(date -u '+%Y-%m-%d %H:%M UTC')
+          **CI Status:** All tests passed ✅
+
+          [View Latest CI Run](${{ github.event.workflow_run.html_url }})
+
+          ---
+          🤖 _Auto-updated by GitHub Actions_"
+
+          gh pr comment ${{ steps.check.outputs.number }} --body "${COMMENT}"
+          gh pr edit ${{ steps.check.outputs.number }} --add-label "ci-passed"
+
+  # ===== JOB 3: CI Failed Notification =====
+  ci-failed-notify:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_branch == 'develop'
+    steps:
+      - name: Notify
+        run: |
+          echo "## ❌ Develop CI Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** develop" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** Tests Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ **PR to main will NOT be created until CI passes**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 [View Failed Run](${{ github.event.workflow_run.html_url }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔧 Action Required" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check CI logs" >> $GITHUB_STEP_SUMMARY
+          echo "2. Fix failing tests on develop" >> $GITHUB_STEP_SUMMARY  
+          echo "3. Push fixes" >> $GITHUB_STEP_SUMMARY
+          echo "4. Wait for CI to pass" >> $GITHUB_STEP_SUMMARY
