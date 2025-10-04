@@ -216,13 +216,35 @@ export default function MarketPage() {
         )}
 
         {/* Items Grid */}
+        {/* Items Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: limit }).map((_, i) => (
               <div
                 key={i}
-                className="h-64 bg-gray-200 animate-pulse rounded-xl"
-              />
+                className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm"
+              >
+                {/* Image skeleton */}
+                <div className="w-full h-48 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-pulse" />
+
+                {/* Content skeleton */}
+                <div className="p-4 space-y-3">
+                  {/* Title skeleton */}
+                  <div className="h-5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded animate-pulse w-3/4" />
+
+                  {/* Description skeleton */}
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded animate-pulse w-full" />
+                    <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded animate-pulse w-5/6" />
+                  </div>
+
+                  {/* Price and status skeleton */}
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded animate-pulse w-20" />
+                    <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded-full animate-pulse w-16" />
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         ) : items.length === 0 ? (
