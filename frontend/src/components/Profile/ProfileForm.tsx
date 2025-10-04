@@ -1,5 +1,6 @@
 import InputField from "./InputField";
 import { RefreshCw } from "lucide-react";
+import { ProfileData } from "@/config/profile"; // ✅ import type ให้เหมือน parent
 
 export default function ProfileForm({
   profile,
@@ -8,8 +9,8 @@ export default function ProfileForm({
   setEditing,
   onSave,
 }: {
-  profile: { name: string; faculty: string; email: string };
-  setProfile: React.Dispatch<React.SetStateAction<typeof profile>>;
+  profile: ProfileData;
+  setProfile: React.Dispatch<React.SetStateAction<ProfileData>>;
   editing: boolean;
   setEditing: React.Dispatch<React.SetStateAction<boolean>>;
   onSave: () => void;
@@ -47,6 +48,13 @@ export default function ProfileForm({
           value={profile.email}
           disabled={!editing}
           onChange={(val) => setProfile((p) => ({ ...p, email: val }))}
+        />
+
+        <InputField
+          label="Contact"
+          value={profile.contact}
+          disabled={!editing}
+          onChange={(val) => setProfile((p) => ({ ...p, contact: val }))}
         />
       </div>
     </div>
