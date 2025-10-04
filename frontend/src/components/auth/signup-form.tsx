@@ -10,6 +10,8 @@ type FormDataType = {
   kuEmail: string;
   password: string;
   confirmPassword: string;
+  faculty: string;
+  contact: string;
 };
 
 type FormErrors = {
@@ -22,12 +24,16 @@ export function SignUpForm() {
     kuEmail: "",
     password: "",
     confirmPassword: "",
+    faculty: "",
+    contact: "",
   });
   const [errors, setErrors] = useState<FormErrors>({
     name: "",
     kuEmail: "",
     password: "",
     confirmPassword: "",
+    faculty: "",
+    contact: "",
   });
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,13 +46,16 @@ export function SignUpForm() {
   };
 
   const validate = () => {
-    const { name, kuEmail, password, confirmPassword } = formData;
+    const { name, kuEmail, password, confirmPassword, faculty, contact } =
+      formData;
     let valid = true;
     const newErrors: FormErrors = {
       name: "",
       kuEmail: "",
       password: "",
       confirmPassword: "",
+      faculty: "",
+      contact: "",
     };
 
     if (!name.trim()) {
@@ -65,6 +74,14 @@ export function SignUpForm() {
       newErrors.confirmPassword = "Passwords do not match";
       valid = false;
     }
+    if (!faculty.trim()) {
+      newErrors.faculty = "Faculty is required";
+      valid = false;
+    }
+    if (!contact.trim()) {
+      newErrors.contact = "Contact info is required";
+      valid = false;
+    }
 
     setErrors(newErrors);
     return valid;
@@ -81,6 +98,8 @@ export function SignUpForm() {
         name: formData.name,
         kuEmail: formData.kuEmail,
         password: formData.password,
+        faculty: formData.faculty,
+        contact: formData.contact,
       });
       toast.success("Sign up successful! Redirecting to login...");
       setTimeout(() => {
@@ -101,6 +120,8 @@ export function SignUpForm() {
     "kuEmail",
     "password",
     "confirmPassword",
+    "faculty",
+    "contact",
   ];
 
   return (
@@ -114,7 +135,9 @@ export function SignUpForm() {
             <label className="block text-gray-600 font-medium text-sm capitalize">
               {field === "kuEmail"
                 ? "KU Email"
-                : field.replace(/([A-Z])/g, " $1")}
+                : field === "confirmPassword"
+                ? "Confirm Password"
+                : field.charAt(0).toUpperCase() + field.slice(1)}
             </label>
             <input
               type={
@@ -124,7 +147,11 @@ export function SignUpForm() {
                 field === "name"
                   ? "Enter your full name"
                   : field === "kuEmail"
-                  ? "andes_nmezad@ku.th"
+                  ? "example@ku.th"
+                  : field === "faculty"
+                  ? "Faculty of Engineering"
+                  : field === "contact"
+                  ? "Phone number"
                   : "••••••••"
               }
               value={formData[field]}
