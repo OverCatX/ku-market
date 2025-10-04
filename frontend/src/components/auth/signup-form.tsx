@@ -81,6 +81,9 @@ export function SignUpForm() {
     if (!contact.trim()) {
       newErrors.contact = "Contact info is required";
       valid = false;
+    } else if (!/^\d{9,10}$/.test(contact)) {
+      newErrors.contact = "Contact must be a valid phone number";
+      valid = false;
     }
 
     setErrors(newErrors);
