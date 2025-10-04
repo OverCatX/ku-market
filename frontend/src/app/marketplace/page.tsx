@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import ItemCard from "@/components/Marketplace/ItemCard";
 import Pagination from "@/components/Marketplace/Pagination";
 import debounce from "lodash.debounce";
@@ -20,8 +20,9 @@ type SortOptions =
 export default function MarketPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(12);
+  const [limit] = useState(12); // removed setLimit since it's not used
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
@@ -29,18 +30,31 @@ export default function MarketPage() {
   const [sortBy, setSortBy] = useState<SortOptions>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const fetchItems = useCallback(async () => {
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    abortControllerRef.current = new AbortController();
     setLoading(true);
+    setError(null);
+
     try {
-      const res: ListItemsResponse = await listItems({
-        page,
-        limit,
-        search,
-        category,
-        status,
-        sortBy: sortBy || undefined,
-        sortOrder,
-      });
+      const res: ListItemsResponse = await listItems(
+        {
+          page,
+          limit,
+          search,
+          category,
+          status,
+          sortBy: sortBy || undefined,
+          sortOrder,
+        },
+        abortControllerRef.current.signal
+      );
 
       if (res.success) {
         setItems(res.data.items);
@@ -48,9 +62,15 @@ export default function MarketPage() {
       } else {
         setItems([]);
         setTotalPages(1);
+        setError("Failed to load items");
       }
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        // Request was cancelled, ignore
+        return;
+      }
       console.error("Fetch items error:", err);
+      setError("Failed to load items. Please try again.");
       setItems([]);
       setTotalPages(1);
     } finally {
@@ -58,17 +78,30 @@ export default function MarketPage() {
     }
   }, [page, limit, search, category, status, sortBy, sortOrder]);
 
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((val: string) => {
-        setPage(1);
-        setSearch(val);
-      }, 500),
-    []
-  );
+  // Cleanup debounce on unmount
+  const debouncedSearch = useMemo(() => {
+    const fn = debounce((val: string) => {
+      setPage(1);
+      setSearch(val);
+    }, 500);
+
+    return fn;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   useEffect(() => {
     fetchItems();
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [fetchItems]);
 
   const statusOptions = ["", "available", "reserved", "sold"] as const;
@@ -158,13 +191,29 @@ export default function MarketPage() {
                 onClick={() =>
                   setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                 }
-                className="px-3 py-2 bg-green-200 rounded-xl"
+                className="px-3 py-2 bg-green-200 rounded-xl hover:bg-green-300 transition-colors"
+                aria-label={`Sort ${
+                  sortOrder === "asc" ? "ascending" : "descending"
+                }`}
               >
                 {sortOrder === "asc" ? "↑" : "↓"}
               </button>
             )}
           </div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+            {error}
+            <button
+              onClick={fetchItems}
+              className="ml-2 underline hover:no-underline"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* Items Grid */}
         {loading ? (
@@ -178,7 +227,8 @@ export default function MarketPage() {
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-gray-500 py-20">
-            <p className="text-xl font-medium mb-2">No items yet</p>
+            <p className="text-xl font-medium mb-2">No items found</p>
+            <p className="text-sm">Try adjusting your search or filters</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
