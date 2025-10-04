@@ -1,0 +1,54 @@
+import { Router, Request, Response } from "express";
+import User from "../../data/models/User";
+import jwt from "jsonwebtoken";
+
+export default class AuthController {
+    userSignup = async(req: Request, res: Response) =>{
+        const {name, kuEmail, password, faculty, contact} = req.body;
+
+        try {
+            const userEmailexist = await User.findOne({kuEmail});
+
+            if (userEmailexist){
+                return res.status(400).json({ message: "Email is already registered"})
+            }
+
+            const userContactExist = await User.findOne({contact})
+
+            if (userContactExist){
+                return res.status(400).json({message : "Phone number is already existed"})
+            }
+
+            const user = new User({name, kuEmail, password, faculty, contact});
+            await user.save();
+
+            return res.status(201).json({message: "User created successfully"})
+            
+        } catch (err: any) {
+            return res.status(400).json({ error: err.message })
+        }
+    }
+
+    userLogin = async(req: Request, res: Response ,) => {
+        const {kuEmail, password} = req.body;
+
+        try {
+            const user = await User.findOne({kuEmail});
+
+            if (!user){
+                return res.status(404).json({ error : "Email is not found"})
+            }
+
+            const isMatch = await user.comparePassword(password);
+            if (!isMatch){
+                return res.status(400).json({ error : "Invalid credentials"})
+            }
+
+            const token = jwt.sign({id : user._id}, process.env.JWT_SECRET || "secret", {expiresIn: "1h"} )
+            return res.json({token})
+            
+        } catch (err : any) {
+            return res.status(400).json({ error: err.message });
+        }
+    }
+}
