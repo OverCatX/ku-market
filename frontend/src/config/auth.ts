@@ -1,9 +1,12 @@
 import { API_BASE } from "./index";
 
+// ===== Types =====
 export type SignupData = {
   name: string;
   kuEmail: string;
   password: string;
+  faculty: string;
+  contact: string;
 };
 
 export type SignupResponse = {
