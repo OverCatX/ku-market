@@ -2,7 +2,7 @@ import express from "express";
 import { upload } from "../lib/upload";
 import { uploadToCloudinary } from "../lib/cloudinary";
 import Item, { IItem } from "../models/Item"
-import mongoose from "mongoose";
+import mongoose, { FilterQuery, PipelineStage } from "mongoose";
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.post("/create", upload.array("photos", 5), async (req, res) => {
         
         if (files.length > 5) {
             return res.status(400).json({ 
-                error: "Too many files. Maximum 5 photos allowed.",
+                error: "Too munknown files. Maximum 5 photos allowed.",
                 uploaded: files.length,
                 maximum: 5
             });
@@ -57,9 +57,9 @@ router.post("/create", upload.array("photos", 5), async (req, res) => {
             message: `Item created successfully with ${imageUrls.length} photo(s)`
         });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Create item error:", err);
-        res.status(500).json({ error: err.message || "Server error" });
+        res.status(500).json({ error: err instanceof Error ? err.message : String(err) || "Server error" });
     }
 });
 
@@ -99,9 +99,9 @@ router.patch("/update/:id", upload.single("image"), async (req, res) => {
         );
 
         res.status(200).json({ success: true, item: updatedItem });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Patch error:", err);
-        res.status(500).json({ error: err.message || "Server error" });
+        res.status(500).json({ error: err instanceof Error ? err.message : String(err) || "Server error" });
     }
 });
 
@@ -125,9 +125,9 @@ router.delete("/delete/:id", async (req, res) => {
             message: "Item deleted successfully",
             deletedItem: existingItem 
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Delete error:", err);
-        res.status(500).json({ error: err.message || "Server error" });
+        res.status(500).json({ error: err instanceof Error ? err.message : String(err) || "Server error" });
     }
 });
 
@@ -137,7 +137,7 @@ router.get("/list", async (req, res) => {
         const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10)); 
         const skip = (page - 1) * limit;
         
-        const filters: any = {};
+        const filters: FilterQuery<IItem> = {};
         
         if (req.query.status && ["available", "reserved", "sold"].includes(req.query.status as string)) {
             filters.status = req.query.status;
@@ -169,7 +169,7 @@ router.get("/list", async (req, res) => {
         }
         
         // Sorting
-        let sortOption: any = { createAt: -1 };
+        let sortOption: unknown = { createAt: -1 };
         
         if (req.query.sortBy) {
             const sortBy = req.query.sortBy as string;
@@ -196,34 +196,32 @@ router.get("/list", async (req, res) => {
             }
         }
         
-        const pipeline = [
+        const pipeline: PipelineStage[] = [
             { $match: filters },
-            { $sort: sortOption },
+            { $sort: sortOption as Record<string, 1 | -1> },
             { $skip: skip },
             { $limit: limit },
             {
-                $lookup: {
-                    from: "users", 
-                    localField: "owner",
-                    foreignField: "_id",
-                    as: "ownerInfo",
-                    pipeline: [
-                        { $project: { name: 1, email: 1 } }
-                    ]
-                }
+              $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "ownerInfo",
+                pipeline: [{ $project: { name: 1, email: 1 } }],
+              },
             },
             {
-                $addFields: {
-                    owner: { $arrayElemAt: ["$ownerInfo", 0] }
-                }
+              $addFields: {
+                owner: { $arrayElemAt: ["$ownerInfo", 0] },
+              },
             },
             {
-                $project: {
-                    ownerInfo: 0,
-                    __v: 0 
-                }
-            }
-        ];
+              $project: {
+                ownerInfo: 0,
+                __v: 0,
+              },
+            },
+          ];
         
         const [items, totalCount] = await Promise.all([
             Item.aggregate(pipeline),
@@ -251,9 +249,9 @@ router.get("/list", async (req, res) => {
             }
         });
         
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("List items error:", err);
-        res.status(500).json({ error: err.message || "Server error" });
+        res.status(500).json({ error: err instanceof Error ? err.message : String(err) || "Server error" });
     }
 });
 
@@ -284,11 +282,11 @@ router.get("/:id", async (req, res) => {
             item 
         });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Get item by ID error:", err);
         res.status(500).json({ 
             success: false,
-            error: err.message || "Server error" 
+            error: err instanceof Error ? err.message : String(err) || "Server error" 
         });
     }
 });

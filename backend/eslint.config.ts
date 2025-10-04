@@ -1,16 +1,17 @@
 import { FlatCompat } from "@eslint/eslintrc";
+import tsParser from "@typescript-eslint/parser";
 
 const compat = new FlatCompat({
   baseDirectory: new URL(".", import.meta.url).pathname,
-  recommendedConfig: {}, // ไม่ต้องใส่ eslint:recommended ซ้ำ
+  recommendedConfig: {},
 });
 
 export default [
-  ...compat.extends("plugin:@typescript-eslint/recommended"), // ใช้ TS plugin
+  ...compat.extends("plugin:@typescript-eslint/recommended"),
   {
     files: ["**/*.ts"],
     languageOptions: {
-      parser: "@typescript-eslint/parser",
+      parser: tsParser,  // ✅ ต้องเป็น object parser
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: "module",

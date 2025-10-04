@@ -4,6 +4,12 @@ import jwt from "jsonwebtoken";
 
 const router = Router();
 
+// Helper function to get error message safely
+const getErrorMessage = (err: unknown): string => {
+  if (err instanceof Error) return err.message;
+  return String(err);
+};
+
 // Signup
 router.post("/signup", async (req: Request, res: Response) => {
   try {
@@ -11,8 +17,8 @@ router.post("/signup", async (req: Request, res: Response) => {
     const user = new User({ name, kuEmail, password });
     await user.save();
     res.status(201).json({ message: "User created successfully" });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
+  } catch (err: unknown) {
+    res.status(400).json({ error: getErrorMessage(err) });
   }
 });
 
@@ -28,8 +34,8 @@ router.post("/login", async (req: Request, res: Response) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "1h" });
     res.json({ token });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
+  } catch (err: unknown) {
+    res.status(500).json({ error: getErrorMessage(err) });
   }
 });
 
