@@ -1,47 +1,87 @@
-import { Router, Request, Response } from "express";
-import User, { IUser } from "../models/User";
+import { Router, Request, Response, NextFunction } from "express";
+import User from "../models/User";
 import jwt from "jsonwebtoken";
 
 const router = Router();
 
+// ---------------- Helper Types ----------------
+interface JwtPayload {
+  id: string;
+}
+
+interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
+
 // Middleware to authenticate JWT
-const authenticate = async (req: Request, res: Response, next: Function) => {
+const authenticate = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "Unauthorized" });
+  if (!token) {
+    res.status(401).json({ success: false, error: "Unauthorized" });
+    return;
+  }
 
   try {
-    const payload: any = jwt.verify(token, process.env.JWT_SECRET || "secret");
-    (req as any).userId = payload.id;
+    const payload = jwt.verify(token, process.env.JWT_SECRET || "secret") as JwtPayload;
+    req.userId = payload.id;
     next();
-  } catch (err) {
-    res.status(401).json({ error: "Invalid token" });
+  } catch (err: unknown) {
+    res.status(401).json({ success: false, errorr: err,error_msg: "Invalid token" });
   }
 };
 
 // View Profile
-router.get("/view", authenticate, async (req: Request, res: Response) => {
+router.get("/view", authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const user = await User.findById((req as any).userId).select("-password -__v");
-    if (!user) return res.status(404).json({ error: "User not found" });
-    res.json(user);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    if (!req.userId) {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
+    const user = await User.findById(req.userId).select("-password -__v");
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    res.status(200).json({ success: true, user });
+  } catch (err: unknown) {
+    console.error("View profile error:", err);
+    res.status(500).json({ success: false, error: err instanceof Error ? err.message : "Server error" });
   }
 });
 
 // Update Profile
-router.put("/update", authenticate, async (req: Request, res: Response) => {
+interface UpdateProfileBody {
+  name?: string;
+  faculty?: string;
+  contact?: string;
+}
+
+router.put("/update", authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { name, faculty, contact } = req.body;
-    const user = await User.findByIdAndUpdate(
-      (req as any).userId,
+    if (!req.userId) {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
+    const { name, faculty, contact } = req.body as UpdateProfileBody;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
       { name, faculty, contact },
       { new: true, runValidators: true }
     ).select("-password -__v");
-    if (!user) return res.status(404).json({ error: "User not found" });
-    res.json(user);
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, error: "User not found" });
+    }
+
+    res.status(200).json({ success: true, user: updatedUser });
+  } catch (err: unknown) {
+    console.error("Update profile error:", err);
+    res.status(500).json({ success: false, error: err instanceof Error ? err.message : "Server error" });
   }
 });
 

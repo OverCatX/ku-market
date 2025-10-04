@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, ShoppingCart, Bell, User, Menu, X } from "lucide-react";
+import { ShoppingCart, Bell, User, Menu, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 export function Header() {
@@ -55,15 +55,6 @@ export function Header() {
 
           {/* Right side */}
           <div className="hidden lg:flex items-center space-x-4">
-            <div className="relative">
-              <input
-                type="search"
-                placeholder="Search"
-                className="w-56 pl-4 pr-10 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#84B067] transition"
-              />
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-            </div>
-
             <Link
               href="/cart"
               className="relative p-2 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
