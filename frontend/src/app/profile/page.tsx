@@ -29,7 +29,11 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
 
     getProfile(token)
       .then(setProfile)
