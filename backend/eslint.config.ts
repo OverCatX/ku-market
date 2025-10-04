@@ -5,14 +5,14 @@ const compat = new FlatCompat({
 });
 
 export default [
-
+  // ESLint recommended rules
   ...compat.extends("eslint:recommended"),
 
-
+  // TypeScript rules
   ...compat.extends("plugin:@typescript-eslint/recommended"),
 
   {
-    files: ["**/*.ts"], // apply กับไฟล์ ts ทั้งหมด
+    files: ["**/*.ts"],
     languageOptions: {
       parser: "@typescript-eslint/parser",
       parserOptions: {
@@ -21,7 +21,7 @@ export default [
       },
     },
     rules: {
-      "no-console": "off",            
+      "no-console": "off",
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/explicit-module-boundary-types": "off",
     },
