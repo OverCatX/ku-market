@@ -16,7 +16,7 @@ export default function InputField({
       </label>
       <input
         type="text"
-        value={value}
+        value={value ?? ""}
         disabled={disabled}
         onChange={(e) => onChange?.(e.target.value)}
         className={`w-full rounded-xl border p-3 outline-none ${

@@ -3,3 +3,4 @@ export const API_BASE =
 
 export * from "./auth";
 export * from "./items";
+export * from "./profile";

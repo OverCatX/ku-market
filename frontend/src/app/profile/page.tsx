@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getProfile, ProfileData, updateProfile } from "@/config/profile";
 import ProfileSidebar from "@/components/Profile/ProfileSidebar";
 import ProfileForm from "@/components/Profile/ProfileForm";
 import OrdersSection from "@/components/Profile/OrdersSection";
@@ -17,43 +18,70 @@ interface Order {
 export default function ProfilePage() {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    name: "Buyer",
-    faculty: "Faculty of Science",
-    email: "buyer@ku.th",
+  const [profile, setProfile] = useState<ProfileData>({
+    name: "",
+    faculty: "",
+    email: "",
+    contact: "",
   });
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
   useEffect(() => {
-    setLoadingOrders(true);
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    getProfile(token)
+      .then(setProfile)
+      .catch((err) => console.error("Failed to fetch profile:", err));
+
+    // (optional) mock orders
     setTimeout(() => {
       setOrders([
         {
           id: "1",
-          item: "iPad 9th Gen",
-          date: "2025-09-18",
-          price: 12000,
+          item: "Coffee A",
+          date: "2025-10-04",
+          price: 80,
           status: "Completed",
         },
         {
           id: "2",
-          item: "Textbook: Math 101",
-          date: "2025-09-15",
-          price: 500,
+          item: "Coffee B",
+          date: "2025-10-03",
+          price: 60,
           status: "Pending",
         },
       ]);
       setLoadingOrders(false);
-    }, 1000);
-  }, []);
+    }, 800);
+  }, [router]);
+
+  const handleSaveProfile = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const updated = await updateProfile(token, {
+        name: profile.name,
+        faculty: profile.faculty,
+        contact: profile.contact,
+      });
+      setProfile(updated);
+      setEditing(false);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error("An unexpected error occurred:", err);
+      }
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     router.push("/login");
   };
-
-  const handleSaveProfile = () => setEditing(false);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 md:p-8">
