@@ -12,7 +12,6 @@ interface ItemCardProps {
 }
 
 export default function ItemCard({
-  id,
   title,
   description,
   price,
@@ -28,13 +27,8 @@ export default function ItemCard({
   const statusClass =
     statusColorMap[status as keyof typeof statusColorMap] || "text-gray-500";
 
-  const href = id ? `/marketplace/${id}` : "#";
-
   return (
-    <Link
-      href={href}
-      className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition p-4 flex flex-col"
-    >
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition p-4 flex flex-col cursor-pointer">
       <Image
         src={photo || "/placeholder.png"}
         alt={title}
@@ -50,6 +44,6 @@ export default function ItemCard({
         <span className="font-bold text-green-700">{price} THB</span>
         <span className={`text-sm font-medium ${statusClass}`}>{status}</span>
       </div>
-    </Link>
+    </div>
   );
 }
