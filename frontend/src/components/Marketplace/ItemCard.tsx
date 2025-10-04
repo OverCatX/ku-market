@@ -1,4 +1,5 @@
-import React from "react";
+// frontend/src/components/Marketplace/ItemCard.tsx
+import Link from "next/link";
 import Image from "next/image";
 
 interface ItemCardProps {
@@ -8,7 +9,6 @@ interface ItemCardProps {
   price: number;
   photo?: string;
   status: "available" | "reserved" | "sold" | string;
-  onClick?: (id: string) => void;
 }
 
 export default function ItemCard({
@@ -18,7 +18,6 @@ export default function ItemCard({
   price,
   photo,
   status,
-  onClick,
 }: ItemCardProps) {
   const statusColorMap = {
     available: "text-green-600",
@@ -29,10 +28,12 @@ export default function ItemCard({
   const statusClass =
     statusColorMap[status as keyof typeof statusColorMap] || "text-gray-500";
 
+  const href = id ? `/marketplace/${id}` : "#";
+
   return (
-    <div
-      className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition p-4 flex flex-col cursor-pointer"
-      onClick={() => id && onClick?.(id)}
+    <Link
+      href={href}
+      className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition p-4 flex flex-col"
     >
       <Image
         src={photo || "/placeholder.png"}
@@ -49,6 +50,6 @@ export default function ItemCard({
         <span className="font-bold text-green-700">{price} THB</span>
         <span className={`text-sm font-medium ${statusClass}`}>{status}</span>
       </div>
-    </div>
+    </Link>
   );
 }
