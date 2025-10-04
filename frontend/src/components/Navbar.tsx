@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, ShoppingCart, Bell, User, Menu, X } from "lucide-react";
+import { ShoppingCart, Bell, User, Menu, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 export function Header() {
