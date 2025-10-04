@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { notFound, useParams } from "next/navigation";
-import { getItem } from "@/config/items";
+import { useParams, useRouter } from "next/navigation";
+import { getItem, Item } from "@/config/items";
 
 const GREEN = "#69773D";
 const LIGHT = "#f7f4f1";
@@ -10,7 +10,8 @@ const BORDER = "rgba(122,74,34,0.25)";
 
 export default function Page() {
   const { slug } = useParams<{ slug: string }>();
-  const [item, setItem] = useState<any | null>(null);
+  const router = useRouter();
+  const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
 
@@ -39,25 +40,29 @@ export default function Page() {
     );
   }
 
-  if (!item) return notFound();
+  if (!item) {
+    // either redirect to 404 or show inline message
+    router.replace("/404");
+    return null;
+  }
 
-  const main = item.photo?.[0] || "https://picsum.photos/seed/fallback/800/600";
+  const main =
+    item.photo?.[0] || "https://picsum.photos/seed/fallback/800/600";
 
   return (
     <div className="min-h-screen" style={{ background: LIGHT }}>
-      {/* Top bar */}
       <div className="w-full" style={{ background: GREEN }}>
-        <div className="mx-auto max-w-6xl px-6 py-4 text-white font-medium">Item Detail</div>
+        <div className="mx-auto max-w-6xl px-6 py-4 text-white font-medium">
+          Item Detail
+        </div>
       </div>
 
-      {/* Card */}
       <main className="mx-auto max-w-6xl px-6 py-6 bg-white rounded-2xl shadow mt-6">
         <p className="text-sm text-gray-500 mb-6">
           marketplace / buy / <span className="text-gray-700">{item.title}</span>
         </p>
 
         <div className="grid lg:grid-cols-2 gap-8 items-start">
-          {/* LEFT: Images */}
           <section>
             <div
               className="relative aspect-[4/3] overflow-hidden rounded-2xl border bg-gray-50"
@@ -69,7 +74,7 @@ export default function Page() {
 
             {Array.isArray(item.photo) && item.photo.length > 1 && (
               <div className="mt-4 grid grid-cols-3 gap-4">
-                {item.photo.slice(0, 3).map((src: string, i: number) => (
+                {item.photo.slice(0, 3).map((src, i) => (
                   <div
                     key={src}
                     className={`aspect-[4/3] rounded-2xl overflow-hidden border-2 ${
@@ -84,7 +89,6 @@ export default function Page() {
             )}
           </section>
 
-          {/* RIGHT: Details */}
           <section>
             <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800 mb-2 leading-tight">
               {item.title}
@@ -110,24 +114,18 @@ export default function Page() {
 
             <div className="mt-6 flex flex-wrap gap-3">
               {item.category && (
-                <span
-                  className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm text-gray-700"
-                  style={{ borderColor: BORDER }}
-                >
+                <span className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm text-gray-700" style={{ borderColor: BORDER }}>
                   {item.category}
                 </span>
               )}
               {item.status && (
-                <span
-                  className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm text-gray-700"
-                  style={{ borderColor: BORDER }}
-                >
+                <span className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm text-gray-700" style={{ borderColor: BORDER }}>
                   {item.status}
                 </span>
               )}
             </div>
 
-            {/* Qty + buttons */}
+            {/* Qty */}
             <div className="mt-8 flex items-center gap-4">
               <label className="text-sm text-gray-600">Qty</label>
 
@@ -140,7 +138,7 @@ export default function Page() {
                 <button
                   type="button"
                   className="px-4 py-2 text-gray-600 bg-white"
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  onClick={() => setQty(q => Math.max(1, q - 1))}
                   aria-label="Decrease quantity"
                 >
                   —
@@ -153,7 +151,7 @@ export default function Page() {
                 <button
                   type="button"
                   className="px-4 py-2 text-gray-600 bg-white"
-                  onClick={() => setQty((q) => q + 1)}
+                  onClick={() => setQty(q => q + 1)}
                   aria-label="Increase quantity"
                 >
                   +
@@ -164,7 +162,7 @@ export default function Page() {
                 type="button"
                 className="rounded-xl px-6 py-3 font-semibold text-white shadow"
                 style={{ background: GREEN }}
-                onClick={() => alert("Cart is not implemented yet")}
+                onClick={() => alert("Cart isn’t implemented yet")}
               >
                 Add to Cart
               </button>

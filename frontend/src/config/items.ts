@@ -48,7 +48,7 @@ export async function listItems(
     if (val !== undefined && val !== "") query.append(key, String(val));
   });
 
-  // ✅ API_BASE should already be like http://localhost:5050/api
+  // API_BASE should be like http://localhost:5050/api
   const url = `${API_BASE}/items/list?${query.toString()}`;
 
   try {
@@ -72,11 +72,11 @@ export async function listItems(
       };
     }
 
-    const data: ListItemsResponse = await res.json();
+    const data: ListItemsResponse = (await res.json()) as ListItemsResponse;
     return data;
-  } catch (err: any) {
-    if (err?.name === "AbortError") throw err;
-    console.error("Fetch error:", err?.message || err);
+  } catch (err: unknown) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    console.error("Fetch error:", err);
     return {
       success: false,
       data: {
@@ -93,18 +93,28 @@ export async function listItems(
   }
 }
 
+export interface GetItemResponse {
+  success: boolean;
+  item: Item | null;
+  error?: string;
+}
+
 // --- Get single item by ID ---
-export async function getItem(id: string) {
+export async function getItem(id: string): Promise<GetItemResponse> {
   // API_BASE is like http://localhost:5050/api
-  const url = `${API_BASE}/items/${id}`; // ✅ remove the extra /api
+  const url = `${API_BASE}/items/${id}`; // no extra /api
 
   try {
     const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`Failed to fetch item (${res.status})`);
-    const data = await res.json();
-    return { success: true, item: data.item ?? data };
-  } catch (err) {
+    if (!res.ok) {
+      return { success: false, item: null, error: `HTTP ${res.status}` };
+    }
+    const data = (await res.json()) as { item?: Item } | Item;
+    // backend may return { item } or the item itself
+    const item = "item" in data ? (data.item ?? null) : (data as Item);
+    return { success: true, item };
+  } catch (err: unknown) {
     console.error("getItem error:", err);
-    return { success: false, item: null };
+    return { success: false, item: null, error: "Network error" };
   }
 }
