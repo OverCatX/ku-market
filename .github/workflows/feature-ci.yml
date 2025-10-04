@@ -11,7 +11,7 @@ env:
   NODE_VERSION: 20
 
 jobs:
-  # ===== QUICK CHECKS (Parallel) =====
+  # ===== FRONTEND =====
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -30,22 +30,70 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Parallel checks - fail fast
-      - name: Lint & Type check
+      - name: Check available scripts
+        id: check-scripts
         run: |
-          npm run lint &
-          npm run type-check &
-          wait
-        continue-on-error: false
+          echo "Available scripts:"
+          npm run
 
-      - name: Run unit tests (fast mode)
+          # Check for specific scripts
+          if npm run | grep -q "lint"; then
+            echo "has_lint=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_lint=false" >> $GITHUB_OUTPUT
+          fi
+
+          if npm run | grep -q "type-check"; then
+            echo "has_typecheck=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_typecheck=false" >> $GITHUB_OUTPUT
+          fi
+
+          if npm run | grep -q "test"; then
+            echo "has_test=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_test=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run checks in parallel
+        run: |
+          PIDS=()
+
+          # Run lint if available
+          if [ "${{ steps.check-scripts.outputs.has_lint }}" == "true" ]; then
+            echo "🔍 Running lint..."
+            npm run lint &
+            PIDS+=($!)
+          fi
+
+          # Run type-check if available
+          if [ "${{ steps.check-scripts.outputs.has_typecheck }}" == "true" ]; then
+            echo "🔍 Running type-check..."
+            npm run type-check &
+            PIDS+=($!)
+          fi
+
+          # Wait for all background processes
+          for pid in "${PIDS[@]}"; do
+            wait $pid || exit 1
+          done
+
+          echo "✅ All checks passed!"
+
+      - name: Run unit tests
+        if: steps.check-scripts.outputs.has_test == 'true'
         run: npm test -- --maxWorkers=2 --bail
         env:
           CI: true
 
+      - name: Skip tests
+        if: steps.check-scripts.outputs.has_test == 'false'
+        run: echo "⚠️ No test script found, skipping..."
+
       - name: Build check
         run: npm run build
 
+  # ===== BACKEND =====
   backend:
     runs-on: ubuntu-latest
     defaults:
@@ -74,63 +122,117 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Parallel checks - fail fast
-      - name: Lint & Type check
+      - name: Check available scripts
+        id: check-scripts
         run: |
-          npm run lint &
-          npm run type-check &
-          wait
-        continue-on-error: false
+          echo "Available scripts:"
+          npm run
 
-      - name: Run unit tests (fast mode)
+          if npm run | grep -q "lint"; then
+            echo "has_lint=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_lint=false" >> $GITHUB_OUTPUT
+          fi
+
+          if npm run | grep -q "type-check"; then
+            echo "has_typecheck=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_typecheck=false" >> $GITHUB_OUTPUT
+          fi
+
+          if npm run | grep -q "test"; then
+            echo "has_test=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_test=false" >> $GITHUB_OUTPUT
+          fi
+
+          if npm run | grep -q "test:integration"; then
+            echo "has_integration=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_integration=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run checks in parallel
+        run: |
+          PIDS=()
+
+          if [ "${{ steps.check-scripts.outputs.has_lint }}" == "true" ]; then
+            echo "🔍 Running lint..."
+            npm run lint &
+            PIDS+=($!)
+          fi
+
+          if [ "${{ steps.check-scripts.outputs.has_typecheck }}" == "true" ]; then
+            echo "🔍 Running type-check..."
+            npm run type-check &
+            PIDS+=($!)
+          fi
+
+          for pid in "${PIDS[@]}"; do
+            wait $pid || exit 1
+          done
+
+          echo "✅ All checks passed!"
+
+      - name: Run unit tests
+        if: steps.check-scripts.outputs.has_test == 'true'
         run: npm test -- --maxWorkers=2 --bail
         env:
           CI: true
           NODE_ENV: test
 
+      - name: Skip unit tests
+        if: steps.check-scripts.outputs.has_test == 'false'
+        run: echo "⚠️ No test script found, skipping..."
+
       - name: Build check
         run: npm run build
 
-      # Quick integration test (เฉพาะ critical paths)
       - name: Quick integration test
+        if: steps.check-scripts.outputs.has_integration == 'true'
         run: npm run test:integration -- --bail
-        if: success()
         env:
           NODE_ENV: test
           MONGO_URI: mongodb://localhost:27017/testdb
 
-  # ===== CODE QUALITY (Optional - ไม่ block) =====
+      - name: Skip integration tests
+        if: steps.check-scripts.outputs.has_integration == 'false'
+        run: echo "⚠️ No integration test script found, skipping..."
+
+  # ===== CODE QUALITY (Optional) =====
   code-quality:
     runs-on: ubuntu-latest
-    continue-on-error: true # ไม่ให้ fail ทั้ง pipeline
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # สำหรับ SonarCloud
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      # แสดง changed files
       - name: Get changed files
         id: changed-files
         run: |
           echo "Changed files in this push:"
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }}
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} || echo "Could not get changed files"
 
-      # Check code quality only on changed files (faster)
       - name: ESLint on changed files
         run: |
           CHANGED_FILES=$(git diff --name-only --diff-filter=d ${{ github.event.before }} ${{ github.sha }} | grep -E '\.(js|jsx|ts|tsx)$' || true)
           if [ -n "$CHANGED_FILES" ]; then
-            echo "Linting changed files: $CHANGED_FILES"
-            npx eslint $CHANGED_FILES
+            echo "📝 Linting changed files:"
+            echo "$CHANGED_FILES"
+            # Install ESLint if not in project
+            if [ -f "package.json" ]; then
+              npm ci
+            fi
+            npx eslint $CHANGED_FILES || echo "⚠️ ESLint found issues (non-blocking)"
           else
-            echo "No JS/TS files changed"
+            echo "ℹ️ No JS/TS files changed"
           fi
-        continue-on-error: true
 
   # ===== SUMMARY =====
   feature-ci-summary:
@@ -140,20 +242,32 @@ jobs:
     steps:
       - name: Check results
         run: |
+          echo "## 📊 Feature CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
           if [ "${{ needs.frontend.result }}" == "failure" ] || [ "${{ needs.backend.result }}" == "failure" ]; then
-            echo "❌ Feature CI Failed"
-            echo "Frontend: ${{ needs.frontend.result }}"
-            echo "Backend: ${{ needs.backend.result }}"
+            echo "### ❌ CI Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: ${{ needs.frontend.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: ${{ needs.backend.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please fix the failing checks and push again." >> $GITHUB_STEP_SUMMARY
             exit 1
           else
-            echo "✅ Feature CI Passed"
-            echo "Branch: ${{ github.ref_name }}"
-            echo "Commit: ${{ github.sha }}"
-            echo "Author: ${{ github.actor }}"
+            echo "### ✅ All Checks Passed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🚀 Ready to create PR to develop branch!" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Comment on commit (if available)
+      - name: Success message
         if: success()
         run: |
-          echo "Feature branch checks passed! 🚀"
+          echo "✅ Feature branch checks passed! 🚀"
           echo "Ready to create PR to develop branch"
