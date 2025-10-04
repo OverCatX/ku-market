@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import ItemCard from "@/components/Marketplace/ItemCard";
+import Link from "next/link";
 import Pagination from "@/components/Marketplace/Pagination";
 import debounce from "lodash.debounce";
 import { listItems, Item, ListItemsResponse } from "../../config/items";
@@ -256,15 +257,20 @@ export default function MarketPage() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {items.map((item) => (
-              <ItemCard
+              <Link
                 key={item._id}
-                id={item._id}
-                title={item.title}
-                description={item.description}
-                price={item.price}
-                photo={item.photo[0] || ""}
-                status={item.status}
-              />
+                href={`/marketplace/${item._id}`}
+                className="block"
+              >
+                <ItemCard
+                  id={item._id}
+                  title={item.title}
+                  description={item.description}
+                  price={item.price}
+                  photo={item.photo[0] || ""}
+                  status={item.status}
+                />
+              </Link>
             ))}
           </div>
         )}

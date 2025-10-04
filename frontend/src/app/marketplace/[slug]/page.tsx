@@ -34,7 +34,10 @@ export default function Page() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: LIGHT }}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: LIGHT }}
+      >
         Loading…
       </div>
     );
@@ -46,8 +49,7 @@ export default function Page() {
     return null;
   }
 
-  const main =
-    item.photo?.[0] || "https://picsum.photos/seed/fallback/800/600";
+  const main = item.photo?.[0] || "https://picsum.photos/seed/fallback/800/600";
 
   return (
     <div className="min-h-screen" style={{ background: LIGHT }}>
@@ -59,7 +61,8 @@ export default function Page() {
 
       <main className="mx-auto max-w-6xl px-6 py-6 bg-white rounded-2xl shadow mt-6">
         <p className="text-sm text-gray-500 mb-6">
-          marketplace / buy / <span className="text-gray-700">{item.title}</span>
+          marketplace / browse /{" "}
+          <span className="text-gray-700">{item.title}</span>
         </p>
 
         <div className="grid lg:grid-cols-2 gap-8 items-start">
@@ -69,7 +72,11 @@ export default function Page() {
               style={{ borderColor: BORDER }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={main} alt={item.title} className="h-full w-full object-cover" />
+              <img
+                src={main}
+                alt={item.title}
+                className="h-full w-full object-cover"
+              />
             </div>
 
             {Array.isArray(item.photo) && item.photo.length > 1 && (
@@ -78,11 +85,17 @@ export default function Page() {
                   <div
                     key={src}
                     className={`aspect-[4/3] rounded-2xl overflow-hidden border-2 ${
-                      i === 0 ? "border-[rgba(122,74,34,0.75)]" : "border-[rgba(122,74,34,0.25)]"
+                      i === 0
+                        ? "border-[rgba(122,74,34,0.75)]"
+                        : "border-[rgba(122,74,34,0.25)]"
                     }`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt={`thumb-${i}`} className="h-full w-full object-cover" />
+                    <img
+                      src={src}
+                      alt={`thumb-${i}`}
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                 ))}
               </div>
@@ -102,24 +115,40 @@ export default function Page() {
             </p>
 
             <div className="mt-6 flex items-end gap-6">
-              <div className="rounded-2xl px-5 py-3" style={{ background: "#e7efdb" }}>
-                <div className="text-sm" style={{ color: GREEN }}>THB</div>
-                <div className="text-3xl font-extrabold" style={{ color: "#2f3b11" }}>
+              <div
+                className="rounded-2xl px-5 py-3"
+                style={{ background: "#e7efdb" }}
+              >
+                <div className="text-sm" style={{ color: GREEN }}>
+                  THB
+                </div>
+                <div
+                  className="text-3xl font-extrabold"
+                  style={{ color: "#2f3b11" }}
+                >
                   {item.price}
                 </div>
               </div>
             </div>
 
-            <p className="mt-6 text-gray-700 leading-relaxed">{item.description}</p>
+            <p className="mt-6 text-gray-700 leading-relaxed">
+              {item.description}
+            </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
               {item.category && (
-                <span className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm text-gray-700" style={{ borderColor: BORDER }}>
+                <span
+                  className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm text-gray-700"
+                  style={{ borderColor: BORDER }}
+                >
                   {item.category}
                 </span>
               )}
               {item.status && (
-                <span className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm text-gray-700" style={{ borderColor: BORDER }}>
+                <span
+                  className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm text-gray-700"
+                  style={{ borderColor: BORDER }}
+                >
                   {item.status}
                 </span>
               )}
@@ -138,7 +167,7 @@ export default function Page() {
                 <button
                   type="button"
                   className="px-4 py-2 text-gray-600 bg-white"
-                  onClick={() => setQty(q => Math.max(1, q - 1))}
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
                   aria-label="Decrease quantity"
                 >
                   —
@@ -151,7 +180,7 @@ export default function Page() {
                 <button
                   type="button"
                   className="px-4 py-2 text-gray-600 bg-white"
-                  onClick={() => setQty(q => q + 1)}
+                  onClick={() => setQty((q) => q + 1)}
                   aria-label="Increase quantity"
                 >
                   +
