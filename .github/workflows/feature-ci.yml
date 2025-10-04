@@ -4,60 +4,156 @@ on:
   push:
     branches:
       - "features/**"
+      - "feature/**"
+      - "feat/**"
+
+env:
+  NODE_VERSION: 20
 
 jobs:
-  # ===== FRONTEND =====
-  fe-install:
+  # ===== QUICK CHECKS (Parallel) =====
+  frontend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm ci --prefix frontend
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
-  fe-lint:
-    runs-on: ubuntu-latest
-    needs: fe-install
-    steps:
-      - run: npm run lint --prefix frontend
+      - name: Install dependencies
+        run: npm ci
 
-  fe-build:
-    runs-on: ubuntu-latest
-    needs: fe-lint
-    steps:
-      - run: npm run build --prefix frontend
+      # Parallel checks - fail fast
+      - name: Lint & Type check
+        run: |
+          npm run lint &
+          npm run type-check &
+          wait
+        continue-on-error: false
 
-  fe-unit-test:
-    runs-on: ubuntu-latest
-    needs: fe-build
-    steps:
-      - run: npm test --prefix frontend
+      - name: Run unit tests (fast mode)
+        run: npm test -- --maxWorkers=2 --bail
+        env:
+          CI: true
 
-  # ===== BACKEND =====
-  be-install:
+      - name: Build check
+        run: npm run build
+
+  backend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand({ping:1})' || mongo --eval 'db.adminCommand({ping:1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm ci --prefix backend
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
 
-  be-lint:
-    runs-on: ubuntu-latest
-    needs: be-install
-    steps:
-      - run: npm run lint --prefix backend
+      - name: Install dependencies
+        run: npm ci
 
-  be-build:
-    runs-on: ubuntu-latest
-    needs: be-lint
-    steps:
-      - run: npm run build --prefix backend
+      # Parallel checks - fail fast
+      - name: Lint & Type check
+        run: |
+          npm run lint &
+          npm run type-check &
+          wait
+        continue-on-error: false
 
-  be-unit-test:
+      - name: Run unit tests (fast mode)
+        run: npm test -- --maxWorkers=2 --bail
+        env:
+          CI: true
+          NODE_ENV: test
+
+      - name: Build check
+        run: npm run build
+
+      # Quick integration test (เฉพาะ critical paths)
+      - name: Quick integration test
+        run: npm run test:integration -- --bail
+        if: success()
+        env:
+          NODE_ENV: test
+          MONGO_URI: mongodb://localhost:27017/testdb
+
+  # ===== CODE QUALITY (Optional - ไม่ block) =====
+  code-quality:
     runs-on: ubuntu-latest
-    needs: be-build
+    continue-on-error: true # ไม่ให้ fail ทั้ง pipeline
     steps:
-      - run: npm test --prefix backend
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # สำหรับ SonarCloud
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # แสดง changed files
+      - name: Get changed files
+        id: changed-files
+        run: |
+          echo "Changed files in this push:"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }}
+
+      # Check code quality only on changed files (faster)
+      - name: ESLint on changed files
+        run: |
+          CHANGED_FILES=$(git diff --name-only --diff-filter=d ${{ github.event.before }} ${{ github.sha }} | grep -E '\.(js|jsx|ts|tsx)$' || true)
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "Linting changed files: $CHANGED_FILES"
+            npx eslint $CHANGED_FILES
+          else
+            echo "No JS/TS files changed"
+          fi
+        continue-on-error: true
+
+  # ===== SUMMARY =====
+  feature-ci-summary:
+    runs-on: ubuntu-latest
+    needs: [frontend, backend]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          if [ "${{ needs.frontend.result }}" == "failure" ] || [ "${{ needs.backend.result }}" == "failure" ]; then
+            echo "❌ Feature CI Failed"
+            echo "Frontend: ${{ needs.frontend.result }}"
+            echo "Backend: ${{ needs.backend.result }}"
+            exit 1
+          else
+            echo "✅ Feature CI Passed"
+            echo "Branch: ${{ github.ref_name }}"
+            echo "Commit: ${{ github.sha }}"
+            echo "Author: ${{ github.actor }}"
+          fi
+
+      - name: Comment on commit (if available)
+        if: success()
+        run: |
+          echo "Feature branch checks passed! 🚀"
+          echo "Ready to create PR to develop branch"

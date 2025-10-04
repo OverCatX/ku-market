@@ -5,107 +5,176 @@ on:
     branches:
       - develop
 
+env:
+  NODE_VERSION: 20
+
 jobs:
-  # ===== SETUP =====
-  setup:
+  # ===== FRONTEND =====
+  frontend:
     runs-on: ubuntu-latest
-    outputs:
-      workspace: ${{ github.workspace }}
+    defaults:
+      run:
+        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
-      - name: Set Node version
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
-  # ===== FRONTEND =====
-  fe-install:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
         with:
-          node-version: 20
-      - run: npm ci --prefix frontend
-
-  fe-lint:
-    runs-on: ubuntu-latest
-    needs: fe-install
-    steps:
-      - run: npm run lint --prefix frontend
-
-  fe-build:
-    runs-on: ubuntu-latest
-    needs: fe-lint
-    steps:
-      - run: npm run build --prefix frontend
-
-  fe-unit-test:
-    runs-on: ubuntu-latest
-    needs: fe-build
-    steps:
-      - run: npm test --prefix frontend
+          name: frontend-build
+          path: frontend/dist
+          retention-days: 1
 
   # ===== BACKEND =====
-  be-install:
+  backend:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci --prefix backend
-
-  be-lint:
-    runs-on: ubuntu-latest
-    needs: be-install
-    steps:
-      - run: npm run lint --prefix backend
-
-  be-build:
-    runs-on: ubuntu-latest
-    needs: be-lint
-    steps:
-      - run: npm run build --prefix backend
-
-  be-unit-test:
-    runs-on: ubuntu-latest
-    needs: be-build
-    steps:
-      - run: npm test --prefix backend
-
-  # ===== DOCKER INTEGRATION TEST =====
-  docker-integration:
-    runs-on: ubuntu-latest
-    needs: [fe-build, be-build]
+    defaults:
+      run:
+        working-directory: ./backend
     services:
-      mongo:
+      mongodb:
         image: mongo:7
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "mongo --eval 'db.adminCommand(\"ping\")'"
+          --health-cmd "mongosh --eval 'db.adminCommand({ping:1})' || mongo --eval 'db.adminCommand({ping:1})'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      - name: Build FE Docker
-        run: docker build -t ci-frontend ./frontend
-      - name: Build BE Docker
-        run: docker build -t ci-backend ./backend
-      - name: Start Docker Compose
-        run: |
-          docker-compose -f docker-compose.ci.yml up -d
-      - name: Wait for services
-        run: |
-          echo "Waiting 15s for containers to be ready"
-          sleep 15
-      - name: Run integration tests
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm test
         env:
+          NODE_ENV: test
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          NODE_ENV: test
           MONGO_URI: mongodb://localhost:27017/testdb
-        run: docker exec ci-backend npm run test:integration
-      - name: Run e2e tests
-        run: docker exec ci-frontend npm run test:e2e
-      - name: Tear down
-        run: docker-compose -f docker-compose.ci.yml down
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: backend/dist
+          retention-days: 1
+
+  # ===== DOCKER BUILD =====
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [frontend, backend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: false
+          tags: dev-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false
+          tags: dev-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ===== INTEGRATION TEST WITH DOCKER =====
+  docker-integration:
+    runs-on: ubuntu-latest
+    needs: docker-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Start services with Docker Compose
+        run: docker-compose -f docker-compose.ci.yml up -d
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for backend health check..."
+          timeout 60 bash -c 'until curl -f http://localhost:3000/health; do sleep 2; done' || exit 1
+          echo "Waiting for frontend..."
+          timeout 60 bash -c 'until curl -f http://localhost:80; do sleep 2; done' || exit 1
+
+      - name: Show running containers
+        run: docker-compose -f docker-compose.ci.yml ps
+
+      - name: Show backend logs
+        if: always()
+        run: docker-compose -f docker-compose.ci.yml logs backend
+
+      - name: Run integration tests
+        run: |
+          docker-compose -f docker-compose.ci.yml exec -T backend npm run test:integration
+
+      - name: Run E2E tests
+        run: |
+          docker-compose -f docker-compose.ci.yml exec -T frontend npm run test:e2e
+
+      - name: Tear down services
+        if: always()
+        run: docker-compose -f docker-compose.ci.yml down -v
+
+  # ===== SUMMARY =====
+  ci-success:
+    runs-on: ubuntu-latest
+    needs: [frontend, backend, docker-integration]
+    if: success()
+    steps:
+      - name: Success notification
+        run: |
+          echo "✅ All CI checks passed!"
+          echo "Branch: develop"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
