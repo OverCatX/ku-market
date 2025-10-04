@@ -1,14 +1,15 @@
 import { FlatCompat } from "@eslint/eslintrc";
 
+// ต้องใส่ recommendedConfig เป็น object
 const compat = new FlatCompat({
   baseDirectory: new URL(".", import.meta.url).pathname,
+  recommendedConfig: {
+    extends: ["eslint:recommended"],
+  },
 });
 
 export default [
-  // ESLint recommended rules
   ...compat.extends("eslint:recommended"),
-
-  // TypeScript rules
   ...compat.extends("plugin:@typescript-eslint/recommended"),
 
   {
