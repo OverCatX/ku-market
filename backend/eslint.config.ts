@@ -1,17 +1,12 @@
 import { FlatCompat } from "@eslint/eslintrc";
 
-// ต้องใส่ recommendedConfig เป็น object
 const compat = new FlatCompat({
   baseDirectory: new URL(".", import.meta.url).pathname,
-  recommendedConfig: {
-    extends: ["eslint:recommended"],
-  },
+  recommendedConfig: {}, // ไม่ต้องใส่ eslint:recommended ซ้ำ
 });
 
 export default [
-  ...compat.extends("eslint:recommended"),
-  ...compat.extends("plugin:@typescript-eslint/recommended"),
-
+  ...compat.extends("plugin:@typescript-eslint/recommended"), // ใช้ TS plugin
   {
     files: ["**/*.ts"],
     languageOptions: {
