@@ -33,46 +33,52 @@ const TestName2 = {
 }
 
 describe("Auth api", ()=>{
-    it("Should signup a new user", async()=>{
-        const res = await request(app).post("/api/auth/signup").send(TestName);
 
-        expect(res.statusCode).toBe(201);
-        expect(res.body).toHaveProperty("message", "User created successfully")
-    });
+    describe("POST /api/auth/signup", () => {
+        it("Should signup a new user", async()=>{
+            const res = await request(app).post("/api/auth/signup").send(TestName);
 
-    it("Should not able to signup because existed email", async() =>{
-        const res = await request(app).post("/api/auth/signup").send(TestName);;
+            expect(res.statusCode).toBe(201);
+            expect(res.body).toHaveProperty("message", "User created successfully")
+        });
 
-        expect(res.statusCode).toBe(400);
-        expect(res.body).toHaveProperty("message", "Email is already registered")
-    });
+        it("Should not able to signup because existed email", async() =>{
+            const res = await request(app).post("/api/auth/signup").send(TestName);;
 
-    it("Should not able to signup because existed phone number", async() =>{
-        const res = await request(app).post("/api/auth/signup").send(TestName2);;
+            expect(res.statusCode).toBe(400);
+            expect(res.body).toHaveProperty("message", "Email is already registered")
+        });
 
-        expect(res.statusCode).toBe(400);
-        expect(res.body).toHaveProperty("message", "Phone number is already existed")
-    });
+        it("Should not able to signup because existed phone number", async() =>{
+            const res = await request(app).post("/api/auth/signup").send(TestName2);;
 
-    it("Should able to login with correct password",async()=>{
-        const res = await request(app).post("/api/auth/login").send({kuEmail: TestName.kuEmail, password : TestName.password});
+            expect(res.statusCode).toBe(400);
+            expect(res.body).toHaveProperty("message", "Phone number is already existed")
+        });
+    })
 
-        expect(res.body).toHaveProperty("token");
-    });
+    describe("POST /api/auth/login", () => {
 
-    it("Should not able to login because invalid password", async ()=>{
-        const res = await request(app).post("/api/auth/login").send({kuEmail: TestName.kuEmail, password :"wrongpassword"});
+        it("Should able to login with correct password",async()=>{
+            const res = await request(app).post("/api/auth/login").send({kuEmail: TestName.kuEmail, password : TestName.password});
 
-        expect(res.statusCode).toBe(400);
-        expect(res.body).toHaveProperty("error", "Invalid credentials")
-    });
+            expect(res.body).toHaveProperty("token");
+        });
 
-    it("Should not able to login because invalid user", async()=> {
-        const res = await request(app).post("/api/auth/login").send({kuEmail: "yy@ku.ac.th", password : TestName.password});
+        it("Should not able to login because invalid password", async ()=>{
+            const res = await request(app).post("/api/auth/login").send({kuEmail: TestName.kuEmail, password :"wrongpassword"});
 
-        expect(res.statusCode).toBe(404);
-        expect(res.body).toHaveProperty("error", "Email is not found")
-    });
+            expect(res.statusCode).toBe(400);
+            expect(res.body).toHaveProperty("error", "Invalid credentials")
+        });
+
+        it("Should not able to login because invalid user", async()=> {
+            const res = await request(app).post("/api/auth/login").send({kuEmail: "yy@ku.ac.th", password : TestName.password});
+
+            expect(res.statusCode).toBe(404);
+            expect(res.body).toHaveProperty("error", "Email is not found")
+        });
+    })
 
 
 
