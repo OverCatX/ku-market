@@ -23,14 +23,14 @@ const createItemSchema = Joi.object({
 });
 
 const updateItemSchema = Joi.object({
-    title: Joi.string().max(100).required().messages({
+    title: Joi.string().max(100).optional().messages({
         "string.empty" : "Title is required"
     }),
     description: Joi.string().max(4000).optional(),
-    category: Joi.string().required().messages({
+    category: Joi.string().optional().messages({
         "string.empty" : "Category is required"
     }),
-    price: Joi.number().invalid(NaN).min(0).required().messages({
+    price: Joi.number().invalid(NaN).min(0).optional().messages({
         "number.empty" : "Price is required",
         "number.base": "Price must be a number",
         "number.min": "Price cannot be negative"
@@ -54,10 +54,11 @@ export const updateItem = async(req: Request, res: Response, next: NextFunction)
     } else next()
 }
 
-export const uploadFiles = (field: string, maxCount: number) => {
+export const uploadFiles = (field: string, maxCount: number, required: boolean = true) => {
     return (req: Request, res: Response, next: NextFunction) => {
         upload.array(field, maxCount)(req, res, (err) => {
             if (err) {
+                
                 if (err instanceof multer.MulterError) {
                     if (err.code === "LIMIT_UNEXPECTED_FILE") {
                         return res.status(400).json({
@@ -66,8 +67,26 @@ export const uploadFiles = (field: string, maxCount: number) => {
                     }
                     return res.status(400).json({ error: err.message });
                 }
-                return res.status(500).json({ error: "Server error during file upload" });
+                
+                // Handle boundary not found error (empty multipart request)
+                if (err.message && err.message.includes('Boundary not found')) {
+                    if (!required) {
+                        return next();
+                    }
+                    return res.status(400).json({ error: "No image files uploaded" });
+                }
+                
+                return res.status(500).json({ 
+                    error: "Server error during file upload",
+                    details: err instanceof Error ? err.message : String(err)
+                });
             }
+            
+            // If files are required but none uploaded, return error
+            if (required && (!req.files || (req.files as Express.Multer.File[]).length === 0)) {
+                return res.status(400).json({ error: "No image files uploaded" });
+            }
+            
             next();
         });
     };
