@@ -42,7 +42,7 @@ export default class ItemController {
                 description: req.body.description,
                 category: req.body.category,
                 price: Number(req.body.price),
-                status: "available",
+                status: req.body.status || "available",
                 photo: imageUrls,
             };
     
@@ -75,21 +75,47 @@ export default class ItemController {
             }
     
             const updateData: Partial<IItem> = {};
+            let hasChanges = false;
     
-            if (req.body.title !== undefined) updateData.title = req.body.title;
-            if (req.body.description !== undefined) updateData.description = req.body.description;
-            if (req.body.category !== undefined) updateData.category = req.body.category;
-            if (req.body.price !== undefined) updateData.price = Number(req.body.price);
-            if (req.body.status !== undefined) updateData.status = req.body.status;
-            if (req.body.owner !== undefined) {
-                updateData.owner = new mongoose.Types.ObjectId(req.body.owner);
+            // Check each field and only add if it's different from existing
+            if (req.body.title !== undefined && req.body.title !== existingItem.title) {
+                updateData.title = req.body.title;
+                hasChanges = true;
             }
-
+            if (req.body.description !== undefined && req.body.description !== existingItem.description) {
+                updateData.description = req.body.description;
+                hasChanges = true;
+            }
+            if (req.body.category !== undefined && req.body.category !== existingItem.category) {
+                updateData.category = req.body.category;
+                hasChanges = true;
+            }
+            if (req.body.price !== undefined && Number(req.body.price) !== existingItem.price) {
+                updateData.price = Number(req.body.price);
+                hasChanges = true;
+            }
+            if (req.body.status !== undefined && req.body.status !== existingItem.status) {
+                updateData.status = req.body.status;
+                hasChanges = true;
+            }
+            if (req.body.owner !== undefined && req.body.owner !== existingItem.owner?.toString()) {
+                updateData.owner = new mongoose.Types.ObjectId(req.body.owner);
+                hasChanges = true;
+            }
+    
             const files = req.files as Express.Multer.File[];
     
             if (files && files.length > 0) {
                 const imageUrl = await Promise.all(files.map(file => uploadToCloudinary(file.buffer)));
                 updateData.photo = imageUrl;
+                hasChanges = true;
+            }
+    
+            if (!hasChanges) {
+                return res.status(400).json({ 
+                    error: "No changes detected",
+                    message: "The provided values are the same as the existing item"
+                });
             }
     
             const updatedItem = await Item.findByIdAndUpdate(
@@ -98,7 +124,11 @@ export default class ItemController {
                 { new: true, runValidators: true }
             );
     
-            return res.status(200).json({ success: true, item: updatedItem });
+            return res.status(200).json({ 
+                success: true, 
+                item: updatedItem,
+                message: "Item updated successfully"
+            });
         } catch (err: any) {
             console.error("Patch error:", err);
             return res.status(500).json({ error: err.message || "Server error" });
@@ -265,7 +295,7 @@ export default class ItemController {
             if (!mongoose.Types.ObjectId.isValid(id)) {
                 return res.status(400).json({ 
                     success: false,
-                    error: "Invalid item ID format" 
+                    error: "Invalid item ID" 
                 });
             }
     
