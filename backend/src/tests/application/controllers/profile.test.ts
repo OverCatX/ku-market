@@ -33,23 +33,30 @@ afterAll(async() =>{
 });
 
 describe("Profile api", ()=>{
-    it("Should not able to login because token is invalid", async () =>{
-        const res = await request(app).get("/api/profile/view").set("Authorization", `Bearer abc`);
 
-        expect(res.statusCode).toBe(401);
-        expect(res.body).toHaveProperty("error", "Invalid token");
-    });
+    describe("GET /api/profile/view", () => {
+        it("Should not able to login because token is invalid", async () =>{
+            const res = await request(app).get("/api/profile/view").set("Authorization", `Bearer abc`);
 
-    it("Should able to view profile", async()=>{
-        const res = await request(app).get("/api/profile/view").set("Authorization", `Bearer ${token}`);
+            expect(res.statusCode).toBe(401);
+            expect(res.body).toHaveProperty("error", "Invalid token");
+        });
 
-        expect(res.body).toHaveProperty("kuEmail", "test@ku.ac.th");
-    });
+        it("Should able to view profile", async()=>{
+            const res = await request(app).get("/api/profile/view").set("Authorization", `Bearer ${token}`);
 
-    it("Should able to update profile", async ()=>{
-        const res = await request(app).put("/api/profile/update").set("Authorization", `Bearer ${token}`).send({name: "Jaden"});
+            expect(res.body).toHaveProperty("kuEmail", "test@ku.ac.th");
+        });
+    })
 
-        expect(res.body).toHaveProperty("name", "Jaden");
+    describe("PUT /api/profile/update", () => {
+
+        it("Should able to update profile", async ()=>{
+            const res = await request(app).put("/api/profile/update").set("Authorization", `Bearer ${token}`).send({name: "Jaden"});
+
+            expect(res.body).toHaveProperty("name", "Jaden");
+        })
+
     })
 
 
