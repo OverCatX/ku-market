@@ -1,11 +1,24 @@
 import type React from "react";
 import type { Metadata } from "next";
-// import { GeistSans } from "geist/font/sans";
-// import { GeistMono } from "geist/font/mono";
 import { Suspense } from "react";
 import { Header } from "@/components/Navbar";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { Titan_One, Ubuntu } from "next/font/google";
+
+// Font - Header
+const titanOne = Titan_One({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-titan-one",
+});
+
+// Font - Body
+const ubuntu = Ubuntu({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-ubuntu",
+});
 
 export const metadata: Metadata = {
   title: "KuMarket - Online Marketplace for Students",
@@ -20,8 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      {/* <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}> */}
-      <body className="">
+      <body className={`${ubuntu.variable} ${titanOne.variable}`}>
         <Header />
         <Suspense fallback={null}>{children}</Suspense>
         <Toaster position="top-right" />
