@@ -292,7 +292,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Start services with Docker Compose
-        run: docker compose -f docker-compose.ci.yml up -d
+        run: docker compose -f docker-compose.yml up -d
 
       - name: Wait for services to be ready
         run: |
@@ -302,16 +302,16 @@ jobs:
           timeout 60 bash -c 'until curl -f http://localhost:80; do sleep 2; done' || exit 1
 
       - name: Show running containers
-        run: docker compose -f docker-compose.ci.yml ps
+        run: docker compose -f docker-compose.yml ps
 
       - name: Show backend logs
         if: always()
-        run: docker compose -f docker-compose.ci.yml logs backend
+        run: docker compose -f docker-compose.yml logs backend
 
       - name: Check if backend integration test exists
         id: check-be-test
         run: |
-          if docker compose -f docker-compose.ci.yml exec -T backend npm run | grep -q "test:integration"; then
+          if docker compose -f docker-compose.yml exec -T backend npm run | grep -q "test:integration"; then
             echo "has_test=true" >> $GITHUB_OUTPUT
           else
             echo "has_test=false" >> $GITHUB_OUTPUT
@@ -319,12 +319,12 @@ jobs:
 
       - name: Run backend integration tests
         if: steps.check-be-test.outputs.has_test == 'true'
-        run: docker compose -f docker-compose.ci.yml exec -T backend npm run test:integration
+        run: docker compose -f docker-compose.yml exec -T backend npm run test:integration
 
       - name: Check if frontend e2e test exists
         id: check-fe-test
         run: |
-          if docker compose -f docker-compose.ci.yml exec -T frontend npm run | grep -q "test:e2e"; then
+          if docker compose -f docker-compose.yml exec -T frontend npm run | grep -q "test:e2e"; then
             echo "has_test=true" >> $GITHUB_OUTPUT
           else
             echo "has_test=false" >> $GITHUB_OUTPUT
@@ -332,11 +332,11 @@ jobs:
 
       - name: Run frontend E2E tests
         if: steps.check-fe-test.outputs.has_test == 'true'
-        run: docker compose -f docker-compose.ci.yml exec -T frontend npm run test:e2e
+        run: docker compose -f docker-compose.yml exec -T frontend npm run test:e2e
 
       - name: Tear down services
         if: always()
-        run: docker compose -f docker-compose.ci.yml down -v
+        run: docker compose -f docker-compose.yml down -v
 
   # ===== SUMMARY =====
   ci-success:
