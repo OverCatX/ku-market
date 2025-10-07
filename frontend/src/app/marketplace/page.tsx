@@ -19,7 +19,7 @@ type SortOptions =
   | "";
 
 export default function MarketPage() {
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<Item[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,6 +42,8 @@ export default function MarketPage() {
     abortControllerRef.current = new AbortController();
     setLoading(true);
     setError(null);
+    // While fetching, set items to null so UI shows skeleton instead of "No items"
+    setItems(null);
 
     try {
       const res: ListItemsResponse = await listItems(
@@ -219,7 +221,7 @@ export default function MarketPage() {
 
         {/* Items Grid */}
         {/* Items Grid */}
-        {loading ? (
+        {loading || items === null ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: limit }).map((_, i) => (
               <div
@@ -276,7 +278,7 @@ export default function MarketPage() {
         )}
 
         {/* Pagination */}
-        {items.length > 0 && (
+        {Array.isArray(items) && items.length > 0 && (
           <div className="mt-8">
             <Pagination
               currentPage={currentPage}
