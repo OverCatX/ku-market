@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Request, Response } from "express";
 import User from "../../data/models/User";
 import jwt from "jsonwebtoken";
 
@@ -24,8 +24,9 @@ export default class AuthController {
 
             return res.status(201).json({message: "User created successfully"})
             
-        } catch (err: any) {
-            return res.status(400).json({ error: err.message })
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Bad request";
+            return res.status(400).json({ error: message })
         }
     }
 
@@ -47,8 +48,9 @@ export default class AuthController {
             const token = jwt.sign({id : user._id}, process.env.JWT_SECRET || "secret", {expiresIn: "1h"} )
             return res.json({token})
             
-        } catch (err : any) {
-            return res.status(400).json({ error: err.message });
+        } catch (err : unknown) {
+            const message = err instanceof Error ? err.message : "Bad request";
+            return res.status(400).json({ error: message });
         }
     }
 }

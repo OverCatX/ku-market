@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import request from "supertest";
 
 jest.mock("../../../lib/cloudinary", () => ({
-    uploadToCloudinary: jest.fn(async (fileBuffer: Buffer, folder?: string) => {
+    uploadToCloudinary: jest.fn(async () => {
         return "https://mock.cloudinary.com/image.jpg";
     }),
     default: {}
@@ -386,7 +386,7 @@ describe("Items API", () => {
 
             expect(res.statusCode).toBe(200);
             expect(res.body.data.items).toHaveLength(3);
-            res.body.data.items.forEach((item: any) => {
+            res.body.data.items.forEach((item: { status: string }) => {
                 expect(item.status).toBe("available");
             });
         });

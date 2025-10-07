@@ -1,7 +1,7 @@
 import {Request, Response } from "express";
 import { uploadToCloudinary } from "../../lib/cloudinary";
 import Item, { IItem } from "../../data/models/Item"
-import mongoose from "mongoose";
+import mongoose, { FilterQuery, PipelineStage } from "mongoose";
 
 export default class ItemController {
     userUpload = async(req: Request, res: Response) => {
@@ -55,9 +55,10 @@ export default class ItemController {
                 message: `Item created successfully with ${imageUrls.length} photo(s)`
             });
     
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Create item error:", err);
-            return res.status(500).json({ error: err.message || "Server error" });
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
         }
     };
 
@@ -129,9 +130,10 @@ export default class ItemController {
                 item: updatedItem,
                 message: "Item updated successfully"
             });
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Patch error:", err);
-            return res.status(500).json({ error: err.message || "Server error" });
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
         }
     };
 
@@ -155,9 +157,10 @@ export default class ItemController {
                 message: "Item deleted successfully",
                 deletedItem: existingItem 
             });
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Delete error:", err);
-            return res.status(500).json({ error: err.message || "Server error" });
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -167,7 +170,7 @@ export default class ItemController {
             const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10)); 
             const skip = (page - 1) * limit;
             
-            const filters: any = {};
+            const filters: FilterQuery<IItem> = {};
             
             if (req.query.status && ["available", "reserved", "sold"].includes(req.query.status as string)) {
                 filters.status = req.query.status;
@@ -179,13 +182,14 @@ export default class ItemController {
             
             // Price range filter
             if (req.query.minPrice || req.query.maxPrice) {
-                filters.price = {};
+                const priceFilter: { $gte?: number; $lte?: number } = {};
                 if (req.query.minPrice) {
-                    filters.price.$gte = Number(req.query.minPrice);
+                    priceFilter.$gte = Number(req.query.minPrice);
                 }
                 if (req.query.maxPrice) {
-                    filters.price.$lte = Number(req.query.maxPrice);
+                    priceFilter.$lte = Number(req.query.maxPrice);
                 }
+                filters.price = priceFilter as unknown as number;
             }
             
             // Owner filter
@@ -199,7 +203,7 @@ export default class ItemController {
             }
             
             // Sorting
-            let sortOption: any = { createAt: -1 };
+            let sortOption: Record<string, 1 | -1 | { $meta: "textScore" }> = { createAt: -1 } as const;
             
             if (req.query.sortBy) {
                 const sortBy = req.query.sortBy as string;
@@ -226,7 +230,7 @@ export default class ItemController {
                 }
             }
             
-            const pipeline = [
+            const pipeline: PipelineStage[] = [
                 { $match: filters },
                 { $sort: sortOption },
                 { $skip: skip },
@@ -281,9 +285,10 @@ export default class ItemController {
                 }
             });
             
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("List items error:", err);
-            return res.status(500).json({ error: err.message || "Server error" });
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
         }
     }
 
@@ -314,11 +319,12 @@ export default class ItemController {
                 item 
             });
     
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Get item by ID error:", err);
+            const message = err instanceof Error ? err.message : "Server error";
             return res.status(500).json({ 
                 success: false,
-                error: err.message || "Server error" 
+                error: message 
             });
         }
     }
