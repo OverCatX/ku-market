@@ -1,5 +1,4 @@
-// frontend/src/components/Marketplace/ItemCard.tsx
-import Link from "next/link";
+"use client";
 import Image from "next/image";
 
 interface ItemCardProps {
