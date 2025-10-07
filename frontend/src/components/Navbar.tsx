@@ -35,7 +35,10 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-16">
         <div className="flex items-center justify-between h-16">
           {/* Logo / Brand */}
-          <Link href="/" className="text-xl font-bold text-[#69773D]">
+          <Link
+            href="/"
+            className="font-header text-xl font-bold text-[#69773D]"
+          >
             KU Market
           </Link>
 
