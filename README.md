@@ -80,10 +80,6 @@ npm test
 
 For detailed documentation, please visit our [Wiki](https://github.com/OverCatX/ku-market/wiki):
 
-# - [API Documentation](https://github.com/OverCatX/ku-market/wiki/API-Documentation)
-# - [Setup Guide](https://github.com/OverCatX/ku-market/wiki/Setup-Guide)
-# - [Architecture](https://github.com/OverCatX/ku-market/wiki/Architecture)
-# - [Contributing Guidelines](https://github.com/OverCatX/ku-market/wiki/Contributing)
 ## 📝 License
 
 MIT License - see the [LICENSE](LICENSE) file for details.
