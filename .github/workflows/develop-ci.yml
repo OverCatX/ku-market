@@ -295,11 +295,9 @@ jobs:
         run: |
           # Create minimal backend .env for CI if missing
           if [ ! -f backend/.env ]; then
-            cat > backend/.env << 'EOF'
-            JWT_SECRET=secret
-            MONGO_URI=mongodb://mongo:27017/ku-market
-            PORT=5000
-            EOF
+            echo "JWT_SECRET=secret" > backend/.env
+            echo "MONGO_URI=mongodb://mongo:27017/ku-market" >> backend/.env
+            echo "PORT=5000" >> backend/.env
           fi
           docker compose -f docker-compose.yml up -d
 
