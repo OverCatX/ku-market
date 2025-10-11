@@ -23,32 +23,9 @@ A full-stack marketplace platform for Kasetsart University students to buy and s
 - **Testing**: Comprehensive test coverage for both frontend and backend
 
 ## 🏗️ Tech Stack
-
-### Frontend
-
-- **Framework**: Next.js 14 with App Router
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **State Management**: React Hooks
-- **HTTP Client**: Fetch API with custom config
-- **Testing**: Jest + React Testing Library
-
-### Backend
-
-- **Runtime**: Node.js with TypeScript
-- **Framework**: Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT tokens
-- **File Upload**: Multer + Cloudinary
-- **Validation**: Custom middleware validators
-- **Testing**: Jest + Supertest
-
-### DevOps
-
-- **Containerization**: Docker + Docker Compose
-- **CI/CD**: GitHub Actions
-- **Code Quality**: ESLint + Prettier
-- **Version Control**: Git with feature branch workflow
+**Frontend:** Next.js 14, Tailwind CSS, TypeScript, Framer Motion  
+**Backend:** Node.js, Express, MongoDB, JWT, Cloudinary  
+**DevOps:** Docker, GitHub Actions
 
 ## 🚀 Getting Started
 
@@ -161,35 +138,9 @@ docker-compose up -d
 - Advanced search and filtering
 - Mobile-first approach
 
-## 🔧 Development
-
-- **Code Quality**: ESLint + Prettier + TypeScript
-- **Git Workflow**: Feature branches → PR → Review → Merge
-- **CI/CD**: Automated testing and deployment with GitHub Actions
-
-## 🚀 Deployment
-
-```bash
-# Build and deploy
-npm run build
-docker-compose up -d
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
 
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-For support, create an issue in the repository.
-
----
 
 **Built with ❤️ for Kasetsart University students**
