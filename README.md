@@ -2,75 +2,54 @@
 
 A full-stack marketplace platform for Kasetsart University students to buy and sell items within the campus community.
 
-## 🚀 Features
+## ✨ Features
 
-### Core Functionality
-
-- **User Authentication**: Secure login/signup with KU email validation
+- **Authentication**: Secure login/signup with KU email validation
 - **Marketplace**: Browse, search, and filter items with pagination
-- **Item Management**: Create, update, and delete product listings
-- **Image Upload**: Multiple photo support with Cloudinary integration
-- **User Profiles**: Manage personal information and view order history
+- **Item Management**: Create, update, and delete listings with multiple image support
+- **User Profiles**: Personal information management and order history
 - **Role-based Access**: Buyer and Seller roles with store request functionality
-
-### Technical Features
-
-- **Responsive Design**: Mobile-first approach with modern UI
-- **Real-time Search**: Debounced search with advanced filtering
-- **Image Optimization**: Cloudinary integration for efficient image handling
-- **Type Safety**: Full TypeScript implementation
-- **API Documentation**: RESTful API with proper error handling
-- **Testing**: Comprehensive test coverage for both frontend and backend
+- **Responsive Design**: Mobile-first with modern UI and smooth animations
+- **Type Safety**: Full TypeScript implementation across frontend and backend
 
 ## 🏗️ Tech Stack
+
 **Frontend:** Next.js 14, Tailwind CSS, TypeScript, Framer Motion  
 **Backend:** Node.js, Express, MongoDB, JWT, Cloudinary  
 **DevOps:** Docker, GitHub Actions
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js 20+
 - MongoDB
 - Docker (optional)
 
-### Development Setup
+### Installation
 
-1. **Clone the repository**
+```bash
+# Clone repository
+git clone https://github.com/OverCatX/ku-market.git
+cd ku-market
 
-   ```bash
-   git clone https://github.com/your-username/ku-market.git
-   cd ku-market
-   ```
+# Backend setup
+cd backend
+npm install
+cp .env.example .env
+npm run dev
 
-2. **Backend Setup**
+# Frontend setup (in new terminal)
+cd frontend
+npm install
+npm run dev
 
-   ```bash
-   cd backend
-   npm install
-   cp .env.example .env
-   # Configure your environment variables
-   npm run dev
-   ```
-
-3. **Frontend Setup**
-
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-
-4. **Using Docker (Recommended)**
-   ```bash
-   docker-compose up -d
-   ```
+# Or use Docker (Recommended)
+docker-compose up -d
+```
 
 ### Environment Variables
 
-#### Backend (.env)
-
+**Backend (.env)**
 ```env
 JWT_SECRET=your-secret-key
 MONGO_URI=mongodb://localhost:27017/ku-market
@@ -80,65 +59,34 @@ CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 ```
 
-#### Frontend (.env.local)
-
+**Frontend (.env.local)**
 ```env
 NEXT_PUBLIC_API_BASE=http://localhost:5000/api
 ```
 
 ## 🧪 Testing
 
-### Backend Tests
-
 ```bash
+# Backend tests
 cd backend
-npm test              # Unit tests
-npm run test:watch    # Watch mode
-```
+npm test
 
-### Frontend Tests
-
-```bash
+# Frontend tests
 cd frontend
-npm test              # Unit tests
-npm run test:watch    # Watch mode
+npm test
 ```
 
-### Integration Tests
+## 📚 Documentation
 
-```bash
-docker-compose up -d
-# Run integration tests
-```
+For detailed documentation, please visit our [Wiki](https://github.com/OverCatX/ku-market/wiki):
 
-## 📚 API Documentation
-
-### Authentication
-
-- `POST /api/auth/signup` - User registration
-- `POST /api/auth/login` - User login
-
-### Profile Management
-
-- `GET /api/profile/view` - Get user profile
-- `PUT /api/profile/update` - Update user profile
-
-### Items
-
-- `GET /api/items/list` - List items with pagination/filtering
-- `GET /api/items/:id` - Get item details
-- `POST /api/items/create` - Create new item
-- `PATCH /api/items/update/:id` - Update item
-- `DELETE /api/items/delete/:id` - Delete item
-
-## 🎨 UI Features
-
-- Modern responsive design with KU green theme
-- Smooth animations and hover effects
-- Advanced search and filtering
-- Mobile-first approach
-
+- [API Documentation](https://github.com/OverCatX/ku-market/wiki/API-Documentation)
+- [Setup Guide](https://github.com/OverCatX/ku-market/wiki/Setup-Guide)
+- [Architecture](https://github.com/OverCatX/ku-market/wiki/Architecture)
+- [Contributing Guidelines](https://github.com/OverCatX/ku-market/wiki/Contributing)
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
