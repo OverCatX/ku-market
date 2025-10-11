@@ -1,99 +1,134 @@
 "use client";
 
-import { User, RefreshCw, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getProfile, updateProfile } from "@/config/profile";
+import toast from "react-hot-toast";
+import { motion } from "framer-motion";
+import { Store } from "lucide-react";
+
+import ProfileHeader from "@/components/Profile/ProfileHeader";
+import ProfileForm from "@/components/Profile/ProfileForm";
+import OrderHistory from "@/components/Profile/OrderHistory";
+import LogoutButton from "@/components/Profile/LogoutButton";
 
 export default function ProfilePage() {
   const router = useRouter();
+  type User = {
+    name: string;
+    kuEmail: string;
+    role: "buyer" | "seller";
+    faculty?: string;
+    contact?: string;
+  } | null;
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/login");
+  type BackendUser = NonNullable<User>;
+
+  const [user, setUser] = useState<User>(null);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ name: "", faculty: "", contact: "" });
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("authentication");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        const userData = (await getProfile(token)) as unknown as BackendUser;
+        setUser(userData);
+        setForm({
+          name: userData.name || "",
+          faculty: userData.faculty || "",
+          contact: userData.contact || "",
+        });
+      } catch {
+        localStorage.removeItem("authentication");
+        router.replace("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [router]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem("authentication");
+    if (!token) return router.replace("/login");
+
+    setSaving(true);
+    setSaveMessage("");
+    try {
+      const updated = (await updateProfile(
+        token,
+        form
+      )) as unknown as BackendUser;
+      setUser(updated);
+      setSaveMessage("Saved successfully");
+      toast.success("Profile updated");
+    } catch {
+      toast.error("Failed to update profile");
+      setSaveMessage("Failed to save");
+    } finally {
+      setSaving(false);
+      setTimeout(() => setSaveMessage(""), 2000);
+    }
   };
 
-  return (
-    <div className="min-h-screen mt-15 p-8 ">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white border border-gray-600 p-8 rounded-3xl shadow-lg">
-          <div className="flex flex-col lg:flex-row gap-8 items-start">
-            {/* Profile Avatar Section */}
-            <div className="flex flex-col items-center space-y-4 lg:min-w-[200px]">
-              <div className="w-32 h-32 bg-green-300 border-4 border-gray-300 shadow-md rounded-full flex items-center justify-center">
-                <User className="w-16 h-16 text-green-800" />
-              </div>
-              <h2 className="text-2xl font-semibold text-green-900">Buyer</h2>
+  const handleRequestStore = () => {
+    toast("Store request sent! (mock)", { icon: "🛍️" });
+  };
 
-              {/* Logout Button */}
-              <button
-                onClick={handleLogout}
-                className="mt-4 flex items-center gap-2 bg-red-200/80 hover:bg-red-300/80 text-red-900 border border-red-300 rounded-xl px-4 py-2 font-medium shadow-sm transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </button>
-            </div>
-
-            {/* Profile Form Section */}
-            <div className="flex-1 space-y-6">
-              <div className="bg-white/80 border border-gray-500 p-6 rounded-2xl shadow-xl">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="name"
-                      className="block text-green-900 font-medium text-sm"
-                    >
-                      Name
-                    </label>
-                    <input
-                      id="name"
-                      type="text"
-                      className="w-full bg-green-100/70 border border-green-200 focus:border-green-400 focus:ring-2 focus:ring-green-400 focus:outline-none rounded-xl h-12 px-4 text-green-900 placeholder-green-600"
-                      placeholder="Enter your name"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="faculty"
-                      className="block text-green-900 font-medium text-sm"
-                    >
-                      Faculty
-                    </label>
-                    <input
-                      id="faculty"
-                      type="text"
-                      className="w-full bg-green-100/70 border border-green-200 focus:border-green-400 focus:ring-2 focus:ring-green-400 focus:outline-none rounded-xl h-12 px-4 text-green-900 placeholder-green-600"
-                      placeholder="Enter your faculty"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="email"
-                      className="block text-green-900 font-medium text-sm"
-                    >
-                      Email
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      className="w-full bg-green-100/70 border border-green-200 focus:border-green-400 focus:ring-2 focus:ring-green-400 focus:outline-none rounded-xl h-12 px-4 text-green-900 placeholder-green-600"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-
-                  <div className="flex justify-end pt-4">
-                    <button className="bg-green-200/80 hover:bg-green-300/80 text-green-900 border border-green-300 rounded-xl px-6 py-2 font-medium shadow-sm flex items-center gap-2 transition-colors">
-                      <RefreshCw className="w-4 h-4" />
-                      Seller
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+  if (loading)
+    return (
+      <div className="max-w-3xl mx-auto p-8 mt-12 bg-white rounded-2xl shadow-lg animate-pulse">
+        <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+        <div className="h-4 bg-gray-200 rounded w-2/3 mb-3"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
+        <div className="h-32 bg-gray-100 rounded"></div>
       </div>
-    </div>
+    );
+
+  if (!user) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-3xl mx-auto p-8 mt-12 bg-white rounded-2xl shadow-lg border border-gray-100"
+    >
+      <ProfileHeader name={user.name} role={user.role} />
+
+      <ProfileForm
+        form={form}
+        onChange={setForm}
+        onSave={handleSave}
+        saving={saving}
+        saveMessage={saveMessage}
+        email={user.kuEmail}
+      />
+
+      {user.role !== "seller" && (
+        <div className="mt-8">
+          <button
+            onClick={handleRequestStore}
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 shadow-sm hover:shadow-md"
+          >
+            <Store className="w-5 h-5" />
+            Request to Open Store
+          </button>
+        </div>
+      )}
+
+      <OrderHistory />
+
+      <LogoutButton />
+    </motion.div>
   );
 }

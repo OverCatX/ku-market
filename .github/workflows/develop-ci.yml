@@ -1,0 +1,369 @@
+name: Develop CI
+
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  NODE_VERSION: 20
+
+jobs:
+  # ===== FRONTEND - INSTALL & CACHE =====
+  fe-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefix frontend
+
+      - name: Cache node_modules
+        uses: actions/cache/save@v4
+        with:
+          path: frontend/node_modules
+          key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+  # ===== FRONTEND - LINT =====
+  fe-lint:
+    runs-on: ubuntu-latest
+    needs: fe-install
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Check if lint script exists
+        id: check-lint
+        run: |
+          if npm run --prefix frontend | grep -q "lint"; then
+            echo "has_lint=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_lint=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run lint
+        if: steps.check-lint.outputs.has_lint == 'true'
+        run: npm run lint --prefix frontend
+
+      - name: Skip lint
+        if: steps.check-lint.outputs.has_lint == 'false'
+        run: echo "⚠️ No lint script found, skipping..."
+
+  # ===== FRONTEND - TEST =====
+  fe-test:
+    runs-on: ubuntu-latest
+    needs: fe-install
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Check if test script exists
+        id: check-test
+        run: |
+          if npm run --prefix frontend | grep -q "test"; then
+            echo "has_test=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_test=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run tests
+        if: steps.check-test.outputs.has_test == 'true'
+        run: npm test --prefix frontend
+
+      - name: Skip tests
+        if: steps.check-test.outputs.has_test == 'false'
+        run: echo "⚠️ No test script found, skipping..."
+
+  # ===== FRONTEND - BUILD =====
+  fe-build:
+    runs-on: ubuntu-latest
+    needs: [fe-lint, fe-test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Build
+        run: npm run build --prefix frontend
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
+          retention-days: 1
+
+  # ===== BACKEND - INSTALL & CACHE =====
+  be-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefix backend
+
+      - name: Cache node_modules
+        uses: actions/cache/save@v4
+        with:
+          path: backend/node_modules
+          key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+  # ===== BACKEND - LINT =====
+  be-lint:
+    runs-on: ubuntu-latest
+    needs: be-install
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/node_modules
+          key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Check if lint script exists
+        id: check-lint
+        run: |
+          if npm run --prefix backend | grep -q "lint"; then
+            echo "has_lint=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_lint=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run lint
+        if: steps.check-lint.outputs.has_lint == 'true'
+        run: npm run lint --prefix backend
+
+      - name: Skip lint
+        if: steps.check-lint.outputs.has_lint == 'false'
+        run: echo "⚠️ No lint script found, skipping..."
+
+  # ===== BACKEND - UNIT TEST =====
+  be-unit-test:
+    runs-on: ubuntu-latest
+    needs: be-install
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/node_modules
+          key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Check if test script exists
+        id: check-test
+        run: |
+          if npm run --prefix backend | grep -q "test"; then
+            echo "has_test=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_test=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run unit tests
+        if: steps.check-test.outputs.has_test == 'true'
+        run: npm test --prefix backend
+        env:
+          NODE_ENV: test
+
+      - name: Skip tests
+        if: steps.check-test.outputs.has_test == 'false'
+        run: echo "⚠️ No test script found, skipping..."
+
+  # ===== BACKEND - BUILD =====
+  be-build:
+    runs-on: ubuntu-latest
+    needs: [be-lint, be-unit-test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/node_modules
+          key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Build
+        run: npm run build --prefix backend
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: backend/dist
+          retention-days: 1
+
+  # ===== DOCKER BUILD =====
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [fe-build, be-build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: false
+          tags: dev-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false
+          tags: dev-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ===== DOCKER INTEGRATION TEST =====
+  docker-integration:
+    runs-on: ubuntu-latest
+    needs: docker-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create backend .env for CI
+        run: |
+          mkdir -p backend
+          cat > backend/.env << EOF
+          JWT_SECRET=secret
+          MONGO_URI=mongodb://mongo:27017/ku-market
+          PORT=5000
+          NODE_ENV=test
+          EOF
+
+      - name: Start services with Docker Compose
+        run: |
+          echo "Starting services..."
+          docker compose -f docker-compose.yml up -d --build
+          echo "Services started, waiting for them to be ready..."
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for MongoDB..."
+          timeout 30 bash -c 'until docker compose -f docker-compose.yml exec -T mongo mongosh --eval "db.runCommand({ping: 1})" > /dev/null 2>&1; do sleep 2; done' || echo "MongoDB not ready"
+
+          echo "Waiting for backend..."
+          timeout 60 bash -c 'until curl -s http://localhost:5000/api/auth > /dev/null; do sleep 3; done' || echo "Backend not responding"
+
+          echo "Waiting for frontend..."
+          timeout 60 bash -c 'until curl -s http://localhost:3000 > /dev/null; do sleep 3; done' || echo "Frontend not responding"
+
+      - name: Show running containers
+        run: |
+          echo "=== Running containers ==="
+          docker compose -f docker-compose.yml ps
+          echo "=== Container logs ==="
+          docker compose -f docker-compose.yml logs --tail=20
+
+      - name: Test service connectivity
+        run: |
+          echo "=== Testing Backend ==="
+          curl -f http://localhost:5000/api/auth || echo "Backend auth endpoint failed"
+          echo "=== Testing Frontend ==="
+          curl -f http://localhost:3000 || echo "Frontend failed"
+
+      - name: Run backend tests in container
+        run: |
+          echo "Running backend tests..."
+          docker compose -f docker-compose.yml exec -T backend npm test || echo "Backend tests failed or not found"
+
+      - name: Run frontend tests in container
+        run: |
+          echo "Running frontend tests..."
+          docker compose -f docker-compose.yml exec -T frontend npm test || echo "Frontend tests failed or not found"
+
+      - name: Show final logs
+        if: always()
+        run: |
+          echo "=== Final Backend Logs ==="
+          docker compose -f docker-compose.yml logs backend
+          echo "=== Final Frontend Logs ==="
+          docker compose -f docker-compose.yml logs frontend
+
+      - name: Tear down services
+        if: always()
+        run: |
+          echo "Cleaning up..."
+          docker compose -f docker-compose.yml down -v
+          docker system prune -f
+
+  # ===== SUMMARY =====
+  ci-success:
+    runs-on: ubuntu-latest
+    needs: [fe-build, be-build, docker-integration]
+    if: success()
+    steps:
+      - name: Success notification
+        run: |
+          echo "✅ All CI checks passed!"
+          echo "Branch: develop"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"

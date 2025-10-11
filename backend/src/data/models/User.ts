@@ -15,9 +15,9 @@ const userSchema: Schema<IUser> = new Schema({
   name: { type: String, required: true },
   kuEmail: { type: String, required: true, unique: true, match: /.+@ku\.ac\.th$/ },
   password: { type: String, required: true },
-  role: { type: String, default: "student" },
-  faculty: { type: String },
-  contact: { type: String }
+  role: { type: String, default: "buyer" },
+  faculty: { type: String, required: true},
+  contact: { type: String, required: true, unique: true, match: /^0\d{9}$/}
 }, { timestamps: true });
 
 // Hash password before save
