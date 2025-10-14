@@ -13,6 +13,10 @@ export const userSignup = (req: Request, res: Response, next: NextFunction) => {
         password: Joi.string().required().messages({
             "string.empty": "Password is required"
         }),
+        confirm_password: Joi.string().required().valid(Joi.ref('password')).messages({
+            "string.empty": "Confirm password is required",
+            "any.only": "Passwords must match"
+        }),
         faculty: Joi.string().required().messages({
             "string.empty": "Faculty is required"
         }),
