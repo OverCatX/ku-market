@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 export default class AuthController {
     userSignup = async(req: Request, res: Response) =>{
-        const {name, kuEmail, password, faculty, contact} = req.body;
+        const {name, kuEmail, password, confirm_password, faculty, contact} = req.body;
 
         try {
             const userEmailexist = await User.findOne({kuEmail});
@@ -17,6 +17,10 @@ export default class AuthController {
 
             if (userContactExist){
                 return res.status(400).json({message : "Phone number is already existed"})
+            }
+
+            if (password !== confirm_password){
+                return res.status(400).json({message : "Password and Confirm password do not match"})
             }
 
             const user = new User({name, kuEmail, password, faculty, contact});
