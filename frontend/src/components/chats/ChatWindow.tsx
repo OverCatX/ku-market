@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import ChatHeader from "./ChatHeader";
 import MessageBubble from "./MessageBubble";
@@ -30,50 +31,56 @@ export default function ChatWindow({
     initialSeller || "Seller"
   );
 
+  // excample messages
+  const FALLBACK_MESSAGES: Msg[] = [
+    {
+      id: 1,
+      who: "them",
+      text: "Hello! Is this still available?",
+      time: "10:30",
+    },
+    {
+      id: 2,
+      who: "me",
+      text: "Hi! Yes, it’s still available 👜",
+      time: "10:32",
+    },
+    {
+      id: 3,
+      who: "them",
+      text: "Nice! Can I pick it up at Kasetsart gate 3 tomorrow?",
+      time: "10:33",
+    },
+    {
+      id: 4,
+      who: "me",
+      text: "Sure, tomorrow 11 AM works perfectly 😊",
+      time: "10:34",
+    },
+  ];
+
+  // ทุกครั้งที่เปลี่ยนห้องแชท:
+  // - อัปเดต header
+  // - รีเซ็ตข้อความเป็น mock
   useEffect(() => {
     setTitle(initialTitle || "Loading...");
     setSellerName(initialSeller || "Seller");
-    setMsgs([]);
+    setMsgs(FALLBACK_MESSAGES);
   }, [threadId, initialTitle, initialSeller]);
-
-  useEffect(() => {
-    if (!threadId) return;
-
-    fetch(`http://localhost:3000/api/chats/threads/${threadId}/messages`, {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.title) setTitle(data.title);
-        if (data.seller_name) setSellerName(data.seller_name);
-
-        if (Array.isArray(data.messages)) {
-          setMsgs(
-            data.messages.map((m: any) => ({
-              id: m.id,
-              who: m.sender_is_me ? "me" : "them",
-              text: m.text,
-              time: m.created_at_hhmm,
-            }))
-          );
-        }
-      })
-      .catch((err) => console.error("failed to load msgs", err));
-  }, [threadId]);
 
   return (
     <div
       className="flex h-full min-h-0 flex-col overflow-hidden rounded-none"
       style={{ background: colors.creamSoft }}
     >
-      {/* Header */}
+      {/* Head */}
       <ChatHeader
-        title={title || "Loading..."}
+        title={title}
         sellerName={sellerName}
-        onBack={onBack}
+        onBack={onBack} 
       />
 
-      {/* text box */}
+      {/* messages */}
       <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6 space-y-4">
         {msgs.map((m) => (
           <MessageBubble
@@ -88,16 +95,9 @@ export default function ChatWindow({
       {/* type box */}
       <Composer
         onSend={(text) => {
-          fetch(
-            `http://localhost:3000/api/chats/threads/${threadId}/messages`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify({ text }),
-            }
-          );
+          if (!text.trim()) return;
 
+          // optimistic update
           setMsgs((prev) => [
             ...prev,
             {
