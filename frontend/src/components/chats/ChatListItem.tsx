@@ -20,7 +20,7 @@ export default function ChatListItem({
     <button
       onClick={onClick}
       className={`w-full rounded-2xl p-2 text-left transition shadow-sm ${
-        active ? "ring-2 ring-[#C7A484]" : "hover:shadow"
+        active ? "ring-2 ring-[#98A869]" : "hover:shadow"
       }`}
       style={{ background: colors.cream }}
     >
@@ -32,15 +32,15 @@ export default function ChatListItem({
 
         {/* message */}
         <div className="flex-1 ml-2">
-          <div className="text-sm font-semibold text-slate-800 leading-tight break-words">
-            {item.title}
-          </div>
+            <div 
+            className="text-sm font-semibold leading-tight break-words" style={{ color: "#4A5130" }}> {item.title}
+            </div>
         </div>
 
         {/* unread message */}
         {item.unread > 0 && (
           <div
-            className="h-9 w-9 mr-2 rounded-full flex items-center justify-center text-xs font-semibold shadow-sm"
+            className="h-8 w-8 mr-2 rounded-full flex items-center justify-center text-sm font-semibold shadow-sm"
             style={{
               background: colors.badgeBg,
               color: colors.badgeText,
