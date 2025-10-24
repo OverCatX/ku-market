@@ -16,9 +16,17 @@ export default function ChatHeader({
 }) {
   return (
     <div
-      className="rounded-t-2xl px-4 py-4 flex items-start gap-3"
+      className="rounded-t-2xl px-4 py-4 flex items-center gap-3"
       style={{ background: colors.oliveDark }}
     >
+      {/* Back button — show when in a small screen */}
+      <button
+        onClick={onBack}
+        className="lg:hidden flex items-center justify-center w-9 h-9 rounded-full hover:bg-[#5c6540] transition"
+      >
+        <ArrowLeft size={20} color={colors.cream} />
+      </button>
+
       {/* Avatar */}
       <div className="h-10 w-10 rounded-full bg-white/60 flex items-center justify-center shrink-0">
         <UserRound className="text-slate-700" size={22} />

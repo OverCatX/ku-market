@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import ChatListItem from "./ChatListItem";
 
@@ -9,7 +10,6 @@ export type Thread = {
   sellerName: string;
 };
 
-// fallback mock data
 const FALLBACK_THREADS: Thread[] = [
   { id: "t1", title: "KU tote bag", unread: 2, sellerName: "Classic" },
   { id: "t2", title: "Strawberry smoothie", unread: 1, sellerName: "Beam" },
@@ -20,16 +20,20 @@ const FALLBACK_THREADS: Thread[] = [
 
 export default function ChatList({
   selectedId,
-  onSelect,
   autoClearId,
+  onSelect,
 }: {
   selectedId: string | number | null;
-  autoClearId: string | number | null;
+  autoClearId?: string | number | null;
   onSelect: (id: string | number, title: string, sellerName: string) => void;
 }) {
   const [threads, setThreads] = useState<Thread[]>(FALLBACK_THREADS);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
+ // 1) load threads from backend
   useEffect(() => {
+    setIsLoading(true);
+
     fetch("http://localhost:3000/api/chats/threads", {
       credentials: "include",
     })
@@ -44,22 +48,50 @@ export default function ChatList({
       })
       .catch((err) => {
         console.warn("threads fetch error", err);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
 
-  function markThreadAsRead(id: string | number) {
+ 
+  function markThreadReadLocally(threadId: string | number) {
     setThreads((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, unread: 0 } : t))
+      prev.map((t) =>
+        t.id === threadId
+          ? { ...t, unread: 0 }
+          : t
+      )
     );
   }
 
+
+  function markThreadReadOnServer(threadId: string | number) {
+    fetch(`http://localhost:3000/api/chats/threads/${String(threadId)}/mark_read`, {
+      method: "POST",
+      credentials: "include",
+    }).catch((err) => {
+      console.warn("mark_read failed", err);
+    });
+  }
+
+
+  // 2) autoClearId:
   useEffect(() => {
     if (!autoClearId) return;
-    markThreadAsRead(autoClearId);
+    markThreadReadLocally(autoClearId);
+    markThreadReadOnServer(autoClearId);
   }, [autoClearId]);
 
+  // 3) render items
   return (
     <div className="p-4 space-y-2">
+      {isLoading && (
+        <div className="text-xs text-slate-500 px-2 py-1">
+          Loading chats...
+        </div>
+      )}
+
       {threads.map((t) => (
         <ChatListItem
           key={t.id}
@@ -68,20 +100,18 @@ export default function ChatList({
           onClick={() => {
             onSelect(t.id, t.title, t.sellerName);
 
-            markThreadAsRead(t.id);
+            markThreadReadLocally(t.id);
 
-            fetch(
-              `http://localhost:3000/api/chats/threads/${String(t.id)}/mark_read`,
-              {
-                method: "POST",
-                credentials: "include",
-              }
-            ).catch((err) => {
-              console.warn("mark_read failed", err);
-            });
+            markThreadReadOnServer(t.id);
           }}
         />
       ))}
+
+      {!isLoading && threads.length === 0 && (
+        <div className="text-sm text-slate-500 px-2 py-6 text-center">
+          No chats yet. Start messaging a seller from Marketplace.
+        </div>
+      )}
     </div>
   );
 }
