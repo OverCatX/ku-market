@@ -30,8 +30,9 @@ export default function ChatWindow({
   const [sellerName, setSellerName] = useState<string>(
     initialSeller || "Seller"
   );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // excample messages
+  // fallback UI message list 
   const FALLBACK_MESSAGES: Msg[] = [
     {
       id: 1,
@@ -45,27 +46,66 @@ export default function ChatWindow({
       text: "Hi! Yes, it’s still available 👜",
       time: "10:32",
     },
-    {
-      id: 3,
-      who: "them",
-      text: "Nice! Can I pick it up at Kasetsart gate 3 tomorrow?",
-      time: "10:33",
-    },
-    {
-      id: 4,
-      who: "me",
-      text: "Sure, tomorrow 11 AM works perfectly 😊",
-      time: "10:34",
-    },
   ];
 
-  // ทุกครั้งที่เปลี่ยนห้องแชท:
-  // - อัปเดต header
-  // - รีเซ็ตข้อความเป็น mock
+  // change threadId → reset new data
   useEffect(() => {
+    // reset header 
     setTitle(initialTitle || "Loading...");
     setSellerName(initialSeller || "Seller");
+
+    // fallback ชั่วคราว
     setMsgs(FALLBACK_MESSAGES);
+
+    // no threadId no fetch
+    if (!threadId) return;
+
+    setIsLoading(true);
+
+    fetch(`http://localhost:3000/api/chats/threads/${threadId}/messages`, {
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) {
+          // if backend error → fallback messages
+          return null;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        // {
+        //   title: "KU tote bag",
+        //   seller_name: "Classic",
+        //   messages: [
+        //     { id, sender_is_me, text, created_at_hhmm },
+        //     ...
+        //   ]
+        // }
+
+        if (!data) return;
+
+        if (data.title) {
+          setTitle(data.title);
+        }
+        if (data.seller_name) {
+          setSellerName(data.seller_name);
+        }
+        if (Array.isArray(data.messages)) {
+          const mapped: Msg[] = data.messages.map((m: any) => ({
+            id: m.id,
+            who: m.sender_is_me ? "me" : "them",
+            text: m.text,
+            time: m.created_at_hhmm,
+          }));
+          setMsgs(mapped);
+        }
+      })
+      .catch((err) => {
+        console.error("failed to load msgs", err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [threadId, initialTitle, initialSeller]);
 
   return (
@@ -73,15 +113,25 @@ export default function ChatWindow({
       className="flex h-full min-h-0 flex-col overflow-hidden rounded-none"
       style={{ background: colors.creamSoft }}
     >
-      {/* Head */}
+      {/* Header */}
       <ChatHeader
         title={title}
         sellerName={sellerName}
-        onBack={onBack} 
+        onBack={onBack}
       />
 
-      {/* messages */}
+      {/* Message list */}
       <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6 space-y-4">
+        {isLoading && (
+          <div className="text-xs text-slate-500">Loading messages...</div>
+        )}
+
+        {!isLoading && msgs.length === 0 && (
+          <div className="text-xs text-slate-400 italic">
+            No messages yet. Say hi!
+          </div>
+        )}
+
         {msgs.map((m) => (
           <MessageBubble
             key={m.id}
@@ -92,24 +142,31 @@ export default function ChatWindow({
         ))}
       </div>
 
-      {/* type box */}
+      {/* Composer */}
       <Composer
         onSend={(text) => {
           if (!text.trim()) return;
 
-          // optimistic update
-          setMsgs((prev) => [
-            ...prev,
-            {
-              id: prev.length + 1,
-              who: "me",
-              text,
-              time: new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-            },
-          ]);
+          // optimistic UI update
+          const newMsg: Msg = {
+            id: msgs.length + 1,
+            who: "me",
+            text,
+            time: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          };
+          setMsgs((prev) => [...prev, newMsg]);
+
+          fetch(`http://localhost:3000/api/chats/threads/${threadId}/messages`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ text }),
+          }).catch((err) => {
+            console.error("send failed", err);
+          });
         }}
       />
     </div>
