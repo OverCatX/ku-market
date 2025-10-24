@@ -1,8 +1,8 @@
 import { UserRound, ArrowLeft } from "lucide-react";
 
 const colors = {
-  oliveDark: "#4A5130", // พื้นหลัง header
-  cream: "#F6F2E5",     // ตัวอักษรโทนอุ่น
+  oliveDark: "#4A5130",
+  cream: "#F6F2E5",
 };
 
 export default function ChatHeader({
