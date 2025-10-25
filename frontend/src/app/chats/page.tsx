@@ -20,7 +20,6 @@ type MessageMap = {
 };
 
 export default function ChatPage() {
-  // 1) STATE
   // all chat threads (left panel list)
   const [threads, setThreads] = useState<Thread[]>([]);
 
@@ -32,9 +31,6 @@ export default function ChatPage() {
   const [selectedTitle, setSelectedTitle] = useState<string>("");
   const [selectedSeller, setSelectedSeller] = useState<string>("Seller");
 
-  // 2) LOAD THREAD LIST (WITH FALLBACK)
-  // We fetch /api/chats/threads. If backend returns an empty array,
-  // we inject a mock/fallback thread so the UI is not blank.
   useEffect(() => {
     const fallbackThreads: Thread[] = [
       {
@@ -51,7 +47,6 @@ export default function ChatPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data && Array.isArray(data) && data.length > 0) {
-          // ✅ backend already has real threads
           setThreads(data);
 
           const first = data[0];
@@ -61,7 +56,6 @@ export default function ChatPage() {
           return;
         }
 
-        // backend returned [] or null → fallback
         setThreads(fallbackThreads);
 
         const first = fallbackThreads[0];
@@ -82,7 +76,7 @@ export default function ChatPage() {
       });
   }, []);
 
-  // 3) When selectedId CHANGES → LOAD MESSAGES (FIRST TIME ONLY)
+  // selectedId CHANGES → LOAD MESSAGES (FIRST TIME ONLY)
  
   useEffect(() => {
     if (!selectedId) return; // nothing selected yet
@@ -128,7 +122,6 @@ export default function ChatPage() {
       });
   }, [selectedId, messagesByThread]);
 
-  // 4) HELPERS
   // remove unread badge in the left list for a given threadId
   function markThreadReadLocally(threadId: string | number) {
     setThreads((prev) =>
@@ -136,7 +129,6 @@ export default function ChatPage() {
     );
   }
 
-  // tell backend that we've opened/read this thread
   function markThreadReadOnServer(threadId: string | number) {
     fetch(
       `http://localhost:3000/api/chats/threads/${String(threadId)}/mark_read`,
@@ -193,7 +185,7 @@ export default function ChatPage() {
     }
   }
 
-  // 5) RENDER
+  // RENDER
 
   const heightStyle = { height: `calc(100dvh - ${NAV_H}px)` };
 
