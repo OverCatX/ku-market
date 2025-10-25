@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function HeroSection() {
   return (
@@ -18,7 +19,7 @@ export default function HeroSection() {
           solutions
         </p>
         <a
-          href="/login"
+          href="#featured-products"
           className="relative inline-block px-8 py-4 rounded-xl font-semibold text-white 
              bg-gradient-to-r from-[#4B5D34] to-[#7BAA5F] 
              shadow-lg overflow-hidden transition-all transform 
