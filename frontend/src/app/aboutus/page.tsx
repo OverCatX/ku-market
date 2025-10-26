@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import AboutHero from "@/components/aboutus/AboutHero";
 import AboutWhy from "@/components/aboutus/AboutWhy";
 import AboutHowItWorks from "@/components/aboutus/AboutHowItWorks";
@@ -45,17 +46,19 @@ export default function AboutUsPage() {
           <div className="max-w-5xl mx-auto px-6 py-12 text-center">
             <p
               className="text-base md:text-lg font-semibold mb-4"
-              style={{ color: aboutColors.creamBg }}
+              style={{ color: aboutColors.creamSoft }}
             >
               Ready to try it?
             </p>
 
-            <p className="text-sm md:text-base text-slate-700 mb-6"
-            style={{ color: aboutColors.creamBg }}>
+            <p
+              className="text-sm md:text-base mb-6"
+              style={{ color: aboutColors.creamSoft }}
+            >
               Browse real listings from KU students. Ask questions. Meet on campus.
             </p>
 
-            <a
+            <Link
               href="/marketplace"
               className="inline-block rounded-full px-6 py-2.5 text-sm font-semibold shadow-sm hover:opacity-90 transition"
               style={{
@@ -64,7 +67,7 @@ export default function AboutUsPage() {
               }}
             >
               Explore Marketplace →
-            </a>
+            </Link>
           </div>
         </section>
       </MotionFadeIn>
