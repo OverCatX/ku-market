@@ -32,7 +32,7 @@ export default function AboutWhy() {
 
         <ul className="text-sm md:text-base leading-relaxed text-slate-700 max-w-3xl space-y-2">
           <li>• A space where trust matters more than profit.</li>
-          <li>• You can meet up in a public spot on campus (not somewhere weird).</li>
+          <li>• You can meet up in a public spot on campus ( not somewhere weird ).</li>
           <li>• You’re talking to other KU students — not strangers.</li>
           <li>• A small step towards a more sustainable KU campus.</li>
         </ul>

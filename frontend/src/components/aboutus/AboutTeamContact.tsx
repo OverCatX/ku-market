@@ -21,14 +21,14 @@ export default function AboutTeamAndContact() {
             The team
           </h3>
           <p className="text-sm md:text-base leading-relaxed text-slate-700">
-            KU Market is built by KU students who were tired of the <br />“DM me” culture
+            KU Market is built by KU students who were tired of the <br />“ DM me ” culture
             and ghosted meetups.
             <br />
             <br />
             We’re focusing on:
-            <br />• Safety (verified KU accounts)
-            <br />• Convenience (chat, meet on campus)
-            <br />• Sustainability (reuse / rehome stuff instead of buying new)
+            <br />• Safety ( verified KU accounts )
+            <br />• Convenience ( chat, meet on campus )
+            <br />• Sustainability ( reuse / rehome stuff instead of buying new )
           </p>
         </div>
 

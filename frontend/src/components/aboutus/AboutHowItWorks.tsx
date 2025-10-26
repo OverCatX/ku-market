@@ -61,7 +61,7 @@ export default function AboutHowItWorks() {
           />
           <StepItem
             step="2"
-            text='Chat with the seller. Ask “Can we meet at KU gate today 5pm?”'
+            text='Chat with the seller. Ask “ Can we meet at KU gate today 5pm ? ”'
           />
           <StepItem
             step="3"
