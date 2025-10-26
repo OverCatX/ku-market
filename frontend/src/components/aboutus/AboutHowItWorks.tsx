@@ -20,7 +20,11 @@ function StepItem({
       >
         {step}
       </div>
-      <div className="flex-1 text-slate-700 text-sm leading-relaxed">
+
+      <div
+        className="flex-1 text-sm leading-relaxed"
+        style={{ color: aboutColors.creamSoft }}
+      >
         {text}
       </div>
     </div>
@@ -30,15 +34,27 @@ function StepItem({
 export default function AboutHowItWorks() {
   return (
     <section
-        className="w-full"
-        style={{ backgroundColor: aboutColors.oliveDark }}
+      className="w-full border-t -mt-[70px]"
+      style={{
+        backgroundColor: aboutColors.oliveDark,
+        borderColor: aboutColors.borderSoft,
+      }}
     >
-      <div className="max-w-5xl mx-auto px-6 py-10 md:py-12">
-        <h2 className="text-xl md:text-2xl font-semibold text-slate-800 mb-4">
+      <div
+        className="
+          max-w-5xl mx-auto px-6
+          pt-8 md:pt-10
+          pb-12 md:pb-16
+        "
+      >
+        <h2
+          className="text-2xl md:text-3xl font-semibold mb-6"
+          style={{ color: aboutColors.creamSoft }}
+        >
           How KU Market works
         </h2>
 
-        <div className="space-y-4 text-sm leading-relaxed text-slate-700">
+        <div className="space-y-4">
           <StepItem
             step="1"
             text="Browse items in Marketplace. Hoodies, student merch, notes, stationery, handmade stuff, etc."
@@ -49,7 +65,7 @@ export default function AboutHowItWorks() {
           />
           <StepItem
             step="3"
-            text="Meet up in a safe public spot. Pay in cash (COD) or other method you both agree on."
+            text="Meet up in a safe public spot. Pay in cash (COD) or any method you both trust."
           />
           <StepItem
             step="4"
