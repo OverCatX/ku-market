@@ -22,7 +22,13 @@ export default function AboutWhy() {
           Before KU Market, buying and selling on campus usually meant random
           Line groups, IG stories, or asking friends-of-friends. It was slow,
           messy, and sometimes unsafe.
-          
+          <br />
+          <br />
+          We want a marketplace built by students, for students:
+          <br />• A space where trust matters more than profit.  
+          <br />• You can meet up in a public spot on campus ( not somewhere weird )    
+          <br />• You’re talking to other KU students — not strangers.
+          <br />• A small step towards a more sustainable KU campus.
         </p>
       </div>
     </section>
