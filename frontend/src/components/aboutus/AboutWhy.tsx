@@ -30,7 +30,7 @@ export default function AboutWhy() {
           We want a marketplace built by students, for students:
         </p>
 
-        <ul className="text-sm md:text-base leading-relaxed text-slate-700 max-w-3xl space-y-2">
+        <ul className="text-sm md:text-base leading-relaxed text-slate-700 max-w-3xl space-y-2 mb-17">
           <li>• A space where trust matters more than profit.</li>
           <li>• You can meet up in a public spot on campus ( not somewhere weird ).</li>
           <li>• You’re talking to other KU students — not strangers.</li>
