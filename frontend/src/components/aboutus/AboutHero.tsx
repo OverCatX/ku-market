@@ -10,7 +10,7 @@ export default function AboutHero() {
     >
       <div className="max-w-5xl mx-auto px-6 py-12 md:py-16 text-[#F6F2E5]">
         {/* small pill label */}
-        <div className="inline-block rounded-full px-3 py-1 text-xs font-medium mb-4"
+        <div className="inline-block rounded-full px-6 py-3 text-base font-semibold mb-6 shadow-sm"
           style={{
             backgroundColor: aboutColors.brown,
             color: aboutColors.creamSoft,
