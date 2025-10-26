@@ -34,7 +34,7 @@ export default function AboutTeamAndContact() {
 
         {/* ---------- Contact block (temporarily removed) ---------- */}
         
-        <div>
+        {/* <div>
           <h3
             className="text-lg md:text-xl font-bold mb-3"
             style={{ color: aboutColors.oliveDark }}
@@ -59,7 +59,7 @@ export default function AboutTeamAndContact() {
               <span className="text-slate-700">@ku-market</span>
             </div>
           </div>
-        </div>
+        </div> */}
        
       </div>
     </section>
