@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import NotificationsPage from "../page";
 
 // Since we removed mocks, these tests will test the empty state
