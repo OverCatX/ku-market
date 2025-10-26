@@ -22,7 +22,7 @@ function StepItem({
       </div>
 
       <div
-        className="flex-1 text-sm leading-relaxed"
+        className="flex-1 text-sm md:text-base leading-relaxed"
         style={{ color: aboutColors.creamSoft }}
       >
         {text}
@@ -61,11 +61,11 @@ export default function AboutHowItWorks() {
           />
           <StepItem
             step="2"
-            text='Chat with the seller. Ask “Is this still available?” or “Can we meet at KU gate today 5pm?”'
+            text='Chat with the seller. Ask “Can we meet at KU gate today 5pm?”'
           />
           <StepItem
             step="3"
-            text="Meet up in a safe public spot. Pay in cash (COD) or any method you both trust."
+            text="Meet up in a safe public spot. Pay in cash or any method you both choose."
           />
           <StepItem
             step="4"
