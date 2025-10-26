@@ -4,4 +4,6 @@ export const aboutColors = {
     creamSoft: "#F6F2E5",
     creamBg: "#F6F2E5",
     borderSoft: "#C7A484",
+    red : "#780606",
+    yellowBright: "#e0cd95",
   };
