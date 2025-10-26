@@ -32,9 +32,9 @@ export default function AboutHero() {
           className="mt-3 text-sm md:text-base leading-relaxed max-w-2xl"
           style={{ color: aboutColors.creamSoft }}
         >
-          KU Market is a campus-focused marketplace where students can trade and sell
-          second-hand items — bags, hoodies, notes, plants, snacks, anything —
-          in a safe and trusted way. No random strangers. No sketchy meetups.
+          KU Market is a campus's marketplace where students can trade and sell
+          second-hand items like bags, hoodies, notes, plants, snacks or anything  
+           —  in a safe and trusted way. No random strangers. No sketchy meetups.
           Just KU students helping KU students.
         </p>
       </div>
