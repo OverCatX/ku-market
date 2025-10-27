@@ -7,6 +7,7 @@ import AboutHowItWorks from "@/components/aboutus/AboutHowItWorks";
 import AboutTeamAndContact from "@/components/aboutus/AboutTeamContact";
 import { aboutColors } from "@/components/aboutus/SectionColors";
 import { MotionFadeIn } from "@/components/aboutus/MotionFadeIn";
+import FooterSection from "@/components/home/FooterSection";
 
 export default function AboutUsPage() {
   return (
@@ -55,7 +56,8 @@ export default function AboutUsPage() {
               className="text-sm md:text-base mb-6"
               style={{ color: aboutColors.creamSoft }}
             >
-              Browse real listings from KU students. Ask questions. Meet on campus.
+              Browse real listings from KU students. Ask questions. Meet on
+              campus.
             </p>
 
             <Link
@@ -73,12 +75,13 @@ export default function AboutUsPage() {
       </MotionFadeIn>
 
       {/* footer */}
-      <footer
+      <FooterSection />
+      {/* <footer
         className="text-center text-[11px] text-slate-500 py-8 border-t"
         style={{ borderColor: aboutColors.borderSoft }}
       >
         KU Market · built by KU students · {new Date().getFullYear()}
-      </footer>
+      </footer> */}
     </main>
   );
 }
