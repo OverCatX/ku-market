@@ -26,57 +26,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # ดึงประวัติทั้งหมดเพื่อเปรียบเทียบ branch
 
-      - name: Get branch name
+      - name: Extract branch name
         id: branch
-        run: echo "name=$(echo ${GITHUB_REF##*/})" >> $GITHUB_OUTPUT
-
-      - name: Check if branch exists on remote
-        id: validate
         run: |
-          # ตรวจสอบว่า branch มีอยู่จริงบน remote
-          if ! git ls-remote --heads origin "${{ steps.branch.outputs.name }}" | grep -q "${{ steps.branch.outputs.name }}"; then
-            echo "❌ Branch not found on remote"
-            echo "valid=false" >> $GITHUB_OUTPUT
-            exit 1
-          fi
-
-          # ตรวจสอบว่ามี commits แตกต่างจาก develop หรือไม่
-          git fetch origin develop
-          DIFF_COUNT=$(git rev-list --count origin/develop..HEAD)
-
-          if [ "$DIFF_COUNT" -eq "0" ]; then
-            echo "⚠️ No commits difference from develop"
-            echo "valid=false" >> $GITHUB_OUTPUT
-            echo "reason=no_commits" >> $GITHUB_OUTPUT
-          else
-            echo "✅ Found $DIFF_COUNT commits ahead of develop"
-            echo "valid=true" >> $GITHUB_OUTPUT
-            echo "commit_count=$DIFF_COUNT" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Skip if no changes
-        if: steps.validate.outputs.valid == 'false'
-        run: |
-          echo "::notice::Skipping PR creation - no new commits compared to develop"
-          exit 0
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          echo "name=${BRANCH}" >> $GITHUB_OUTPUT
+          echo "Branch: ${BRANCH}"
 
       - name: Create PR body
-        if: steps.validate.outputs.valid == 'true'
         id: content
         run: |
+          BRANCH_NAME="${{ steps.branch.outputs.name }}"
+          ACTOR="${{ github.actor }}"
+
           cat << EOF >> $GITHUB_OUTPUT
           body<<EOFBODY
           ## ✨ Feature Branch → Develop
 
-          **Branch:** \`${{ steps.branch.outputs.name }}\`
-          **Author:** @${{ github.actor }}
-          **Commits:** ${{ steps.validate.outputs.commit_count }} commits ahead of develop
+          **Branch:** ${BRANCH_NAME}
+          **Author:** @${ACTOR}
 
           ### 📝 Description
-          Add ${{ steps.branch.outputs.name }}
+          Add ${BRANCH_NAME}.
 
           ### 🧪 Testing Status
           CI tests are running... Check status below.
@@ -93,7 +65,6 @@ jobs:
           EOF
 
       - name: Check if PR exists
-        if: steps.validate.outputs.valid == 'true'
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
@@ -115,16 +86,17 @@ jobs:
           fi
 
       - name: Create labels if not exist
-        if: steps.validate.outputs.valid == 'true' && steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Create labels (ignore if already exist)
           gh label create "auto-pr" --color "0366d6" --description "Auto-created PR" --force || true
           gh label create "feature" --color "a2eeef" --description "Feature branch" --force || true
           gh label create "needs-review" --color "fbca04" --description "Needs code review" --force || true
 
       - name: Create PR
-        if: steps.validate.outputs.valid == 'true' && steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -141,7 +113,7 @@ jobs:
             --body "${{ steps.content.outputs.body }}"
 
       - name: Update PR
-        if: steps.validate.outputs.valid == 'true' && steps.check.outputs.exists == 'true'
+        if: steps.check.outputs.exists == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -160,31 +132,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: develop
-          fetch-depth: 0
-
-      - name: Check if develop differs from main
-        id: validate
-        run: |
-          git fetch origin main
-          DIFF_COUNT=$(git rev-list --count origin/main..origin/develop)
-
-          if [ "$DIFF_COUNT" -eq "0" ]; then
-            echo "⚠️ No difference between develop and main"
-            echo "valid=false" >> $GITHUB_OUTPUT
-          else
-            echo "✅ Found $DIFF_COUNT commits ahead of main"
-            echo "valid=true" >> $GITHUB_OUTPUT
-            echo "commit_count=$DIFF_COUNT" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Skip if no changes
-        if: steps.validate.outputs.valid == 'false'
-        run: |
-          echo "::notice::Skipping PR creation - develop is up to date with main"
-          exit 0
 
       - name: Create PR body
-        if: steps.validate.outputs.valid == 'true'
         id: content
         run: |
           cat << 'EOF' >> $GITHUB_OUTPUT
@@ -216,7 +165,6 @@ jobs:
           EOF
 
       - name: Check if PR exists
-        if: steps.validate.outputs.valid == 'true'
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
@@ -236,7 +184,7 @@ jobs:
           fi
 
       - name: Create labels if not exist
-        if: steps.validate.outputs.valid == 'true' && steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -246,7 +194,7 @@ jobs:
           gh label create "needs-review" --color "fbca04" --description "Needs code review" --force || true
 
       - name: Create PR
-        if: steps.validate.outputs.valid == 'true' && steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -263,7 +211,7 @@ jobs:
             --body "${{ steps.content.outputs.body }}"
 
       - name: Update PR
-        if: steps.validate.outputs.valid == 'true' && steps.check.outputs.exists == 'true'
+        if: steps.check.outputs.exists == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -290,7 +238,7 @@ jobs:
     steps:
       - name: Notify
         run: |
-          cat << EOF >> $GITHUB_STEP_SUMMARY
+          cat << 'EOF' >> $GITHUB_STEP_SUMMARY
           ## ❌ Develop CI Failed
 
           **Branch:** develop
