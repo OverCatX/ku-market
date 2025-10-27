@@ -4,11 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShoppingCart, Bell, User, Menu, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { NotificationBell } from "@/components/notifications";
+import { useCart } from "@/contexts/CartContext";
 
 export function Header() {
   const pathName = usePathname();
   const [profileLink, setProfileLink] = useState("/login");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { getTotalItems } = useCart();
 
   const linkClasses = useCallback(
     (path: string) =>
@@ -19,7 +22,7 @@ export function Header() {
   );
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("authentication");
     setProfileLink(token ? "/profile" : "/login");
   }, []);
 
@@ -27,7 +30,7 @@ export function Header() {
     { href: "/", label: "home" },
     { href: "/marketplace", label: "marketplace" },
     { href: "/chats", label: "chats" },
-    { href: "/about", label: "about us" },
+    { href: "/aboutus", label: "about us" },
   ];
 
   return (
@@ -35,7 +38,10 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-16">
         <div className="flex items-center justify-between h-16">
           {/* Logo / Brand */}
-          <Link href="/" className="text-xl font-bold text-[#69773D]">
+          <Link
+            href="/"
+            className="font-header text-xl font-bold text-[#69773D]"
+          >
             KU Market
           </Link>
 
@@ -60,20 +66,15 @@ export function Header() {
               className="relative p-2 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
             >
               <ShoppingCart className="w-5 h-5 text-gray-700" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                2
-              </span>
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                  {getTotalItems() > 9 ? "9+" : getTotalItems()}
+                </span>
+              )}
             </Link>
 
-            <Link
-              href="/notifications"
-              className="relative p-2 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
-            >
-              <Bell className="w-5 h-5 text-gray-700" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 text-black text-xs rounded-full flex items-center justify-center">
-                1
-              </span>
-            </Link>
+            <NotificationBell />
+
 
             <Link
               href={profileLink}
@@ -120,9 +121,14 @@ export function Header() {
             <div className="flex flex-col space-y-2 mt-2">
               <Link
                 href="/cart"
-                className="flex items-center gap-2 text-gray-700 hover:text-[#84B067]"
+                className="flex items-center gap-2 text-gray-700 hover:text-[#84B067] relative"
               >
                 <ShoppingCart className="w-5 h-5" /> Cart
+                {getTotalItems() > 0 && (
+                  <span className="ml-auto min-w-[20px] h-5 px-2 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                    {getTotalItems() > 9 ? "9+" : getTotalItems()}
+                  </span>
+                )}
               </Link>
               <Link
                 href="/notifications"

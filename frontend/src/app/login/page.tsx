@@ -1,8 +1,17 @@
 "use client";
 
 import { LoginForm } from "@/components/auth/login-form";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("authentication");
+    if (token) router.replace("/");
+  }, [router]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center">
       <main className="container mx-auto px-4 sm:px-6 lg:px-16 py-12">

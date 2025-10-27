@@ -5,6 +5,7 @@ export type SignupData = {
   name: string;
   kuEmail: string;
   password: string;
+  confirm_password: string;
   faculty: string;
   contact: string;
 };

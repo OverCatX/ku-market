@@ -1,17 +1,22 @@
-import { Router, Request, Response } from "express";
-import User, { IUser } from "../../data/models/User";
+import { Request, Response } from "express";
+import User from "../../data/models/User";
+
+interface AuthenticatedRequest extends Request {
+  userId: string;
+}
 
 export default class ProfileController {
     userView = async (req: Request, res: Response) =>{
         try {
-            const user = await User.findById((req as any).userId).select("-password -__v");
+            const user = await User.findById((req as AuthenticatedRequest).userId).select("-password -__v");
             if (!user){
                 return res.status(404).json({ error: "User not found" });
             }
             return res.json(user);
 
-          } catch (err: any) {
-            return res.status(500).json({ error: err.message });
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Internal server error";
+            return res.status(500).json({ error: message });
           }
     }
 
@@ -19,7 +24,7 @@ export default class ProfileController {
         try {
             const { name, faculty, contact } = req.body;
             const user = await User.findByIdAndUpdate(
-              (req as any).userId,
+              (req as AuthenticatedRequest).userId,
               { name, faculty, contact },
               { new: true, runValidators: true }
             ).select("-password -__v");
@@ -28,8 +33,9 @@ export default class ProfileController {
             } 
             return res.json(user);
 
-          } catch (err: any) {
-            return res.status(400).json({ error: err.message });
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Bad request";
+            return res.status(400).json({ error: message });
           }
     }
 }

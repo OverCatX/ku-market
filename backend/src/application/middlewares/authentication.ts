@@ -1,15 +1,21 @@
-import { Router, Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-export const authenticate = async (req: Request, res: Response, next: Function) => {
+interface JwtPayload { id: string }
+
+export const authenticate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(401).json({ error: "Unauthorized" });
   
     try {
-      const payload: any = jwt.verify(token, process.env.JWT_SECRET || "secret");
-      (req as any).userId = payload.id;
+      const payload = jwt.verify(token, process.env.JWT_SECRET || "secret") as JwtPayload;
+      (req as unknown as { userId: string }).userId = payload.id;
       next();
-    } catch (err) {
+    } catch {
       res.status(401).json({ error: "Invalid token" });
     }
   };
