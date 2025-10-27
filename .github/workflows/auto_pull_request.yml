@@ -36,15 +36,15 @@ jobs:
 
       - name: Create PR body
         id: content
-        env:
-          BRANCH_NAME: ${{ steps.branch.outputs.name }}
-          ACTOR: ${{ github.actor }}
         run: |
+          BRANCH_NAME="${{ steps.branch.outputs.name }}"
+          ACTOR="${{ github.actor }}"
+
           cat << EOF >> $GITHUB_OUTPUT
           body<<EOFBODY
           ## ✨ Feature Branch → Develop
 
-          **Branch:** \`${BRANCH_NAME}\`
+          **Branch:** ${BRANCH_NAME}
           **Author:** @${ACTOR}
 
           ### 📝 Description
