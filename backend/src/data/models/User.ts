@@ -5,7 +5,11 @@ export interface IUser extends Document {
   name: string;
   kuEmail: string;
   password: string;
-  role: string;
+  role: string | "buyer" | "seller" | "admin";
+  sellerStatus?: 'pending' | 'approved' | 'rejected';
+  sellerRequestDate?: Date;
+  sellerApprovalDate?: Date;
+  sellerRejectionReason?: string;
   faculty?: string;
   contact?: string;
   comparePassword(password: string): Promise<boolean>;
@@ -16,6 +20,10 @@ const userSchema: Schema<IUser> = new Schema({
   kuEmail: { type: String, required: true, unique: true, match: /.+@ku\.ac\.th$/ },
   password: { type: String, required: true },
   role: { type: String, default: "buyer" },
+  sellerStatus: { type: String, default: undefined },
+  sellerRequestDate: { type: Date },
+  sellerApprovalDate: { type: Date },
+  sellerRejectionReason: { type: String },
   faculty: { type: String, required: true},
   contact: { type: String, required: true, unique: true, match: /^0\d{9}$/}
 }, { timestamps: true });
