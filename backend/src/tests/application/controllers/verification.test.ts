@@ -32,7 +32,8 @@ beforeEach(async () => {
   await Verification.deleteMany({});
   
   // Reset Cloudinary mock
-  const { uploadToCloudinary } = require("../../../lib/cloudinary");
+  const cloudinaryModule = await import("../../../lib/cloudinary");
+  const uploadToCloudinary = cloudinaryModule.uploadToCloudinary as jest.MockedFunction<typeof cloudinaryModule.uploadToCloudinary>;
   uploadToCloudinary.mockResolvedValue("https://cloudinary.com/mock-image-url");
   
   // Create a test user
@@ -180,7 +181,8 @@ describe("Verification Controller", () => {
 
     it("should handle Cloudinary upload errors", async () => {
       // Mock Cloudinary to throw an error
-      const { uploadToCloudinary } = require("../../../lib/cloudinary");
+      const cloudinaryModule = await import("../../../lib/cloudinary");
+      const uploadToCloudinary = cloudinaryModule.uploadToCloudinary as jest.MockedFunction<typeof cloudinaryModule.uploadToCloudinary>;
       uploadToCloudinary.mockRejectedValueOnce(new Error("Upload failed"));
 
       const response = await request(app)
