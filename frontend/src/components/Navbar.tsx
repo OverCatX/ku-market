@@ -75,7 +75,6 @@ export function Header() {
 
             <NotificationBell />
 
-
             <Link
               href={profileLink}
               className="p-2 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
