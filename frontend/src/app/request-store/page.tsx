@@ -16,7 +16,7 @@ interface StoreRequestForm {
   confirmed?: boolean;
 }
 
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 export default function RequestToOpenStore() {
   const router = useRouter();
