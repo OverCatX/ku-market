@@ -37,7 +37,7 @@ jobs:
         id: validate
         run: |
           BRANCH_NAME="${{ steps.branch.outputs.name }}"
-          echo "Checking branch: $BRANCH_NAME"
+          echo "🔍 Checking branch: $BRANCH_NAME"
 
           # ตรวจสอบว่า branch มีอยู่จริงบน remote
           if ! git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
@@ -46,17 +46,35 @@ jobs:
             exit 1
           fi
 
+          echo "✅ Branch exists on remote"
+
           # ตรวจสอบว่ามี commits แตกต่างจาก develop
           git fetch origin develop
-          DIFF_COUNT=$(git rev-list --count origin/develop..HEAD)
+          DIFF_COUNT=$(git rev-list --count origin/develop..origin/$BRANCH_NAME)
+
+          echo "📊 Commits ahead of develop: $DIFF_COUNT"
 
           if [ "$DIFF_COUNT" -eq "0" ]; then
-            echo "::warning::No commits difference between $BRANCH_NAME and develop"
+            echo "::warning::No commits difference between $BRANCH_NAME and develop - SKIPPING PR creation"
             echo "valid=false" >> $GITHUB_OUTPUT
             echo "reason=no_commits" >> $GITHUB_OUTPUT
+            
+            # แสดงข้อความใน summary
+            cat >> $GITHUB_STEP_SUMMARY << EOF
+          ## ⏭️ PR Creation Skipped
+
+          **Branch:** \`$BRANCH_NAME\`
+          **Reason:** No new commits compared to develop
+
+          ### 💡 What to do:
+          1. Make changes to your branch
+          2. Commit and push: \`git commit -m "your changes" && git push\`
+          3. Or merge latest develop: \`git merge origin/develop && git push\`
+          EOF
+            
             exit 0
           else
-            echo "::notice::Found $DIFF_COUNT commits ahead of develop"
+            echo "::notice::✅ Found $DIFF_COUNT commits ahead of develop - proceeding with PR"
             echo "valid=true" >> $GITHUB_OUTPUT
             echo "commit_count=$DIFF_COUNT" >> $GITHUB_OUTPUT
           fi
