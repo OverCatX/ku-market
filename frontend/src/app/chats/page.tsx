@@ -95,8 +95,8 @@ export default function ChatPage() {
 
         // backend -> simplified shape for UI
         const mapped: Msg[] = Array.isArray(data.messages)
-          ? data.messages.map((m: any) => ({
-              id: m.id,
+          ? data.messages.map((m: Record<string, unknown>) => ({
+              id: m.id as string,
               who: m.sender_is_me ? "me" : "them",
               text: m.text,
               time: m.created_at_hhmm,
