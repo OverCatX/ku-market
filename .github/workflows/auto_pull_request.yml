@@ -31,12 +31,6 @@ jobs:
         id: branch
         run: echo "name=$(echo ${GITHUB_REF##*/})" >> $GITHUB_OUTPUT
 
-      - name: Get latest commit message
-        id: commit
-        run: |
-          COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '\r' | tr '\n' ' ')
-          echo "message=${COMMIT_MSG}" >> $GITHUB_OUTPUT
-
       - name: Create PR body
         id: content
         run: |
@@ -48,7 +42,7 @@ jobs:
           **Author:** @${{ github.actor }}
 
           ### 📝 Description
-          ${{ steps.commit.outputs.message }}
+          Add ${{ steps.branch.outputs.name }}
 
           ### 🧪 Testing Status
           CI tests are running... Check status below.
