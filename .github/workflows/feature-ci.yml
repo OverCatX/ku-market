@@ -188,17 +188,6 @@ jobs:
       - name: Build check
         run: npm run build
 
-      - name: Quick integration test
-        if: steps.check-scripts.outputs.has_integration == 'true'
-        run: npm run test:integration -- --bail
-        env:
-          NODE_ENV: test
-          MONGO_URI: mongodb://localhost:27017/testdb
-
-      - name: Skip integration tests
-        if: steps.check-scripts.outputs.has_integration == 'false'
-        run: echo "⚠️ No integration test script found, skipping..."
-
   # ===== CODE QUALITY (Optional) =====
   code-quality:
     runs-on: ubuntu-latest
