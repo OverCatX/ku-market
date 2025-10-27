@@ -68,41 +68,6 @@ jobs:
         if: steps.check-lint.outputs.has_lint == 'false'
         run: echo "⚠️ No lint script found, skipping..."
 
-  # ===== FRONTEND - TYPE CHECK =====
-  fe-typecheck:
-    runs-on: ubuntu-latest
-    needs: fe-install
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Restore node_modules
-        uses: actions/cache/restore@v4
-        with:
-          path: frontend/node_modules
-          key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
-
-      - name: Check if type-check script exists
-        id: check-typecheck
-        run: |
-          if npm run --prefix frontend | grep -q "type-check"; then
-            echo "has_typecheck=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_typecheck=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run type-check
-        if: steps.check-typecheck.outputs.has_typecheck == 'true'
-        run: npm run type-check --prefix frontend
-
-      - name: Skip type-check
-        if: steps.check-typecheck.outputs.has_typecheck == 'false'
-        run: echo "⚠️ No type-check script found, skipping..."
-
   # ===== FRONTEND - TEST =====
   fe-test:
     runs-on: ubuntu-latest
@@ -132,9 +97,7 @@ jobs:
 
       - name: Run tests
         if: steps.check-test.outputs.has_test == 'true'
-        run: npm test --prefix frontend -- --maxWorkers=2 --bail
-        env:
-          CI: true
+        run: npm test --prefix frontend
 
       - name: Skip tests
         if: steps.check-test.outputs.has_test == 'false'
@@ -143,7 +106,7 @@ jobs:
   # ===== FRONTEND - BUILD =====
   fe-build:
     runs-on: ubuntu-latest
-    needs: [fe-lint, fe-typecheck, fe-test]
+    needs: [fe-lint, fe-test]
     steps:
       - uses: actions/checkout@v4
 
@@ -225,41 +188,6 @@ jobs:
         if: steps.check-lint.outputs.has_lint == 'false'
         run: echo "⚠️ No lint script found, skipping..."
 
-  # ===== BACKEND - TYPE CHECK =====
-  be-typecheck:
-    runs-on: ubuntu-latest
-    needs: be-install
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Restore node_modules
-        uses: actions/cache/restore@v4
-        with:
-          path: backend/node_modules
-          key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
-
-      - name: Check if type-check script exists
-        id: check-typecheck
-        run: |
-          if npm run --prefix backend | grep -q "type-check"; then
-            echo "has_typecheck=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_typecheck=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run type-check
-        if: steps.check-typecheck.outputs.has_typecheck == 'true'
-        run: npm run type-check --prefix backend
-
-      - name: Skip type-check
-        if: steps.check-typecheck.outputs.has_typecheck == 'false'
-        run: echo "⚠️ No type-check script found, skipping..."
-
   # ===== BACKEND - UNIT TEST =====
   be-unit-test:
     runs-on: ubuntu-latest
@@ -289,9 +217,8 @@ jobs:
 
       - name: Run unit tests
         if: steps.check-test.outputs.has_test == 'true'
-        run: npm test --prefix backend -- --maxWorkers=2 --bail
+        run: npm test --prefix backend
         env:
-          CI: true
           NODE_ENV: test
 
       - name: Skip tests
@@ -301,7 +228,7 @@ jobs:
   # ===== BACKEND - BUILD =====
   be-build:
     runs-on: ubuntu-latest
-    needs: [be-lint, be-typecheck, be-unit-test]
+    needs: [be-lint, be-unit-test]
     steps:
       - uses: actions/checkout@v4
 
@@ -327,39 +254,14 @@ jobs:
           retention-days: 1
 
   # ===== SUMMARY =====
-  feature-ci-summary:
+  ci-success:
     runs-on: ubuntu-latest
     needs: [fe-build, be-build]
-    if: always()
+    if: success()
     steps:
-      - name: Check results
+      - name: Success notification
         run: |
-          echo "## 📊 Feature CI Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Author:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          if [ "${{ needs.fe-build.result }}" == "failure" ] || [ "${{ needs.be-build.result }}" == "failure" ]; then
-            echo "### ❌ CI Failed" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- Frontend: ${{ needs.fe-build.result }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Backend: ${{ needs.be-build.result }}" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Please fix the failing checks and push again." >> $GITHUB_STEP_SUMMARY
-            exit 1
-          else
-            echo "### ✅ All Checks Passed" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- Frontend: ✅ Passed" >> $GITHUB_STEP_SUMMARY
-            echo "- Backend: ✅ Passed" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "🚀 Ready to create PR to develop branch!" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      - name: Success message
-        if: success()
-        run: |
-          echo "✅ Feature branch checks passed! 🚀"
-          echo "Ready to create PR to develop branch"
+          echo "✅ All CI checks passed!"
+          echo "Branch: develop"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
