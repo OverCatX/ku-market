@@ -69,30 +69,31 @@ jobs:
           ACTOR="${{ github.actor }}"
           COMMIT_COUNT="${{ steps.validate.outputs.commit_count }}"
 
-          {
-            echo 'body<<ENDOFBODY'
-            echo '## ✨ Feature Branch → Develop'
-            echo ''
-            echo "**Branch:** \`${BRANCH_NAME}\`"
-            echo "**Author:** @${ACTOR}"
-            echo "**Commits:** ${COMMIT_COUNT} commits ahead of develop"
-            echo ''
-            echo '### 📝 Description'
-            echo 'New feature branch ready for review'
-            echo ''
-            echo '### 🧪 Testing Status'
-            echo 'CI tests are running... Check status below.'
-            echo ''
-            echo '### ✅ Checklist'
-            echo '- [ ] Code follows team standards'
-            echo '- [ ] Tests added/updated'
-            echo '- [ ] Documentation updated'
-            echo '- [ ] Ready for review'
-            echo ''
-            echo '---'
-            echo '🤖 Auto-created on push. CI status will update automatically.'
-            echo 'ENDOFBODY'
-          } >> $GITHUB_OUTPUT
+          # Escape backticks properly
+          cat >> $GITHUB_OUTPUT << ENDOFBODY
+          body<<EOFMARKER
+          ## ✨ Feature Branch → Develop
+
+          **Branch:** \\\`${BRANCH_NAME}\\\`
+          **Author:** @${ACTOR}
+          **Commits:** ${COMMIT_COUNT} commits ahead of develop
+
+          ### 📝 Description
+          New feature branch ready for review
+
+          ### 🧪 Testing Status
+          CI tests are running... Check status below.
+
+          ### ✅ Checklist
+          - [ ] Code follows team standards
+          - [ ] Tests added/updated
+          - [ ] Documentation updated
+          - [ ] Ready for review
+
+          ---
+          🤖 Auto-created on push. CI status will update automatically.
+          EOFMARKER
+          ENDOFBODY
 
       - name: Check if PR exists
         if: steps.validate.outputs.valid == 'true'
