@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import authRoutes from "./application/routes/auth";
 import profileRoutes from "./application/routes/profile";
 import itemRoutes from "./application/routes/items";
+import verificationRoutes from "./application/routes/verification";
 
 const app: Application = express();
 app.use(cors());
@@ -12,6 +13,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/items", itemRoutes)
+app.use("/api/items", itemRoutes);
+app.use("/api/verification", verificationRoutes);
 
 export default app;
