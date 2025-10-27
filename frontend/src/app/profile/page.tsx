@@ -121,7 +121,7 @@ export default function ProfilePage() {
             className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 shadow-sm hover:shadow-md"
           >
             <Store className="w-5 h-5" />
-            Request to Open Store
+            Become a Seller
           </button>
         </div>
       )}
