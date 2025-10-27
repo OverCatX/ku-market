@@ -1,17 +1,39 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, Package, MessageCircle, ShoppingBag, AlertCircle, Trash2, CheckCheck, Filter } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  Bell,
+  Package,
+  MessageCircle,
+  ShoppingBag,
+  AlertCircle,
+  Trash2,
+  CheckCheck,
+  Filter,
+} from "lucide-react";
 import type { Notification } from "@/components/notifications";
 // import { getNotifications } from "@/config/notifications"; // Uncomment when backend is ready
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    // Check authentication
+    const token = localStorage.getItem("authentication");
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    setIsAuthenticated(true);
+
     // TODO: Replace with actual API call when backend is ready
     // getNotifications().then(data => {
     //   setNotifications(data.notifications);
@@ -20,13 +42,13 @@ export default function NotificationsPage() {
     //   console.error(err);
     //   setLoading(false);
     // });
-    
+
     // For now, just show empty state
     setTimeout(() => {
       setNotifications([]);
       setLoading(false);
     }, 500);
-  }, []);
+  }, [router]);
 
   const filteredNotifications = notifications.filter((notification) => {
     // Apply read/unread filter
@@ -99,6 +121,11 @@ export default function NotificationsPage() {
     }
   };
 
+  // Don't render anything if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -121,10 +148,14 @@ export default function NotificationsPage() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Notifications</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Notifications
+          </h1>
           <p className="text-gray-600">
             {unreadCount > 0
-              ? `You have ${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}`
+              ? `You have ${unreadCount} unread notification${
+                  unreadCount > 1 ? "s" : ""
+                }`
               : "You're all caught up!"}
           </p>
         </div>
@@ -138,7 +169,9 @@ export default function NotificationsPage() {
                 <Filter className="w-4 h-4 text-gray-500" />
                 <select
                   value={filter}
-                  onChange={(e) => setFilter(e.target.value as "all" | "unread" | "read")}
+                  onChange={(e) =>
+                    setFilter(e.target.value as "all" | "unread" | "read")
+                  }
                   className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#84B067]"
                 >
                   <option value="all">All</option>
@@ -190,7 +223,9 @@ export default function NotificationsPage() {
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {notifications.length === 0 ? "No notifications yet" : "No notifications match your filters"}
+              {notifications.length === 0
+                ? "No notifications yet"
+                : "No notifications match your filters"}
             </h3>
             <p className="text-gray-500">
               {notifications.length === 0
@@ -270,5 +305,3 @@ export default function NotificationsPage() {
     </div>
   );
 }
-
-
