@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getItem, Item } from "@/config/items";
+import { useCart } from "@/contexts/CartContext";
+import toast from "react-hot-toast";
 
 const GREEN = "#69773D";
 const LIGHT = "#f7f4f1";
@@ -11,6 +13,7 @@ const BORDER = "rgba(122,74,34,0.25)";
 export default function Page() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
+  const { addToCart } = useCart();
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
@@ -189,9 +192,28 @@ export default function Page() {
 
               <button
                 type="button"
-                className="rounded-xl px-6 py-3 font-semibold text-white shadow"
+                className="rounded-xl px-6 py-3 font-semibold text-white shadow hover:opacity-90 transition"
                 style={{ background: GREEN }}
-                onClick={() => alert("Cart isn’t implemented yet")}
+                onClick={() => {
+                  if (!item) return;
+                  
+                  // Add multiple items based on qty
+                  for (let i = 0; i < qty; i++) {
+                    addToCart({
+                      id: item._id,
+                      title: item.title,
+                      price: item.price,
+                      image: item.photo?.[0] || "",
+                      sellerId: item.owner || "unknown",
+                      sellerName: "Seller",
+                    });
+                  }
+                  
+                  toast.success(`Added ${qty} ${qty > 1 ? "items" : "item"} to cart!`, {
+                    icon: "🛒",
+                  });
+                  setQty(1);
+                }}
               >
                 Add to Cart
               </button>
