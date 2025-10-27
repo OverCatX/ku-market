@@ -48,7 +48,7 @@ jobs:
           **Author:** @${ACTOR}
 
           ### 📝 Description
-          assaasasas
+          Add ${BRANCH_NAME}.
 
           ### 🧪 Testing Status
           CI tests are running... Check status below.
