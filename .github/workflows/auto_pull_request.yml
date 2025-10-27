@@ -27,17 +27,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Extract branch name
+      - name: Get branch name
         id: branch
+        run: echo "name=$(echo ${GITHUB_REF##*/})" >> $GITHUB_OUTPUT
+
+      - name: Get latest commit message
+        id: commit
         run: |
-          BRANCH="${GITHUB_REF#refs/heads/}"
-          echo "name=${BRANCH}" >> $GITHUB_OUTPUT
-          echo "Branch: ${BRANCH}"
+          COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '\r' | tr '\n' ' ')
+          echo "message=${COMMIT_MSG}" >> $GITHUB_OUTPUT
 
       - name: Create PR body
         id: content
         run: |
-          cat << 'EOF' >> $GITHUB_OUTPUT
+          cat << EOF >> $GITHUB_OUTPUT
           body<<EOFBODY
           ## ✨ Feature Branch → Develop
 
@@ -45,7 +48,7 @@ jobs:
           **Author:** @${{ github.actor }}
 
           ### 📝 Description
-          Please describe your changes here.
+          ${{ steps.commit.outputs.message }}
 
           ### 🧪 Testing Status
           CI tests are running... Check status below.
@@ -235,7 +238,7 @@ jobs:
     steps:
       - name: Notify
         run: |
-          cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+          cat << EOF >> $GITHUB_STEP_SUMMARY
           ## ❌ Develop CI Failed
 
           **Branch:** develop

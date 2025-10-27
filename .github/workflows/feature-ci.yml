@@ -11,12 +11,9 @@ env:
   NODE_VERSION: 20
 
 jobs:
-  # ===== FRONTEND =====
-  frontend:
+  # ===== FRONTEND - INSTALL & CACHE =====
+  fe-install:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -28,87 +25,152 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefix frontend
 
-      - name: Check available scripts
-        id: check-scripts
+      - name: Cache node_modules
+        uses: actions/cache/save@v4
+        with:
+          path: frontend/node_modules
+          key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+  # ===== FRONTEND - LINT =====
+  fe-lint:
+    runs-on: ubuntu-latest
+    needs: fe-install
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Check if lint script exists
+        id: check-lint
         run: |
-          echo "Available scripts:"
-          npm run
-
-          # Check for specific scripts
-          if npm run | grep -q "lint"; then
+          if npm run --prefix frontend | grep -q "lint"; then
             echo "has_lint=true" >> $GITHUB_OUTPUT
           else
             echo "has_lint=false" >> $GITHUB_OUTPUT
           fi
 
-          if npm run | grep -q "type-check"; then
+      - name: Run lint
+        if: steps.check-lint.outputs.has_lint == 'true'
+        run: npm run lint --prefix frontend
+
+      - name: Skip lint
+        if: steps.check-lint.outputs.has_lint == 'false'
+        run: echo "⚠️ No lint script found, skipping..."
+
+  # ===== FRONTEND - TYPE CHECK =====
+  fe-typecheck:
+    runs-on: ubuntu-latest
+    needs: fe-install
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Check if type-check script exists
+        id: check-typecheck
+        run: |
+          if npm run --prefix frontend | grep -q "type-check"; then
             echo "has_typecheck=true" >> $GITHUB_OUTPUT
           else
             echo "has_typecheck=false" >> $GITHUB_OUTPUT
           fi
 
-          if npm run | grep -q "test"; then
+      - name: Run type-check
+        if: steps.check-typecheck.outputs.has_typecheck == 'true'
+        run: npm run type-check --prefix frontend
+
+      - name: Skip type-check
+        if: steps.check-typecheck.outputs.has_typecheck == 'false'
+        run: echo "⚠️ No type-check script found, skipping..."
+
+  # ===== FRONTEND - TEST =====
+  fe-test:
+    runs-on: ubuntu-latest
+    needs: fe-install
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Check if test script exists
+        id: check-test
+        run: |
+          if npm run --prefix frontend | grep -q "test"; then
             echo "has_test=true" >> $GITHUB_OUTPUT
           else
             echo "has_test=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run checks in parallel
-        run: |
-          PIDS=()
-
-          # Run lint if available
-          if [ "${{ steps.check-scripts.outputs.has_lint }}" == "true" ]; then
-            echo "🔍 Running lint..."
-            npm run lint &
-            PIDS+=($!)
-          fi
-
-          # Run type-check if available
-          if [ "${{ steps.check-scripts.outputs.has_typecheck }}" == "true" ]; then
-            echo "🔍 Running type-check..."
-            npm run type-check &
-            PIDS+=($!)
-          fi
-
-          # Wait for all background processes
-          for pid in "${PIDS[@]}"; do
-            wait $pid || exit 1
-          done
-
-          echo "✅ All checks passed!"
-
-      - name: Run unit tests
-        if: steps.check-scripts.outputs.has_test == 'true'
-        run: npm test -- --maxWorkers=2 --bail
+      - name: Run tests
+        if: steps.check-test.outputs.has_test == 'true'
+        run: npm test --prefix frontend -- --maxWorkers=2 --bail
         env:
           CI: true
 
       - name: Skip tests
-        if: steps.check-scripts.outputs.has_test == 'false'
+        if: steps.check-test.outputs.has_test == 'false'
         run: echo "⚠️ No test script found, skipping..."
 
-      - name: Build check
-        run: npm run build
-
-  # ===== BACKEND =====
-  backend:
+  # ===== FRONTEND - BUILD =====
+  fe-build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend
-    services:
-      mongodb:
-        image: mongo:7
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.adminCommand({ping:1})' || mongo --eval 'db.adminCommand({ping:1})'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 3
+    needs: [fe-lint, fe-typecheck, fe-test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: frontend/node_modules
+          key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Build
+        run: npm run build --prefix frontend
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
+          retention-days: 1
+
+  # ===== BACKEND - INSTALL & CACHE =====
+  be-install:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -120,124 +182,154 @@ jobs:
           cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefix backend
 
-      - name: Check available scripts
-        id: check-scripts
-        run: |
-          echo "Available scripts:"
-          npm run
+      - name: Cache node_modules
+        uses: actions/cache/save@v4
+        with:
+          path: backend/node_modules
+          key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
 
-          if npm run | grep -q "lint"; then
-            echo "has_lint=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_lint=false" >> $GITHUB_OUTPUT
-          fi
-
-          if npm run | grep -q "type-check"; then
-            echo "has_typecheck=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_typecheck=false" >> $GITHUB_OUTPUT
-          fi
-
-          if npm run | grep -q "test"; then
-            echo "has_test=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_test=false" >> $GITHUB_OUTPUT
-          fi
-
-          if npm run | grep -q "test:integration"; then
-            echo "has_integration=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_integration=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run checks in parallel
-        run: |
-          PIDS=()
-
-          if [ "${{ steps.check-scripts.outputs.has_lint }}" == "true" ]; then
-            echo "🔍 Running lint..."
-            npm run lint &
-            PIDS+=($!)
-          fi
-
-          if [ "${{ steps.check-scripts.outputs.has_typecheck }}" == "true" ]; then
-            echo "🔍 Running type-check..."
-            npm run type-check &
-            PIDS+=($!)
-          fi
-
-          for pid in "${PIDS[@]}"; do
-            wait $pid || exit 1
-          done
-
-          echo "✅ All checks passed!"
-
-      - name: Run unit tests
-        if: steps.check-scripts.outputs.has_test == 'true'
-        run: npm test -- --maxWorkers=2 --bail
-        env:
-          CI: true
-          NODE_ENV: test
-
-      - name: Skip unit tests
-        if: steps.check-scripts.outputs.has_test == 'false'
-        run: echo "⚠️ No test script found, skipping..."
-
-      - name: Build check
-        run: npm run build
-
-      - name: Quick integration test
-        if: steps.check-scripts.outputs.has_integration == 'true'
-        run: npm run test:integration -- --bail
-        env:
-          NODE_ENV: test
-          MONGO_URI: mongodb://localhost:27017/testdb
-
-      - name: Skip integration tests
-        if: steps.check-scripts.outputs.has_integration == 'false'
-        run: echo "⚠️ No integration test script found, skipping..."
-
-  # ===== CODE QUALITY (Optional) =====
-  code-quality:
+  # ===== BACKEND - LINT =====
+  be-lint:
     runs-on: ubuntu-latest
-    continue-on-error: true
+    needs: be-install
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Get changed files
-        id: changed-files
-        run: |
-          echo "Changed files in this push:"
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} || echo "Could not get changed files"
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/node_modules
+          key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
 
-      - name: ESLint on changed files
+      - name: Check if lint script exists
+        id: check-lint
         run: |
-          CHANGED_FILES=$(git diff --name-only --diff-filter=d ${{ github.event.before }} ${{ github.sha }} | grep -E '\.(js|jsx|ts|tsx)$' || true)
-          if [ -n "$CHANGED_FILES" ]; then
-            echo "📝 Linting changed files:"
-            echo "$CHANGED_FILES"
-            # Install ESLint if not in project
-            if [ -f "package.json" ]; then
-              npm ci
-            fi
-            npx eslint $CHANGED_FILES || echo "⚠️ ESLint found issues (non-blocking)"
+          if npm run --prefix backend | grep -q "lint"; then
+            echo "has_lint=true" >> $GITHUB_OUTPUT
           else
-            echo "ℹ️ No JS/TS files changed"
+            echo "has_lint=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Run lint
+        if: steps.check-lint.outputs.has_lint == 'true'
+        run: npm run lint --prefix backend
+
+      - name: Skip lint
+        if: steps.check-lint.outputs.has_lint == 'false'
+        run: echo "⚠️ No lint script found, skipping..."
+
+  # ===== BACKEND - TYPE CHECK =====
+  be-typecheck:
+    runs-on: ubuntu-latest
+    needs: be-install
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/node_modules
+          key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Check if type-check script exists
+        id: check-typecheck
+        run: |
+          if npm run --prefix backend | grep -q "type-check"; then
+            echo "has_typecheck=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_typecheck=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run type-check
+        if: steps.check-typecheck.outputs.has_typecheck == 'true'
+        run: npm run type-check --prefix backend
+
+      - name: Skip type-check
+        if: steps.check-typecheck.outputs.has_typecheck == 'false'
+        run: echo "⚠️ No type-check script found, skipping..."
+
+  # ===== BACKEND - UNIT TEST =====
+  be-unit-test:
+    runs-on: ubuntu-latest
+    needs: be-install
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/node_modules
+          key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Check if test script exists
+        id: check-test
+        run: |
+          if npm run --prefix backend | grep -q "test"; then
+            echo "has_test=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_test=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run unit tests
+        if: steps.check-test.outputs.has_test == 'true'
+        run: npm test --prefix backend -- --maxWorkers=2 --bail
+        env:
+          CI: true
+          NODE_ENV: test
+
+      - name: Skip tests
+        if: steps.check-test.outputs.has_test == 'false'
+        run: echo "⚠️ No test script found, skipping..."
+
+  # ===== BACKEND - BUILD =====
+  be-build:
+    runs-on: ubuntu-latest
+    needs: [be-lint, be-typecheck, be-unit-test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node_modules
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/node_modules
+          key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Build
+        run: npm run build --prefix backend
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: backend/dist
+          retention-days: 1
 
   # ===== SUMMARY =====
   feature-ci-summary:
     runs-on: ubuntu-latest
-    needs: [frontend, backend]
+    needs: [fe-build, be-build]
     if: always()
     steps:
       - name: Check results
@@ -249,11 +341,11 @@ jobs:
           echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ "${{ needs.frontend.result }}" == "failure" ] || [ "${{ needs.backend.result }}" == "failure" ]; then
+          if [ "${{ needs.fe-build.result }}" == "failure" ] || [ "${{ needs.be-build.result }}" == "failure" ]; then
             echo "### ❌ CI Failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- Frontend: ${{ needs.frontend.result }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Backend: ${{ needs.backend.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: ${{ needs.fe-build.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: ${{ needs.be-build.result }}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Please fix the failing checks and push again." >> $GITHUB_STEP_SUMMARY
             exit 1

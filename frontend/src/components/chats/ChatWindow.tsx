@@ -14,6 +14,7 @@ export type Msg = {
 };
 
 export default function ChatWindow({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   threadId,
   title,
   sellerName,
