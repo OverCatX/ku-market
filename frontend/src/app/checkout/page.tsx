@@ -1,7 +1,7 @@
 "use client";
 
 import { useCart } from "@/contexts/CartContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { CreditCard, MapPin, Package } from "lucide-react";
 import Image from "next/image";
@@ -10,6 +10,7 @@ export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart } = useCart();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   const [shippingInfo, setShippingInfo] = useState({
     fullName: "",
@@ -19,7 +20,21 @@ export default function CheckoutPage() {
     postalCode: "",
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<"credit-card" | "promptpay" | "cod">("credit-card");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "credit-card" | "promptpay" | "cod"
+  >("credit-card");
+
+  // Wait for client-side mount
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Redirect if cart is empty (client-side)
+  useEffect(() => {
+    if (isMounted && items.length === 0) {
+      router.push("/cart");
+    }
+  }, [items, router, isMounted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,8 +51,30 @@ export default function CheckoutPage() {
     router.push(`/order/${orderId}`);
   };
 
+  // Show loading state during SSR and initial mount
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-white rounded-lg shadow-sm p-6 h-96"></div>
+                <div className="bg-white rounded-lg shadow-sm p-6 h-64"></div>
+              </div>
+              <div className="lg:col-span-1">
+                <div className="bg-white rounded-lg shadow-sm p-6 h-96"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if cart is empty (after mount)
   if (items.length === 0) {
-    router.push("/cart");
     return null;
   }
 
@@ -54,7 +91,9 @@ export default function CheckoutPage() {
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <MapPin className="w-5 h-5 text-[#84B067]" />
-                  <h2 className="text-xl font-bold text-gray-900">Shipping Information</h2>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Shipping Information
+                  </h2>
                 </div>
 
                 <div className="space-y-4">
@@ -67,7 +106,10 @@ export default function CheckoutPage() {
                       required
                       value={shippingInfo.fullName}
                       onChange={(e) =>
-                        setShippingInfo({ ...shippingInfo, fullName: e.target.value })
+                        setShippingInfo({
+                          ...shippingInfo,
+                          fullName: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
                       placeholder="John Doe"
@@ -83,7 +125,10 @@ export default function CheckoutPage() {
                       required
                       value={shippingInfo.phone}
                       onChange={(e) =>
-                        setShippingInfo({ ...shippingInfo, phone: e.target.value })
+                        setShippingInfo({
+                          ...shippingInfo,
+                          phone: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
                       placeholder="081-234-5678"
@@ -98,7 +143,10 @@ export default function CheckoutPage() {
                       required
                       value={shippingInfo.address}
                       onChange={(e) =>
-                        setShippingInfo({ ...shippingInfo, address: e.target.value })
+                        setShippingInfo({
+                          ...shippingInfo,
+                          address: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
                       rows={3}
@@ -116,7 +164,10 @@ export default function CheckoutPage() {
                         required
                         value={shippingInfo.city}
                         onChange={(e) =>
-                          setShippingInfo({ ...shippingInfo, city: e.target.value })
+                          setShippingInfo({
+                            ...shippingInfo,
+                            city: e.target.value,
+                          })
                         }
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
                         placeholder="Bangkok"
@@ -132,7 +183,10 @@ export default function CheckoutPage() {
                         required
                         value={shippingInfo.postalCode}
                         onChange={(e) =>
-                          setShippingInfo({ ...shippingInfo, postalCode: e.target.value })
+                          setShippingInfo({
+                            ...shippingInfo,
+                            postalCode: e.target.value,
+                          })
                         }
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
                         placeholder="10110"
@@ -146,7 +200,9 @@ export default function CheckoutPage() {
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <CreditCard className="w-5 h-5 text-[#84B067]" />
-                  <h2 className="text-xl font-bold text-gray-900">Payment Method</h2>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Payment Method
+                  </h2>
                 </div>
 
                 <div className="space-y-3">
@@ -156,7 +212,9 @@ export default function CheckoutPage() {
                       name="payment"
                       value="credit-card"
                       checked={paymentMethod === "credit-card"}
-                      onChange={(e) => setPaymentMethod(e.target.value as "credit-card")}
+                      onChange={(e) =>
+                        setPaymentMethod(e.target.value as "credit-card")
+                      }
                       className="w-4 h-4 text-[#84B067]"
                     />
                     <CreditCard className="w-5 h-5" />
@@ -169,7 +227,9 @@ export default function CheckoutPage() {
                       name="payment"
                       value="promptpay"
                       checked={paymentMethod === "promptpay"}
-                      onChange={(e) => setPaymentMethod(e.target.value as "promptpay")}
+                      onChange={(e) =>
+                        setPaymentMethod(e.target.value as "promptpay")
+                      }
                       className="w-4 h-4 text-[#84B067]"
                     />
                     <span className="font-medium">PromptPay</span>
@@ -181,7 +241,9 @@ export default function CheckoutPage() {
                       name="payment"
                       value="cod"
                       checked={paymentMethod === "cod"}
-                      onChange={(e) => setPaymentMethod(e.target.value as "cod")}
+                      onChange={(e) =>
+                        setPaymentMethod(e.target.value as "cod")
+                      }
                       className="w-4 h-4 text-[#84B067]"
                     />
                     <Package className="w-5 h-5" />
@@ -194,7 +256,9 @@ export default function CheckoutPage() {
             {/* Order Summary */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">
+                  Order Summary
+                </h2>
 
                 <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
                   {items.map((item) => (
@@ -211,9 +275,12 @@ export default function CheckoutPage() {
                         <p className="text-sm font-medium text-gray-900 line-clamp-1">
                           {item.title}
                         </p>
-                        <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                        <p className="text-sm text-gray-600">
+                          Qty: {item.quantity}
+                        </p>
                         <p className="text-sm font-bold text-[#84B067]">
-                          ฿{(item.price * item.quantity).toLocaleString()}
+                          ฿
+                          {(item.price * item.quantity).toLocaleString("th-TH")}
                         </p>
                       </div>
                     </div>
@@ -223,7 +290,7 @@ export default function CheckoutPage() {
                 <div className="space-y-3 mb-6 border-t pt-4">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
-                    <span>฿{getTotalPrice().toLocaleString()}</span>
+                    <span>฿{getTotalPrice().toLocaleString("th-TH")}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
@@ -231,7 +298,9 @@ export default function CheckoutPage() {
                   </div>
                   <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-900">
                     <span>Total</span>
-                    <span className="text-[#84B067]">฿{getTotalPrice().toLocaleString()}</span>
+                    <span className="text-[#84B067]">
+                      ฿{getTotalPrice().toLocaleString("th-TH")}
+                    </span>
                   </div>
                 </div>
 
@@ -250,4 +319,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
