@@ -31,6 +31,10 @@ beforeEach(async () => {
   await User.deleteMany({});
   await Verification.deleteMany({});
   
+  // Reset Cloudinary mock
+  const { uploadToCloudinary } = require("../../../lib/cloudinary");
+  uploadToCloudinary.mockResolvedValue("https://cloudinary.com/mock-image-url");
+  
   // Create a test user
   const testUser = new User({
     name: "Test User",
@@ -85,7 +89,7 @@ describe("Verification Controller", () => {
         .attach("document", Buffer.from("fake image data"), "document.jpg");
 
       expect(response.status).toBe(400);
-      expect(response.body.errors).toContain("Document type is required and must be either student_id or citizen_id");
+      expect(response.body.errors).toContain("Document type must be either student_id or citizen_id");
     });
 
     it("should return 400 for missing document type", async () => {
@@ -95,7 +99,7 @@ describe("Verification Controller", () => {
         .attach("document", Buffer.from("fake image data"), "document.jpg");
 
       expect(response.status).toBe(400);
-      expect(response.body.errors).toContain("Document type is required and must be either student_id or citizen_id");
+      expect(response.body.errors).toContain("Document type is required");
     });
 
     it("should return 400 for missing document file", async () => {
