@@ -44,11 +44,11 @@ jobs:
           body<<EOFBODY
           ## ✨ Feature Branch → Develop
 
-          **Branch:** `${ BRANCH_NAME }`
-          **Author:** @${ACTOR}
+          **Branch:** \`${{ steps.branch.outputs.name }}\`
+          **Author:** @${{ github.actor }}
 
           ### 📝 Description
-          Add ${ BRANCH_NAME }.
+          Please describe your changes here.
 
           ### 🧪 Testing Status
           CI tests are running... Check status below.
