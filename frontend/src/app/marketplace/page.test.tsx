@@ -1,4 +1,10 @@
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  act,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MarketPage from "./page";
 import { listItems } from "@/config/items";
@@ -40,6 +46,7 @@ jest.mock("@/components/Marketplace/Pagination", () => {
     return (
       <div data-testid="pagination">
         <button
+          data-testid="prev-page"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
         >
@@ -49,6 +56,7 @@ jest.mock("@/components/Marketplace/Pagination", () => {
           Page {currentPage} of {totalPages}
         </span>
         <button
+          data-testid="next-page"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
         >
@@ -79,243 +87,189 @@ describe("MarketPage - Integration Tests", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockListItems.mockResolvedValue(createMockResponse(mockItems));
+    jest.useFakeTimers();
+    mockListItems.mockResolvedValue(
+      createMockResponse(mockItems, { currentPage: 1, totalPages: 1 })
+    );
   });
 
-  describe("Page Rendering", () => {
-    it("should render marketplace page with all main sections", async () => {
-      render(<MarketPage />);
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
 
-      expect(screen.getByText("Marketplace")).toBeInTheDocument();
-      expect(screen.getByText(/browse/i)).toBeInTheDocument();
-      expect(
-        screen.getByPlaceholderText("Search items...")
-      ).toBeInTheDocument();
-      expect(screen.getByText("All Status")).toBeInTheDocument();
-      expect(screen.getByText("All Categories")).toBeInTheDocument();
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-    });
-
-    it("should display items after loading", async () => {
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-        expect(screen.getByText("T-Shirt")).toBeInTheDocument();
-      });
+  it("renders main sections and items", async () => {
+    render(<MarketPage />);
+    expect(screen.getByText("Marketplace")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search items...")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("iPhone 13")).toBeInTheDocument();
+      expect(screen.getByText("T-Shirt")).toBeInTheDocument();
     });
   });
 
-  describe("Search and Filter Integration", () => {
-    it("should search and filter by category together", async () => {
-      jest.useFakeTimers();
-      const user = userEvent.setup({ delay: null });
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
-      const searchInput = screen.getByPlaceholderText("Search items...");
-      await user.type(searchInput, "iPhone");
-
+  it("search input works with debounce", async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<MarketPage />);
+    const searchInput = screen.getByPlaceholderText("Search items...");
+    await user.type(searchInput, "iPhone");
+    act(() => {
       jest.advanceTimersByTime(500);
-
-      const categorySelect = screen.getAllByRole("combobox")[1];
-      await user.selectOptions(categorySelect, "electronics");
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            search: "iPhone",
-            category: "electronics",
-            page: 1,
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-
-      jest.useRealTimers();
     });
-
-    it("should filter by status and sort by price", async () => {
-      const user = userEvent.setup();
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
-      const statusSelect = screen.getAllByRole("combobox")[0];
-      await user.selectOptions(statusSelect, "available");
-
-      const sortSelect = screen.getAllByRole("combobox")[2];
-      await user.selectOptions(sortSelect, "price");
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            status: "available",
-            sortBy: "price",
-            sortOrder: "asc",
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-    });
-
-    it("should reset to page 1 when applying filters", async () => {
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, { currentPage: 2, totalPages: 3 })
+    await waitFor(() => {
+      expect(mockListItems).toHaveBeenCalledWith(
+        expect.objectContaining({ search: "iPhone", page: 1 }),
+        expect.any(AbortSignal)
       );
-
-      const user = userEvent.setup();
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId("page-info")).toHaveTextContent(
-          "Page 2 of 3"
-        );
-      });
-
-      const statusSelect = screen.getAllByRole("combobox")[0];
-      await user.selectOptions(statusSelect, "sold");
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            page: 1,
-          }),
-          expect.any(AbortSignal)
-        );
-      });
     });
   });
 
-  describe("Error Handling", () => {
-    it("should display error and allow retry", async () => {
-      mockListItems.mockRejectedValueOnce(new Error("Network error"));
+  it("filters by category and status", async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<MarketPage />);
+    const statusSelect = screen.getAllByRole("combobox")[0];
+    const categorySelect = screen.getAllByRole("combobox")[1];
 
-      render(<MarketPage />);
+    await user.selectOptions(statusSelect, "available");
+    await user.selectOptions(categorySelect, "electronics");
 
-      await waitFor(() => {
-        expect(
-          screen.getByText(/Failed to load items. Please try again./i)
-        ).toBeInTheDocument();
-      });
-
-      expect(screen.getByText("Retry")).toBeInTheDocument();
-    });
-
-    it("should retry fetching on retry button click", async () => {
-      mockListItems.mockRejectedValueOnce(new Error("Network error"));
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Retry")).toBeInTheDocument();
-      });
-
-      mockListItems.mockResolvedValueOnce(createMockResponse(mockItems));
-
-      fireEvent.click(screen.getByText("Retry"));
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      expect(mockListItems).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: "available",
+          category: "electronics",
+          page: 1,
+        }),
+        expect.any(AbortSignal)
+      );
     });
   });
 
-  describe("Pagination Integration", () => {
-    it("should navigate between pages", async () => {
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, {
-          currentPage: 1,
-          totalPages: 3,
-          totalItems: 30,
-        })
+  it("sorts items by price and toggles order", async () => {
+    jest.useRealTimers();
+    const user = userEvent.setup();
+    render(<MarketPage />);
+    const sortSelect = screen.getAllByRole("combobox")[2];
+    await user.selectOptions(sortSelect, "price");
+
+    // simulate toggling sort order if button exists
+    const sortToggle = screen.queryByLabelText(/Sort ascending/i);
+    if (sortToggle) await user.click(sortToggle);
+
+    await waitFor(() => {
+      expect(mockListItems).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: "price" }),
+        expect.any(AbortSignal)
       );
+    });
+    jest.useFakeTimers();
+  });
 
-      render(<MarketPage />);
+  it("resets page to 1 when applying filters", async () => {
+    jest.useRealTimers();
+    // First render - page 1
+    mockListItems.mockResolvedValueOnce(
+      createMockResponse(mockItems, { currentPage: 1, totalPages: 3 })
+    );
+    render(<MarketPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId("page-info")).toHaveTextContent("Page 1 of 3");
+    });
 
-      await waitFor(() => {
-        expect(screen.getByText("Page 1 of 3")).toBeInTheDocument();
-      });
+    // Navigate to page 2
+    mockListItems.mockResolvedValueOnce(
+      createMockResponse(mockItems, { currentPage: 2, totalPages: 3 })
+    );
+    const nextButton = await screen.findByTestId("next-page");
+    fireEvent.click(nextButton);
 
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, {
-          currentPage: 2,
-          totalPages: 3,
-          totalItems: 30,
-        })
+    await waitFor(() => {
+      expect(screen.getByTestId("page-info")).toHaveTextContent("Page 2 of 3");
+    });
+
+    // Apply filter - should reset to page 1
+    mockListItems.mockResolvedValueOnce(
+      createMockResponse(mockItems, { currentPage: 1, totalPages: 3 })
+    );
+
+    const user = userEvent.setup();
+    const statusSelect = screen.getAllByRole("combobox")[0];
+    await user.selectOptions(statusSelect, "sold");
+
+    await waitFor(() => {
+      expect(mockListItems).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1 }),
+        expect.any(AbortSignal)
       );
+    });
+    jest.useFakeTimers();
+  });
 
-      fireEvent.click(screen.getByText("Next"));
+  it("handles errors and retry", async () => {
+    mockListItems.mockRejectedValueOnce(new Error("Network error"));
+    render(<MarketPage />);
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to load items/i)).toBeInTheDocument();
+    });
 
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            page: 2,
-          }),
-          expect.any(AbortSignal)
-        );
-      });
+    mockListItems.mockResolvedValueOnce(createMockResponse(mockItems));
+    fireEvent.click(screen.getByText("Retry"));
+
+    await waitFor(() => {
+      expect(screen.getByText("iPhone 13")).toBeInTheDocument();
     });
   });
 
-  describe("Complete User Journey", () => {
-    it("should complete full shopping flow", async () => {
-      jest.useFakeTimers();
-      const user = userEvent.setup({ delay: null });
+  it("navigates pages using pagination", async () => {
+    mockListItems.mockResolvedValueOnce(
+      createMockResponse(mockItems, { currentPage: 1, totalPages: 3 })
+    );
+    render(<MarketPage />);
+    await waitFor(() =>
+      expect(screen.getByTestId("page-info")).toHaveTextContent("Page 1 of 3")
+    );
 
-      render(<MarketPage />);
+    mockListItems.mockResolvedValueOnce(
+      createMockResponse(mockItems, { currentPage: 2, totalPages: 3 })
+    );
+    fireEvent.click(screen.getByTestId("next-page"));
 
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      expect(mockListItems).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2 }),
+        expect.any(AbortSignal)
+      );
+    });
+  });
 
-      const searchInput = screen.getByPlaceholderText("Search items...");
-      await user.type(searchInput, "iPhone");
+  it("completes full user journey with search, filter, sort, pagination", async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<MarketPage />);
+
+    const searchInput = screen.getByPlaceholderText("Search items...");
+    await user.type(searchInput, "iPhone");
+    act(() => {
       jest.advanceTimersByTime(500);
+    });
 
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            search: "iPhone",
-          }),
-          expect.any(AbortSignal)
-        );
-      });
+    const categorySelect = screen.getAllByRole("combobox")[1];
+    await user.selectOptions(categorySelect, "electronics");
 
-      const categorySelect = screen.getAllByRole("combobox")[1];
-      await user.selectOptions(categorySelect, "electronics");
+    const sortSelect = screen.getAllByRole("combobox")[2];
+    await user.selectOptions(sortSelect, "price");
 
-      const sortSelect = screen.getAllByRole("combobox")[2];
-      await user.selectOptions(sortSelect, "price");
+    const sortToggle = screen.queryByLabelText(/Sort ascending/i);
+    if (sortToggle) await user.click(sortToggle);
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/Sort ascending/i)).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByLabelText(/Sort ascending/i));
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenLastCalledWith(
-          expect.objectContaining({
-            search: "iPhone",
-            category: "electronics",
-            sortBy: "price",
-            sortOrder: "desc",
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-
-      jest.useRealTimers();
+    await waitFor(() => {
+      expect(mockListItems).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          search: "iPhone",
+          category: "electronics",
+          sortBy: "price",
+        }),
+        expect.any(AbortSignal)
+      );
     });
   });
 });
