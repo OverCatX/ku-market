@@ -82,7 +82,7 @@ export default function ProfilePage() {
   };
 
   const handleRequestStore = () => {
-    toast("Store request sent! (mock)", { icon: "🛍️" });
+    router.push("/request-store");
   };
 
   if (loading)
