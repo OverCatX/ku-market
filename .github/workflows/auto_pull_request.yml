@@ -238,7 +238,7 @@ jobs:
     steps:
       - name: Notify
         run: |
-          cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+          cat << EOF >> $GITHUB_STEP_SUMMARY
           ## ❌ Develop CI Failed
 
           **Branch:** develop
