@@ -85,8 +85,25 @@ jobs:
             echo "No existing PR found"
           fi
 
-      - name: Create labels if not exist
+      - name: Check if there are new commits
+        id: commits
         if: steps.check.outputs.exists == 'false'
+        run: |
+          git fetch origin develop
+          COMMITS=$(git rev-list --count origin/develop..HEAD)
+          echo "count=${COMMITS}" >> $GITHUB_OUTPUT
+          echo "Found ${COMMITS} new commits"
+          
+          if [ "$COMMITS" -eq "0" ]; then
+            echo "⚠️ No new commits between ${{ steps.branch.outputs.name }} and develop"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Found ${COMMITS} commits to merge"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create labels if not exist
+        if: steps.check.outputs.exists == 'false' && steps.commits.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -96,7 +113,7 @@ jobs:
           gh label create "needs-review" --color "fbca04" --description "Needs code review" --force || true
 
       - name: Create PR
-        if: steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false' && steps.commits.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -111,6 +128,14 @@ jobs:
             --head "${{ steps.branch.outputs.name }}" \
             --title "🚀 ${{ steps.branch.outputs.name }} → develop" \
             --body "${{ steps.content.outputs.body }}"
+
+      - name: Skip PR creation
+        if: steps.check.outputs.exists == 'false' && steps.commits.outputs.skip == 'true'
+        run: |
+          echo "⚠️ Skipping PR creation - no new commits between ${{ steps.branch.outputs.name }} and develop"
+          echo "This branch is already up to date with develop"
+          echo ""
+          echo "💡 Tip: This usually means the branch was already merged or is identical to develop"
 
       - name: Update PR
         if: steps.check.outputs.exists == 'true'
