@@ -41,41 +41,22 @@ export default function Page() {
   }, [slug]);
 
   const handleAddToCart = async () => {
-    if (!isMounted) return;
-
-    // Check if user is logged in
-    const token = localStorage.getItem("authentication");
-
-    if (!token) {
-      toast.error("Please login to add items to cart", {
-        icon: "🔒",
-      });
-      router.push("/login");
-      return;
-    }
-
-    if (!item) return;
+    if (!isMounted || !item) return;
 
     try {
-      // Add item with quantity
-      for (let i = 0; i < qty; i++) {
-        await addToCart({
-          id: item._id,
-          title: item.title,
-          price: item.price,
-          image: item.photo?.[0] || "",
-          sellerId: item.owner || "unknown",
-          sellerName: "Seller",
-        });
-      }
-
-      toast.success(`Added ${qty} ${qty > 1 ? "items" : "item"} to cart!`, {
-        icon: "🛒",
+      await addToCart({
+        id: item._id,
+        title: item.title,
+        price: item.price,
+        image: item.photo?.[0] || "",
+        sellerId: item.owner || "",
+        sellerName: "Seller",
       });
-      setQty(1);
+
+      toast.success("Added to cart!", { icon: "🛒" });
     } catch (error) {
-      toast.error("Failed to add item to cart");
       console.error("Add to cart error:", error);
+      toast.error("Failed to add item");
     }
   };
 

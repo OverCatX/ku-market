@@ -13,7 +13,6 @@ import {
   updateCartQuantity as updateCartQuantityAPI,
   removeFromCart as removeFromCartAPI,
   clearCart as clearCartAPI,
-  syncCart as syncCartAPI,
   CartItem,
 } from "@/config/cart";
 
@@ -34,150 +33,88 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Load and sync cart on mount
+  const loadCart = async () => {
+    const token = localStorage.getItem("authentication");
+    if (!token) {
+      const saved = localStorage.getItem("cart");
+      if (saved) {
+        try {
+          setItems(JSON.parse(saved));
+        } catch {
+          setItems([]);
+        }
+      }
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await getCartAPI(token);
+      if (res.success) {
+        setItems(res.items || []);
+      }
+    } catch (error) {
+      console.error("Load cart error:", error);
+      const saved = localStorage.getItem("cart");
+      if (saved) {
+        try {
+          setItems(JSON.parse(saved));
+        } catch {
+          setItems([]);
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const initializeCart = async () => {
-      const token = localStorage.getItem("authentication");
-
-      if (!token) {
-        // Not logged in, use local storage
-        const savedCart = localStorage.getItem("cart");
-        if (savedCart) {
-          try {
-            setItems(JSON.parse(savedCart));
-          } catch (error) {
-            console.error("Failed to load cart from localStorage:", error);
-          }
-        }
-        setLoading(false);
-        setIsInitialized(true);
-        return;
-      }
-
-      // Logged in, sync with backend
-      try {
-        const localCart = localStorage.getItem("cart");
-        const localItems: CartItem[] = localCart ? JSON.parse(localCart) : [];
-
-        // If there are local items, sync them with backend
-        if (localItems.length > 0) {
-          try {
-            await syncCartAPI(
-              token,
-              localItems.map((item) => ({
-                itemId: item.id,
-                quantity: item.quantity,
-              }))
-            );
-            // Clear local storage after successful sync
-            localStorage.removeItem("cart");
-          } catch (syncError) {
-            console.error(
-              "Failed to sync local cart, will keep in localStorage:",
-              syncError
-            );
-            // Don't clear localStorage if sync fails
-          }
-        }
-
-        // Fetch cart from backend
-        const response = await getCartAPI(token);
-        if (response.success && response.items) {
-          setItems(response.items);
-        }
-      } catch (error) {
-        console.error("Failed to load cart from backend:", error);
-
-        // Check if it's an auth error
-        if (
-          error instanceof Error &&
-          (error.message.includes("Invalid token") ||
-            error.message.includes("Unauthorized") ||
-            error.message.includes("401"))
-        ) {
-          // Token is invalid, clear it and use local storage
-          console.log("Token invalid, clearing authentication");
-          localStorage.removeItem("authentication");
-        }
-
-        // Fallback to local storage
-        const savedCart = localStorage.getItem("cart");
-        if (savedCart) {
-          try {
-            setItems(JSON.parse(savedCart));
-          } catch (err) {
-            console.error("Failed to load cart from localStorage:", err);
-          }
-        }
-      } finally {
-        setLoading(false);
-        setIsInitialized(true);
-      }
-    };
-
-    initializeCart();
+    loadCart();
   }, []);
 
-  // Save to localStorage for non-logged in users
   useEffect(() => {
-    if (isInitialized && !localStorage.getItem("authentication")) {
+    const token = localStorage.getItem("authentication");
+    if (!token) {
       localStorage.setItem("cart", JSON.stringify(items));
     }
-  }, [items, isInitialized]);
+  }, [items]);
+
+  const refreshCart = async () => {
+    const token = localStorage.getItem("authentication");
+    if (!token) return;
+
+    try {
+      const res = await getCartAPI(token);
+      if (res.success) {
+        setItems(res.items || []);
+      }
+    } catch (error) {
+      console.error("Refresh error:", error);
+    }
+  };
 
   const addToCart = async (newItem: Omit<CartItem, "quantity">) => {
     const token = localStorage.getItem("authentication");
 
     if (!token) {
-      // Offline mode - use local storage
-      setItems((prevItems) => {
-        const existingItem = prevItems.find((item) => item.id === newItem.id);
-
-        if (existingItem) {
-          return prevItems.map((item) =>
-            item.id === newItem.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          );
-        } else {
-          return [...prevItems, { ...newItem, quantity: 1 }];
+      setItems((prev) => {
+        const idx = prev.findIndex((i) => i.id === newItem.id);
+        if (idx > -1) {
+          const updated = [...prev];
+          updated[idx].quantity += 1;
+          return updated;
         }
+        return [...prev, { ...newItem, quantity: 1 }];
       });
       return;
     }
 
-    // Online mode - use backend
     try {
       await addToCartAPI(token, newItem.id);
-
-      // Optimistic update
-      setItems((prevItems) => {
-        const existingItem = prevItems.find((item) => item.id === newItem.id);
-
-        if (existingItem) {
-          return prevItems.map((item) =>
-            item.id === newItem.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          );
-        } else {
-          return [...prevItems, { ...newItem, quantity: 1 }];
-        }
-      });
+      await refreshCart();
     } catch (error) {
-      console.error("Failed to add to cart:", error);
-
-      // Check if auth error
-      if (
-        error instanceof Error &&
-        (error.message.includes("Invalid token") ||
-          error.message.includes("Unauthorized"))
-      ) {
-        localStorage.removeItem("authentication");
-      }
-
+      console.error("Add error:", error);
       throw error;
     }
   };
@@ -186,19 +123,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem("authentication");
 
     if (!token) {
-      // Offline mode
-      setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+      setItems((prev) => prev.filter((i) => i.id !== itemId));
       return;
     }
 
-    // Online mode
     try {
       await removeFromCartAPI(token, itemId);
-
-      // Optimistic update
-      setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+      await refreshCart();
     } catch (error) {
-      console.error("Failed to remove from cart:", error);
+      console.error("Remove error:", error);
       throw error;
     }
   };
@@ -207,35 +140,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem("authentication");
 
     if (!token) {
-      // Offline mode
-      if (quantity <= 0) {
-        setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
-      } else {
-        setItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === itemId ? { ...item, quantity } : item
-          )
-        );
-      }
+      setItems((prev) => {
+        if (quantity === 0) return prev.filter((i) => i.id !== itemId);
+        return prev.map((i) => (i.id === itemId ? { ...i, quantity } : i));
+      });
       return;
     }
 
-    // Online mode
     try {
       await updateCartQuantityAPI(token, itemId, quantity);
-
-      // Optimistic update
-      if (quantity <= 0) {
-        setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
-      } else {
-        setItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === itemId ? { ...item, quantity } : item
-          )
-        );
-      }
+      await refreshCart();
     } catch (error) {
-      console.error("Failed to update quantity:", error);
+      console.error("Update error:", error);
       throw error;
     }
   };
@@ -244,46 +160,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem("authentication");
 
     if (!token) {
-      // Offline mode
       setItems([]);
+      localStorage.removeItem("cart");
       return;
     }
 
-    // Online mode
     try {
       await clearCartAPI(token);
       setItems([]);
     } catch (error) {
-      console.error("Failed to clear cart:", error);
+      console.error("Clear error:", error);
       throw error;
     }
   };
 
-  const refreshCart = async () => {
-    const token = localStorage.getItem("authentication");
-
-    if (!token) return;
-
-    try {
-      setLoading(true);
-      const response = await getCartAPI(token);
-      if (response.success && response.items) {
-        setItems(response.items);
-      }
-    } catch (error) {
-      console.error("Failed to refresh cart:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getTotalItems = () => {
-    return items.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  const getTotalPrice = () => {
-    return items.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
+  const getTotalItems = () => items.reduce((sum, i) => sum + i.quantity, 0);
+  const getTotalPrice = () =>
+    items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   return (
     <CartContext.Provider
@@ -306,10 +199,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 export function useCart() {
   const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error("useCart must be used within a CartProvider");
-  }
+  if (!context) throw new Error("useCart must be used within CartProvider");
   return context;
 }
-
-export type { CartItem };

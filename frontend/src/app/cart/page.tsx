@@ -35,17 +35,9 @@ export default function CartPage() {
 
   useEffect(() => {
     if (!isMounted) return;
-
-    // Check authentication
     const token = localStorage.getItem("authentication");
-
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
-    setIsAuthenticated(true);
-  }, [isMounted, router]);
+    setIsAuthenticated(!!token);
+  }, [isMounted]);
 
   const handleUpdateQuantity = async (itemId: string, quantity: number) => {
     try {
@@ -73,8 +65,8 @@ export default function CartPage() {
     }
   };
 
-  // Show loading state during SSR and before auth check
-  if (!isMounted || !isAuthenticated || loading) {
+  // Show loading state during SSR
+  if (!isMounted || loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">

@@ -3,8 +3,7 @@ import CartController from "../controllers/cart.controller";
 import { authenticate } from "../middlewares/authentication";
 import { 
   validateAddToCart, 
-  validateUpdateQuantity, 
-  validateSyncCart 
+  validateUpdateQuantity 
 } from "../middlewares/validators/cart.validation";
 
 const router = express.Router();
@@ -24,9 +23,6 @@ router.delete("/remove/:itemId", authenticate, cartController.removeFromCart);
 
 // Clear entire cart
 router.delete("/clear", authenticate, cartController.clearCart);
-
-// Sync cart from client
-router.post("/sync", authenticate, validateSyncCart, cartController.syncCart);
 
 export default router;
 
