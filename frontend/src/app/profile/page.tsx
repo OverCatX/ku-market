@@ -87,12 +87,7 @@ export default function ProfilePage() {
   };
 
   const handleVerifyIdentity = () => {
-    // TODO: Implement verification flow
-    toast("Identity verification feature coming soon!", {
-      icon: "🔍",
-      duration: 3000,
-    });
-    // router.push("/verify-identity");
+    router.push("/verify-identity");
   };
 
   if (loading)
