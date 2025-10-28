@@ -40,38 +40,24 @@ export default function Page() {
     };
   }, [slug]);
 
-  const handleAddToCart = () => {
-    if (!isMounted) return;
+  const handleAddToCart = async () => {
+    if (!isMounted || !item) return;
 
-    // Check if user is logged in
-    const token = localStorage.getItem("authentication");
-
-    if (!token) {
-      toast.error("Please login to add items to cart", {
-        icon: "🔒",
-      });
-      router.push("/login");
-      return;
-    }
-
-    if (!item) return;
-
-    // Add multiple items based on qty
-    for (let i = 0; i < qty; i++) {
-      addToCart({
+    try {
+      await addToCart({
         id: item._id,
         title: item.title,
         price: item.price,
         image: item.photo?.[0] || "",
-        sellerId: item.owner || "unknown",
+        sellerId: item.owner || "",
         sellerName: "Seller",
       });
-    }
 
-    toast.success(`Added ${qty} ${qty > 1 ? "items" : "item"} to cart!`, {
-      icon: "🛒",
-    });
-    setQty(1);
+      toast.success("Added to cart!", { icon: "🛒" });
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      toast.error("Failed to add item");
+    }
   };
 
   if (loading) {

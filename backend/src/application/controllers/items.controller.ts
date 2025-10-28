@@ -3,9 +3,20 @@ import { uploadToCloudinary } from "../../lib/cloudinary";
 import Item, { IItem } from "../../data/models/Item"
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
 
+interface AuthenticatedRequest extends Request {
+    userId: string;
+}
+
 export default class ItemController {
     userUpload = async(req: Request, res: Response) => {
         try {
+            // Get authenticated user ID
+            const userId = (req as AuthenticatedRequest).userId;
+            
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
+
             if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
                 return res.status(400).json({ error: "No image files uploaded" });
             }
@@ -37,7 +48,7 @@ export default class ItemController {
             }
     
             const newItem: Partial<IItem> = {
-                owner: req.body.owner ? new mongoose.Types.ObjectId(req.body.owner) : undefined,
+                owner: new mongoose.Types.ObjectId(userId), // Use authenticated user ID
                 title: req.body.title,
                 description: req.body.description,
                 category: req.body.category,

@@ -1,4 +1,4 @@
-import { API_BASE } from "./api";
+import { API_BASE } from "./constants";
 import type { Notification } from "@/components/notifications";
 
 export type NotificationsResponse = {

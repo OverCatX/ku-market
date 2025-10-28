@@ -1,4 +1,4 @@
-import { API_BASE } from "./index";
+import { API_BASE } from "./constants";
 
 // ===== Types =====
 export type ProfileData = {
