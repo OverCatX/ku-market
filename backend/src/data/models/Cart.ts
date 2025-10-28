@@ -41,7 +41,6 @@ const CartSchema = new Schema<ICart>(
       ref: "User",
       required: true,
       unique: true,
-      index: true,
     },
     items: {
       type: [CartItemSchema],
@@ -54,7 +53,6 @@ const CartSchema = new Schema<ICart>(
 );
 
 // Index for faster queries
-CartSchema.index({ userId: 1 });
 CartSchema.index({ "items.itemId": 1 });
 
 // TTL index - auto delete cart after 90 days of inactivity
