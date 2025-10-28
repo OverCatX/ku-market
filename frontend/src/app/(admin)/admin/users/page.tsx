@@ -38,7 +38,7 @@ const TableRow = memo(function TableRow({
   onDelete,
   isLoading,
   currentUserId,
-}: TableRowProps): JSX.Element {
+}: TableRowProps) {
   const isCurrentUser = user.id === currentUserId;
 
   return (
@@ -130,7 +130,7 @@ const TableRow = memo(function TableRow({
   );
 });
 
-export default function UsersPage(): JSX.Element {
+export default function UsersPage() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);

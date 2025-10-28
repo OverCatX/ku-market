@@ -33,7 +33,7 @@ const StatCard = memo(function StatCard({
   value,
   color,
   link,
-}: StatCardProps): JSX.Element {
+}: StatCardProps) {
   const content = (
     <div
       className={`p-6 rounded-lg border-2 ${colorClasses[color]} ${
@@ -51,7 +51,7 @@ const StatCard = memo(function StatCard({
   return link ? <Link href={link}>{content}</Link> : content;
 });
 
-export default function AdminDashboard(): JSX.Element {
+export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
 

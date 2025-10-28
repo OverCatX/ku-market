@@ -30,9 +30,7 @@ const navItems: NavItem[] = [
   { label: "Users", path: "/admin/users", icon: Users },
 ];
 
-export default function AdminLayout({
-  children,
-}: AdminLayoutProps): JSX.Element {
+export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false); // Closed by default on mobile

@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Header } from "@/components/Navbar";
 
-export function ConditionalHeader(): JSX.Element | null {
+export function ConditionalHeader() {
   const pathname = usePathname();
 
   // Don't show header on admin routes
