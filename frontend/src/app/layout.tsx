@@ -1,7 +1,7 @@
 import type React from "react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Header } from "@/components/Navbar";
+import { ConditionalHeader } from "@/components/ConditionalHeader";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { Titan_One, Ubuntu } from "next/font/google";
@@ -36,7 +36,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${ubuntu.variable} ${titanOne.variable}`}>
         <CartProvider>
-          <Header />
+          <ConditionalHeader />
           <Suspense fallback={null}>{children}</Suspense>
           <Toaster position="top-right" />
         </CartProvider>
