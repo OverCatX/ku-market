@@ -4,14 +4,30 @@ import { useCart } from "@/contexts/CartContext";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ShoppingCart, Trash2, Plus, Minus, ArrowRight } from "lucide-react";
+import {
+  ShoppingCart,
+  Trash2,
+  Plus,
+  Minus,
+  ArrowRight,
+  RefreshCw,
+} from "lucide-react";
 import Image from "next/image";
+import toast from "react-hot-toast";
 
 export default function CartPage() {
-  const { items, removeFromCart, updateQuantity, getTotalPrice } = useCart();
+  const {
+    items,
+    loading,
+    removeFromCart,
+    updateQuantity,
+    getTotalPrice,
+    refreshCart,
+  } = useCart();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -31,8 +47,34 @@ export default function CartPage() {
     setIsAuthenticated(true);
   }, [isMounted, router]);
 
+  const handleUpdateQuantity = async (itemId: string, quantity: number) => {
+    try {
+      setActionLoading(itemId);
+      await updateQuantity(itemId, quantity);
+    } catch {
+      toast.error("Failed to update quantity");
+      // Refresh to get correct state
+      await refreshCart();
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRemoveItem = async (itemId: string) => {
+    try {
+      setActionLoading(itemId);
+      await removeFromCart(itemId);
+      toast.success("Item removed from cart");
+    } catch {
+      toast.error("Failed to remove item");
+      await refreshCart();
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Show loading state during SSR and before auth check
-  if (!isMounted || !isAuthenticated) {
+  if (!isMounted || !isAuthenticated || loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
@@ -79,7 +121,17 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+          <button
+            onClick={refreshCart}
+            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+            aria-label="Refresh cart"
+          >
+            <RefreshCw className="w-5 h-5" />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
@@ -87,7 +139,11 @@ export default function CartPage() {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-lg shadow-sm p-4 sm:p-6 flex gap-4"
+                className={`bg-white rounded-lg shadow-sm p-4 sm:p-6 flex gap-4 ${
+                  actionLoading === item.id
+                    ? "opacity-50 pointer-events-none"
+                    : ""
+                }`}
               >
                 {/* Product Image */}
                 <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
@@ -118,9 +174,10 @@ export default function CartPage() {
                     <div className="flex items-center gap-2 border border-gray-300 rounded-lg">
                       <button
                         onClick={() =>
-                          updateQuantity(item.id, item.quantity - 1)
+                          handleUpdateQuantity(item.id, item.quantity - 1)
                         }
-                        className="p-2 hover:bg-gray-100 transition"
+                        disabled={actionLoading === item.id}
+                        className="p-2 hover:bg-gray-100 transition disabled:opacity-50"
                         aria-label="Decrease quantity"
                       >
                         <Minus className="w-4 h-4" />
@@ -128,9 +185,10 @@ export default function CartPage() {
                       <span className="px-4 font-medium">{item.quantity}</span>
                       <button
                         onClick={() =>
-                          updateQuantity(item.id, item.quantity + 1)
+                          handleUpdateQuantity(item.id, item.quantity + 1)
                         }
-                        className="p-2 hover:bg-gray-100 transition"
+                        disabled={actionLoading === item.id}
+                        className="p-2 hover:bg-gray-100 transition disabled:opacity-50"
                         aria-label="Increase quantity"
                       >
                         <Plus className="w-4 h-4" />
@@ -138,8 +196,9 @@ export default function CartPage() {
                     </div>
 
                     <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-red-600 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition"
+                      onClick={() => handleRemoveItem(item.id)}
+                      disabled={actionLoading === item.id}
+                      className="text-red-600 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
                       aria-label="Remove item"
                     >
                       <Trash2 className="w-5 h-5" />
