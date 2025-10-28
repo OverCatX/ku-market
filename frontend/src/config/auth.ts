@@ -54,3 +54,33 @@ export function signin(data: SignInData): Promise<SignInResponse> {
     body: JSON.stringify(data),
   });
 }
+
+// Login function that returns both token and user data
+export async function login(
+  email: string,
+  password: string
+): Promise<{ token: string; user: unknown }> {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ kuEmail: email, password }),
+  });
+
+  if (!res.ok) {
+    const json = (await res.json()) as { message?: string; error?: string };
+    const errorMessage = json.error || json.message || "Login failed";
+    throw new Error(errorMessage);
+  }
+
+  const data = (await res.json()) as {
+    token: string;
+    user: unknown;
+    message?: string;
+  };
+
+  if (!data.token || !data.user) {
+    throw new Error("Invalid response from server");
+  }
+
+  return { token: data.token, user: data.user };
+}

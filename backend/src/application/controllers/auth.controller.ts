@@ -50,7 +50,21 @@ export default class AuthController {
             }
 
             const token = jwt.sign({id : user._id}, process.env.JWT_SECRET || "secret", {expiresIn: "1h"} )
-            return res.json({token})
+            
+            const userData = {
+                id: user._id,
+                name: user.name,
+                email: user.kuEmail,
+                faculty: user.faculty,
+                contact: user.contact,
+                role: user.role,
+                isVerified: user.isVerified || false
+            };
+            
+            return res.json({
+                token,
+                user: userData
+            })
             
         } catch (err : unknown) {
             const message = err instanceof Error ? err.message : "Bad request";

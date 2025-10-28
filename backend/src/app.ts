@@ -7,6 +7,7 @@ import itemRoutes from "./application/routes/items";
 import verificationRoutes from "./application/routes/verification";
 import shopRoutes from "./application/routes/shop";
 import cartRoutes from "./application/routes/cart";
+import adminRoutes from "./application/routes/admin";
 
 const app: Application = express();
 app.use(cors());
@@ -19,5 +20,6 @@ app.use("/api/items", itemRoutes);
 app.use("/api/verification", verificationRoutes);
 app.use("/api/shops", shopRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/admin", adminRoutes);
 
 export default app;
