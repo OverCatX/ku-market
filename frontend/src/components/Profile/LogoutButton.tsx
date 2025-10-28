@@ -8,8 +8,14 @@ export default function LogoutButton() {
 
   const handleLogout = () => {
     localStorage.removeItem("authentication");
+    localStorage.removeItem("cart_backup");
     toast.success("Logged out successfully");
+
+    // Redirect then refresh to clear all state
     router.replace("/login");
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return (

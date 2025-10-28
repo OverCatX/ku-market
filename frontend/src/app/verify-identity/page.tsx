@@ -67,7 +67,9 @@ export default function VerifyIdentityPage() {
       } catch (error) {
         console.error("Error fetching data:", error);
         localStorage.removeItem("authentication");
+        localStorage.removeItem("cart_backup");
         router.replace("/login");
+        setTimeout(() => window.location.reload(), 100);
       } finally {
         setLoading(false);
       }

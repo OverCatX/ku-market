@@ -49,7 +49,9 @@ export default function ProfilePage() {
         });
       } catch {
         localStorage.removeItem("authentication");
+        localStorage.removeItem("cart_backup");
         router.replace("/login");
+        setTimeout(() => window.location.reload(), 100);
       } finally {
         setLoading(false);
       }
