@@ -7,6 +7,31 @@ interface AuthenticatedRequest extends Request {
   userId: string;
 }
 
+interface PopulatedCartItem {
+  itemId: {
+    _id: mongoose.Types.ObjectId;
+    title: string;
+    price: number;
+    photo?: string[];
+    owner?: {
+      _id: mongoose.Types.ObjectId;
+      name: string;
+    };
+  };
+  quantity: number;
+  addedAt: Date;
+}
+
+interface FormattedCartItem {
+  id: string;
+  title: string;
+  price: number;
+  image: string;
+  quantity: number;
+  sellerId: string;
+  sellerName: string;
+}
+
 export default class CartController {
   // GET /api/cart
   getCart = async (req: Request, res: Response): Promise<Response> => {
@@ -23,8 +48,8 @@ export default class CartController {
         return res.json({ success: true, items: [], totalItems: 0, totalPrice: 0 });
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const items = cart.items.map((item: any) => ({
+      const populatedItems = cart.items as unknown as PopulatedCartItem[];
+      const items: FormattedCartItem[] = populatedItems.map((item) => ({
         id: item.itemId._id.toString(),
         title: item.itemId.title,
         price: item.itemId.price,
@@ -37,8 +62,8 @@ export default class CartController {
       return res.json({
         success: true,
         items,
-        totalItems: items.reduce((sum: number, i: any) => sum + i.quantity, 0),
-        totalPrice: items.reduce((sum: number, i: any) => sum + i.price * i.quantity, 0),
+        totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
+        totalPrice: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
       });
     } catch (error) {
       console.error("Cart error:", error);
