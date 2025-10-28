@@ -44,10 +44,39 @@ export function LoginForm() {
         window.location.href = "/";
       }, 1000);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Something went wrong";
+      let message = "Something went wrong";
+
+      if (err instanceof Error) {
+        // Provide user-friendly messages
+        if (
+          err.message.includes("Email is not found") ||
+          err.message.includes("not found")
+        ) {
+          message = "❌ Email not found. Please check your email or sign up.";
+        } else if (
+          err.message.includes("Invalid credentials") ||
+          err.message.includes("password")
+        ) {
+          message = "🔒 Incorrect password. Please try again.";
+        } else if (
+          err.message.includes("Failed to fetch") ||
+          err.message.includes("Network")
+        ) {
+          message = "🌐 Network error. Please check your connection.";
+        } else {
+          message = err.message;
+        }
+      }
+
       setApiError(message);
-      toast.error(message);
+      toast.error(message, {
+        duration: 4000,
+        style: {
+          background: "#FEE2E2",
+          color: "#991B1B",
+          border: "1px solid #FCA5A5",
+        },
+      });
     } finally {
       setLoading(false);
     }

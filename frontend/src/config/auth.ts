@@ -29,9 +29,12 @@ export type SignInResponse = {
 // ===== Helper Function =====
 async function request<T>(url: string, options: RequestInit): Promise<T> {
   const res = await fetch(url, options);
-  const json = (await res.json()) as T & { message?: string };
+  const json = (await res.json()) as T & { message?: string; error?: string };
 
-  if (!res.ok) throw new Error(json.message || "Request failed");
+  if (!res.ok) {
+    const errorMessage = json.error || json.message || "Request failed";
+    throw new Error(errorMessage);
+  }
   return json;
 }
 
