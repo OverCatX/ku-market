@@ -12,6 +12,8 @@ export interface IUser extends Document {
   sellerRejectionReason?: string;
   faculty?: string;
   contact?: string;
+  isVerified?: boolean;
+  verificationDate?: Date;
   comparePassword(password: string): Promise<boolean>;
 }
 
@@ -25,7 +27,9 @@ const userSchema: Schema<IUser> = new Schema({
   sellerApprovalDate: { type: Date },
   sellerRejectionReason: { type: String },
   faculty: { type: String, required: true},
-  contact: { type: String, required: true, unique: true, match: /^0\d{9}$/}
+  contact: { type: String, required: true, unique: true, match: /^0\d{9}$/},
+  isVerified: { type: Boolean, default: false },
+  verificationDate: { type: Date }
 }, { timestamps: true });
 
 // Hash password before save
