@@ -1,4 +1,4 @@
-import { API_BASE } from "./api";
+import { API_BASE } from "./constants";
 
 export type DocumentType = "student_id" | "citizen_id";
 export type VerificationStatus = "pending" | "approved" | "rejected";

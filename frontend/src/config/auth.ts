@@ -1,4 +1,4 @@
-import { API_BASE } from "./index";
+import { API_BASE } from "./constants";
 
 // ===== Types =====
 export type SignupData = {
@@ -26,6 +26,7 @@ export type SignInResponse = {
   userId?: string;
 };
 
+// ===== Helper Function =====
 async function request<T>(url: string, options: RequestInit): Promise<T> {
   const res = await fetch(url, options);
   const json = (await res.json()) as T & { message?: string };
@@ -34,6 +35,7 @@ async function request<T>(url: string, options: RequestInit): Promise<T> {
   return json;
 }
 
+// ===== API Functions =====
 export function signup(data: SignupData): Promise<SignupResponse> {
   return request(`${API_BASE}/api/auth/signup`, {
     method: "POST",
