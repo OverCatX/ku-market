@@ -1,54 +1,89 @@
-import InputField from "./InputField";
-import { RefreshCw } from "lucide-react";
+import { Save } from "lucide-react";
+
+type ProfileFormState = { name: string; faculty: string; contact: string };
+
+type Props = {
+  form: ProfileFormState;
+  email: string;
+  onChange: (value: ProfileFormState) => void;
+  onSave: (e: React.FormEvent) => void;
+  saving: boolean;
+  saveMessage: string;
+};
 
 export default function ProfileForm({
-  profile,
-  setProfile,
-  editing,
-  setEditing,
+  form,
+  email,
+  onChange,
   onSave,
-}: {
-  profile: { name: string; faculty: string; email: string };
-  setProfile: React.Dispatch<React.SetStateAction<typeof profile>>;
-  editing: boolean;
-  setEditing: React.Dispatch<React.SetStateAction<boolean>>;
-  onSave: () => void;
-}) {
+  saving,
+  saveMessage,
+}: Props) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    onChange({ ...form, [name]: value });
+  };
+
   return (
-    <div className="bg-white border border-gray-200 p-4 sm:p-6 md:p-6 rounded-2xl shadow-lg space-y-4 sm:space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg sm:text-xl font-semibold text-green-900">
-          Profile Info
-        </h3>
-        <button
-          onClick={() => (editing ? onSave() : setEditing(true))}
-          className="flex items-center gap-1 sm:gap-2 bg-green-200/80 hover:bg-green-300/80 text-green-900 border border-green-300 rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 font-medium shadow-sm text-sm sm:text-base transition-colors"
-        >
-          <RefreshCw className="w-3 sm:w-4 h-3 sm:h-4" />
-          {editing ? "Save" : "Edit"}
-        </button>
+    <form onSubmit={onSave} className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm text-gray-600">Name</label>
+          <input
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#69773D]"
+          />
+        </div>
+        <div>
+          <label className="text-sm text-gray-600">Email (KU)</label>
+          <input
+            value={email}
+            readOnly
+            className="mt-1 w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-gray-600"
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <InputField
-          label="Name"
-          value={profile.name}
-          disabled={!editing}
-          onChange={(val) => setProfile((p) => ({ ...p, name: val }))}
-        />
-        <InputField
-          label="Faculty"
-          value={profile.faculty}
-          disabled={!editing}
-          onChange={(val) => setProfile((p) => ({ ...p, faculty: val }))}
-        />
-        <InputField
-          label="Email"
-          value={profile.email}
-          disabled={!editing}
-          onChange={(val) => setProfile((p) => ({ ...p, email: val }))}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm text-gray-600">Faculty</label>
+          <input
+            name="faculty"
+            value={form.faculty}
+            onChange={handleChange}
+            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#69773D]"
+          />
+        </div>
+        <div>
+          <label className="text-sm text-gray-600">Contact</label>
+          <input
+            name="contact"
+            value={form.contact}
+            onChange={handleChange}
+            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#69773D]"
+          />
+        </div>
       </div>
-    </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={saving}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-white transition-all ${
+            saving
+              ? "bg-gray-400"
+              : "bg-[#69773D] hover:bg-[#5a632d] shadow-sm hover:shadow-md"
+          }`}
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "Saving..." : "Save Changes"}
+        </button>
+        {saveMessage && (
+          <span className="text-sm text-gray-600">{saveMessage}</span>
+        )}
+      </div>
+    </form>
   );
 }

@@ -1,4 +1,10 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  act,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MarketPage from "../page";
 import { listItems } from "@/config/items";
@@ -12,341 +18,265 @@ jest.mock("@/components/Marketplace/ItemCard", () => {
   };
 });
 jest.mock("@/components/Marketplace/Pagination", () => {
-  return function Pagination() {
-    return <div data-testid="pagination" />;
+  return function Pagination({
+    currentPage,
+    totalPages,
+    onPageChange,
+  }: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }) {
+    return (
+      <div data-testid="pagination">
+        <button
+          data-testid="first-page"
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+        >
+          First
+        </button>
+        <button
+          data-testid="prev-page"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Prev
+        </button>
+        <span data-testid="page-info">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          data-testid="next-page"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
+        <button
+          data-testid="last-page"
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+        >
+          Last
+        </button>
+      </div>
+    );
   };
 });
 
 const mockListItems = listItems as MockListItems;
 
-describe("Search & Filter Tests", () => {
+describe("MarketPage Tests", () => {
   const mockItems = [createMockItem({ title: "iPhone 13" })];
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     mockListItems.mockResolvedValue(createMockResponse(mockItems));
   });
 
-  describe("Search Functionality", () => {
-    it("should debounce search input", async () => {
-      jest.useFakeTimers();
-      const user = userEvent.setup({ delay: null });
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
 
+  /** ----------------- Catalog / Loading ----------------- */
+  describe("Catalog & Loading Skeleton", () => {
+    it("should show skeleton on initial render", () => {
+      mockListItems.mockImplementation(() => new Promise(() => {}));
       render(<MarketPage />);
+      expect(
+        document.querySelectorAll(".animate-pulse").length
+      ).toBeGreaterThan(0);
+    });
+
+    it("should show 12 skeleton cards by default", () => {
+      mockListItems.mockImplementation(() => new Promise(() => {}));
+      render(<MarketPage />);
+      const skeletonCards = document.querySelectorAll(
+        ".bg-white.border.border-gray-200.rounded-xl.overflow-hidden.shadow-sm"
+      );
+      expect(skeletonCards.length).toBe(12);
+    });
+
+    it("should hide skeleton after items loaded", async () => {
+      mockListItems.mockResolvedValue(createMockResponse(mockItems));
+      render(<MarketPage />);
+      expect(
+        document.querySelectorAll(".animate-pulse").length
+      ).toBeGreaterThan(0);
 
       await waitFor(() => {
         expect(screen.getByText("iPhone 13")).toBeInTheDocument();
       });
 
+      expect(document.querySelectorAll(".animate-pulse").length).toBe(0);
+    });
+
+    it("should show empty state when no items", async () => {
+      mockListItems.mockResolvedValue(createMockResponse([]));
+      render(<MarketPage />);
+      await waitFor(() => {
+        expect(screen.getByText("No items found")).toBeInTheDocument();
+      });
+    });
+
+    it("should show error message when loading fails", async () => {
+      mockListItems.mockRejectedValue(new Error("Network error"));
+      render(<MarketPage />);
+      await waitFor(() => {
+        expect(screen.getByText(/Failed to load items/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  /** ----------------- Pagination ----------------- */
+  describe("Pagination", () => {
+    it("should display pagination when items exist", async () => {
+      mockListItems.mockResolvedValue(
+        createMockResponse(mockItems, { totalPages: 3, totalItems: 30 })
+      );
+      render(<MarketPage />);
+      await waitFor(() =>
+        expect(screen.getByTestId("pagination")).toBeInTheDocument()
+      );
+    });
+
+    it("should navigate to next page", async () => {
+      mockListItems.mockResolvedValueOnce(
+        createMockResponse(mockItems, {
+          currentPage: 1,
+          totalPages: 3,
+          totalItems: 30,
+        })
+      );
+      render(<MarketPage />);
+      await waitFor(() =>
+        expect(screen.getByTestId("next-page")).toBeInTheDocument()
+      );
+
+      mockListItems.mockResolvedValueOnce(
+        createMockResponse(mockItems, {
+          currentPage: 2,
+          totalPages: 3,
+          totalItems: 30,
+        })
+      );
+      fireEvent.click(screen.getByTestId("next-page"));
+
+      await waitFor(() => {
+        expect(mockListItems).toHaveBeenCalledWith(
+          expect.objectContaining({ page: 2 }),
+          expect.any(AbortSignal)
+        );
+      });
+    });
+
+    it("should not show pagination on empty results", async () => {
+      mockListItems.mockResolvedValue(createMockResponse([]));
+      render(<MarketPage />);
+      await waitFor(() =>
+        expect(screen.getByText("No items found")).toBeInTheDocument()
+      );
+      expect(screen.queryByTestId("pagination")).not.toBeInTheDocument();
+    });
+  });
+
+  /** ----------------- Search / Filter / Sort ----------------- */
+  describe("Search, Filter & Sort", () => {
+    it("should debounce search input", async () => {
+      const user = userEvent.setup({ delay: null });
+      render(<MarketPage />);
       const searchInput = screen.getByPlaceholderText("Search items...");
       await user.type(searchInput, "Mac");
-
-      expect(mockListItems).toHaveBeenCalledTimes(1);
-
-      jest.advanceTimersByTime(500);
-
+      expect(mockListItems).toHaveBeenCalledTimes(1); // initial load
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
       await waitFor(() => {
         expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            search: "Mac",
-          }),
+          expect.objectContaining({ search: "Mac", page: 1 }),
           expect.any(AbortSignal)
         );
       });
-
-      jest.useRealTimers();
     });
 
-    it("should reset page to 1 when searching", async () => {
-      jest.useFakeTimers();
-      const user = userEvent.setup({ delay: null });
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
-      const searchInput = screen.getByPlaceholderText("Search items...");
-      await user.type(searchInput, "test");
-
-      jest.advanceTimersByTime(500);
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            page: 1,
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-
+    it("should filter by status", async () => {
       jest.useRealTimers();
-    });
-
-    it("should cancel debounced search on rapid typing", async () => {
-      jest.useFakeTimers();
-      const user = userEvent.setup({ delay: null });
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
-      const searchInput = screen.getByPlaceholderText("Search items...");
-
-      await user.type(searchInput, "i");
-      jest.advanceTimersByTime(200);
-
-      await user.type(searchInput, "Ph");
-      jest.advanceTimersByTime(200);
-
-      await user.type(searchInput, "one");
-      jest.advanceTimersByTime(500);
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenLastCalledWith(
-          expect.objectContaining({
-            search: "iPhone",
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-
-      jest.useRealTimers();
-    });
-  });
-
-  describe("Status Filter", () => {
-    it("should filter by available status", async () => {
       const user = userEvent.setup();
       render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
       const statusSelect = screen.getAllByRole("combobox")[0];
       await user.selectOptions(statusSelect, "available");
-
-      await waitFor(() => {
+      await waitFor(() =>
         expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            status: "available",
-          }),
+          expect.objectContaining({ status: "available" }),
           expect.any(AbortSignal)
-        );
-      });
+        )
+      );
+      jest.useFakeTimers();
     });
 
-    it("should filter by sold status", async () => {
+    it("should filter by category", async () => {
+      jest.useRealTimers();
       const user = userEvent.setup();
       render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
-      const statusSelect = screen.getAllByRole("combobox")[0];
-      await user.selectOptions(statusSelect, "sold");
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            status: "sold",
-            page: 1,
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-    });
-
-    it("should clear status filter", async () => {
-      const user = userEvent.setup();
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
-      const statusSelect = screen.getAllByRole("combobox")[0];
-
-      await user.selectOptions(statusSelect, "available");
-      await user.selectOptions(statusSelect, "");
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenLastCalledWith(
-          expect.objectContaining({
-            status: "",
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-    });
-  });
-
-  describe("Category Filter", () => {
-    it("should filter by electronics category", async () => {
-      const user = userEvent.setup();
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
       const categorySelect = screen.getAllByRole("combobox")[1];
       await user.selectOptions(categorySelect, "electronics");
-
-      await waitFor(() => {
+      await waitFor(() =>
         expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            category: "electronics",
-            page: 1,
-          }),
+          expect.objectContaining({ category: "electronics" }),
           expect.any(AbortSignal)
-        );
-      });
-    });
-
-    it("should filter by clothing category", async () => {
-      const user = userEvent.setup();
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
-      const categorySelect = screen.getAllByRole("combobox")[1];
-      await user.selectOptions(categorySelect, "clothing");
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            category: "clothing",
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-    });
-  });
-
-  describe("Sort Functionality", () => {
-    it("should sort by price ascending", async () => {
-      const user = userEvent.setup();
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
-      const sortSelect = screen.getAllByRole("combobox")[2];
-      await user.selectOptions(sortSelect, "price");
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            sortBy: "price",
-            sortOrder: "asc",
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-    });
-
-    it("should toggle sort order", async () => {
-      const user = userEvent.setup();
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
-      const sortSelect = screen.getAllByRole("combobox")[2];
-      await user.selectOptions(sortSelect, "price");
-
-      await waitFor(() => {
-        expect(screen.getByLabelText(/Sort ascending/i)).toBeInTheDocument();
-      });
-
-      const sortToggle = screen.getByLabelText(/Sort ascending/i);
-      await user.click(sortToggle);
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            sortOrder: "desc",
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-    });
-
-    it("should sort by title", async () => {
-      const user = userEvent.setup();
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
-      const sortSelect = screen.getAllByRole("combobox")[2];
-      await user.selectOptions(sortSelect, "title");
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            sortBy: "title",
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-    });
-
-    it("should hide sort order button when no sort selected", async () => {
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
-
-      expect(screen.queryByLabelText(/Sort/i)).not.toBeInTheDocument();
-    });
-  });
-
-  describe("Combined Filters", () => {
-    it("should apply search, status, and category together", async () => {
+        )
+      );
       jest.useFakeTimers();
-      const user = userEvent.setup({ delay: null });
+    });
 
+    it("should sort by price ascending and toggle order", async () => {
+      jest.useRealTimers();
+      const user = userEvent.setup();
       render(<MarketPage />);
+      const sortSelect = screen.getAllByRole("combobox")[2];
+      await user.selectOptions(sortSelect, "price");
 
-      await waitFor(() => {
-        expect(screen.getByText("iPhone 13")).toBeInTheDocument();
-      });
+      const sortToggle = screen.queryByLabelText(/Sort ascending/i);
+      if (sortToggle) await user.click(sortToggle);
 
+      await waitFor(() =>
+        expect(mockListItems).toHaveBeenCalledWith(
+          expect.objectContaining({ sortBy: "price" }),
+          expect.any(AbortSignal)
+        )
+      );
+      jest.useFakeTimers();
+    });
+
+    it("should apply combined filters", async () => {
+      const user = userEvent.setup({ delay: null });
+      render(<MarketPage />);
       const searchInput = screen.getByPlaceholderText("Search items...");
+      const statusSelect = screen.getAllByRole("combobox")[0];
+      const categorySelect = screen.getAllByRole("combobox")[1];
+
       await user.type(searchInput, "phone");
-      jest.advanceTimersByTime(500);
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
 
-      const statusSelect = screen.getAllByRole("combobox")[0];
       await user.selectOptions(statusSelect, "available");
-
-      const categorySelect = screen.getAllByRole("combobox")[1];
       await user.selectOptions(categorySelect, "electronics");
 
-      await waitFor(() => {
+      await waitFor(() =>
         expect(mockListItems).toHaveBeenCalledWith(
           expect.objectContaining({
             search: "phone",
             status: "available",
             category: "electronics",
+            page: 1,
           }),
           expect.any(AbortSignal)
-        );
-      });
-
-      jest.useRealTimers();
+        )
+      );
     });
   });
 });

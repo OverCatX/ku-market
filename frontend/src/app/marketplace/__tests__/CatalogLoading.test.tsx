@@ -1,8 +1,19 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import MarketPage from "../page";
 import { listItems } from "@/config/items";
 import type { MockListItems } from "@/test/types//test-types";
 import { createMockItem, createMockResponse } from "@/test/types//test-types";
+
+// Mock Next.js router
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+  }),
+}));
 
 jest.mock("@/config/items");
 jest.mock("@/components/Marketplace/ItemCard", () => {
@@ -23,12 +34,17 @@ describe("Catalog Loading Tests", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers(); // สำหรับ debounce
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   describe("Initial Loading State", () => {
     it("should show loading skeleton on initial render", () => {
       mockListItems.mockImplementation(() => new Promise(() => {}));
-
       render(<MarketPage />);
 
       const skeletons = document.querySelectorAll(".animate-pulse");
@@ -37,7 +53,6 @@ describe("Catalog Loading Tests", () => {
 
     it("should display 12 skeleton cards by default", () => {
       mockListItems.mockImplementation(() => new Promise(() => {}));
-
       render(<MarketPage />);
 
       const skeletonCards = document.querySelectorAll(
@@ -48,7 +63,6 @@ describe("Catalog Loading Tests", () => {
 
     it("should not show item cards while loading", () => {
       mockListItems.mockImplementation(() => new Promise(() => {}));
-
       render(<MarketPage />);
 
       expect(screen.queryByTestId("item-card")).not.toBeInTheDocument();
@@ -166,7 +180,6 @@ describe("Catalog Loading Tests", () => {
   describe("Skeleton Animation", () => {
     it("should have gradient animation classes", () => {
       mockListItems.mockImplementation(() => new Promise(() => {}));
-
       render(<MarketPage />);
 
       const gradients = document.querySelectorAll(
@@ -177,7 +190,6 @@ describe("Catalog Loading Tests", () => {
 
     it("should have pulse animation on skeleton elements", () => {
       mockListItems.mockImplementation(() => new Promise(() => {}));
-
       render(<MarketPage />);
 
       const pulseElements = document.querySelectorAll(".animate-pulse");

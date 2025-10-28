@@ -101,6 +101,7 @@ export function SignUpForm() {
         name: formData.name,
         kuEmail: formData.kuEmail,
         password: formData.password,
+        confirm_password: formData.confirmPassword,
         faculty: formData.faculty,
         contact: formData.contact,
       });

@@ -38,7 +38,7 @@ export function LoginForm() {
     try {
       const res = await signin({ kuEmail: email, password });
       toast.success(res.message || "Login successful!");
-      if (res.token) localStorage.setItem("token", res.token);
+      if (res.token) localStorage.setItem("authentication", res.token);
 
       setTimeout(() => {
         window.location.href = "/";

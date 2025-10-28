@@ -1,4 +1,4 @@
-import { API_BASE } from "./index";
+import { API_BASE } from "./constants";
 
 export interface Item {
   _id: string;
@@ -44,7 +44,6 @@ export async function listItems(
   signal?: AbortSignal
 ): Promise<ListItemsResponse> {
   const query = new URLSearchParams();
-  
   Object.entries(params).forEach(([key, val]) => {
     if (val !== undefined && val !== "") {
       query.append(key, String(val));
@@ -59,12 +58,12 @@ export async function listItems(
       headers: {
         "Content-Type": "application/json",
       },
+      cache: "no-store",
     });
 
     if (!res.ok) {
       const errorText = await res.text();
       console.error(`API Error (${res.status}):`, errorText);
-      
       return {
         success: false,
         data: {
@@ -87,11 +86,9 @@ export async function listItems(
     }
 
     return data;
-  } catch (err) {
+  } catch (err: unknown) {
     if (err instanceof Error) {
-      if (err.name === "AbortError") {
-        throw err; // Re-throw abort errors
-      }
+      if (err.name === "AbortError") throw err;
       console.error("Fetch error:", err.message);
     }
 
@@ -108,5 +105,39 @@ export async function listItems(
       },
       error: "Network error",
     };
+  }
+}
+
+// --- Get single item by ID ---
+export interface GetItemResponse {
+  success: boolean;
+  item: Item | null;
+  error?: string;
+}
+
+export async function getItem(id: string): Promise<GetItemResponse> {
+  const url = `${API_BASE}/api/items/${id}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`API Error (${res.status}):`, errorText);
+      return { success: false, item: null, error: `HTTP ${res.status}` };
+    }
+
+    const data = (await res.json()) as { item?: Item } | Item;
+    const item = "item" in data ? data.item ?? null : (data as Item);
+
+    return { success: true, item };
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error("getItem error:", err.message);
+    }
+    return { success: false, item: null, error: "Network error" };
   }
 }

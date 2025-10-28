@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 import Image from "next/image";
 
 interface ItemCardProps {
@@ -8,17 +8,14 @@ interface ItemCardProps {
   price: number;
   photo?: string;
   status: "available" | "reserved" | "sold" | string;
-  onClick?: (id: string) => void;
 }
 
 export default function ItemCard({
-  id,
   title,
   description,
   price,
   photo,
   status,
-  onClick,
 }: ItemCardProps) {
   const statusColorMap = {
     available: "text-green-600",
@@ -30,10 +27,7 @@ export default function ItemCard({
     statusColorMap[status as keyof typeof statusColorMap] || "text-gray-500";
 
   return (
-    <div
-      className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition p-4 flex flex-col cursor-pointer"
-      onClick={() => id && onClick?.(id)}
-    >
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition p-4 flex flex-col cursor-pointer">
       <Image
         src={photo || "/placeholder.png"}
         alt={title}
