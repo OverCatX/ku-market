@@ -35,7 +35,6 @@ export default function MarketPage() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchItems = useCallback(async () => {
-    // Cancel previous request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -43,7 +42,7 @@ export default function MarketPage() {
     abortControllerRef.current = new AbortController();
     setLoading(true);
     setError(null);
-    // While fetching, set items to null so UI shows skeleton instead of "No items"
+
     setItems(null);
 
     try {
