@@ -12,11 +12,16 @@ interface AuthenticatedRequest extends Request {
   userId: string;
 }
 
+interface ResponseObject {
+  statusCode: number;
+  data: unknown;
+}
+
 describe("CartController", () => {
   let cartController: CartController;
   let mockRequest: Partial<AuthenticatedRequest>;
   let mockResponse: Partial<Response>;
-  let responseObject: any;
+  let responseObject: ResponseObject;
 
   beforeEach(() => {
     cartController = new CartController();
@@ -28,7 +33,7 @@ describe("CartController", () => {
 
     mockResponse = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockImplementation((data) => {
+      json: jest.fn().mockImplementation((data: unknown) => {
         responseObject.data = data;
         return mockResponse;
       }),
