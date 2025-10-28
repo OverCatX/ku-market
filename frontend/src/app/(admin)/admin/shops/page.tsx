@@ -26,7 +26,7 @@ const TableRow = memo(function TableRow({
   onApprove,
   onReject,
   isLoading,
-}: TableRowProps): JSX.Element {
+}: TableRowProps) {
   return (
     <tr className="border-b hover:bg-gray-50">
       <td className="px-6 py-4">
@@ -101,7 +101,7 @@ const TableRow = memo(function TableRow({
   );
 });
 
-export default function ShopsPage(): JSX.Element {
+export default function ShopsPage() {
   const [shops, setShops] = useState<ShopRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -122,6 +122,7 @@ export default function ShopsPage(): JSX.Element {
 
   useEffect(() => {
     loadShops();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   const loadShops = async (): Promise<void> => {

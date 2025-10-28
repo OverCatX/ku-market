@@ -24,7 +24,7 @@ export function ConfirmDialog({
   onCancel,
   variant = "primary",
   children,
-}: ConfirmDialogProps): JSX.Element | null {
+}: ConfirmDialogProps) {
   if (!isOpen) return null;
 
   const variantStyles = {

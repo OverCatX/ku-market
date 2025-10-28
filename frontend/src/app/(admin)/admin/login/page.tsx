@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { login } from "@/config/auth";
 import toast from "react-hot-toast";
 import { Lock } from "lucide-react";
@@ -15,7 +16,7 @@ interface User {
   role?: string;
 }
 
-export default function AdminLoginPage(): JSX.Element {
+export default function AdminLoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
@@ -126,12 +127,12 @@ export default function AdminLoginPage(): JSX.Element {
           </form>
 
           <div className="mt-6 text-center">
-            <a
+            <Link
               href="/"
               className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
             >
               ← Back to main site
-            </a>
+            </Link>
           </div>
         </div>
 

@@ -2,7 +2,6 @@
 
 import { useCart } from "@/contexts/CartContext";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ShoppingCart,
@@ -24,20 +23,12 @@ export default function CartPage() {
     getTotalPrice,
     refreshCart,
   } = useCart();
-  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (!isMounted) return;
-    const token = localStorage.getItem("authentication");
-    setIsAuthenticated(!!token);
-  }, [isMounted]);
 
   const handleUpdateQuantity = async (itemId: string, quantity: number) => {
     try {

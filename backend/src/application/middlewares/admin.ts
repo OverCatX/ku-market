@@ -34,7 +34,7 @@ export const adminMiddleware = async (
 
     (req as AuthenticatedRequest).userId = decoded.id;
     next();
-  } catch (error) {
+  } catch {
     res.status(401).json({ error: "Invalid token" });
   }
 };

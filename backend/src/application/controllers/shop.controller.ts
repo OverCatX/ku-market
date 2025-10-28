@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import Shop from "../../data/models/Shop";
-import User from "../../data/models/User";
+import Shop, { IShop } from "../../data/models/Shop";
+import User, { IUser } from "../../data/models/User";
 import { uploadToCloudinary } from "../../lib/cloudinary";
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
 
@@ -263,7 +263,7 @@ export default class ShopController {
             const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
             const skip = (page - 1) * limit;
 
-            const filters: FilterQuery<any> = {
+            const filters: FilterQuery<IShop> = {
                 shopStatus: 'approved' // Only show approved shops by default
             };
 
@@ -451,7 +451,7 @@ export default class ShopController {
             }
 
             // Check if the owner is an approved seller
-            const owner = shop.owner as any;
+            const owner = shop.owner as unknown as IUser;
             if (owner.sellerStatus !== 'approved') {
                 return res.status(400).json({ 
                     error: "Shop owner is not an approved seller",

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import MarketPage from "../page";
 import { listItems } from "@/config/items";
 import type { MockListItems } from "@/test/types//test-types";

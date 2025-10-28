@@ -12,7 +12,7 @@ export function SearchBar({
   value,
   onChange,
   placeholder = "Search...",
-}: SearchBarProps): JSX.Element {
+}: SearchBarProps) {
   return (
     <div className="relative">
       <Search

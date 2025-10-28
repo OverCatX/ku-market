@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, memo, useCallback, useMemo } from "react";
+import { useEffect, useState, memo, useMemo } from "react";
 import {
   getVerifications,
   approveVerification,
@@ -28,7 +28,7 @@ const TableRow = memo(function TableRow({
   onReject,
   onViewImage,
   isLoading,
-}: TableRowProps): JSX.Element {
+}: TableRowProps) {
   return (
     <tr className="border-b hover:bg-gray-50">
       <td className="px-6 py-4">
@@ -103,7 +103,7 @@ const TableRow = memo(function TableRow({
   );
 });
 
-export default function VerificationsPage(): JSX.Element {
+export default function VerificationsPage() {
   const [verifications, setVerifications] = useState<Verification[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -130,6 +130,7 @@ export default function VerificationsPage(): JSX.Element {
 
   useEffect(() => {
     loadVerifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   const loadVerifications = async (): Promise<void> => {

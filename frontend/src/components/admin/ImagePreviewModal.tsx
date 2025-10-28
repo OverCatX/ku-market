@@ -16,7 +16,7 @@ export function ImagePreviewModal({
   imageUrl,
   title,
   onClose,
-}: ImagePreviewModalProps): JSX.Element | null {
+}: ImagePreviewModalProps) {
   const [zoom, setZoom] = useState(100);
 
   if (!isOpen) return null;
@@ -76,10 +76,13 @@ export function ImagePreviewModal({
           }}
           className="transition-transform"
         >
-          <img
+          <Image
             src={imageUrl}
             alt={title || "Preview"}
+            width={1920}
+            height={1080}
             className="max-w-full h-auto"
+            unoptimized
           />
         </div>
       </div>

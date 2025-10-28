@@ -16,7 +16,7 @@ export function Pagination({
   onPageChange,
   totalItems,
   itemsPerPage,
-}: PaginationProps): JSX.Element {
+}: PaginationProps) {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
