@@ -6,13 +6,17 @@ import {
   X,
   ZoomIn,
   Store,
-  User,
   FileText,
   CheckCircle,
+  Clock,
+  XCircle,
   LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { API_BASE } from "@/config/constants";
+import { getUserFromToken } from "@/lib/jwt";
 
 interface SellerApplicationForm {
   fullName: string;
@@ -34,6 +38,14 @@ type Step = 1 | 2 | 3 | 4 | 5;
 
 export default function BecomeASeller() {
   const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
+  const [shopStatus, setShopStatus] = useState<{
+    status: "pending" | "approved" | "rejected" | null;
+    shopName?: string;
+    shopType?: string;
+    submittedAt?: string;
+    rejectionReason?: string;
+  }>({ status: null });
   const [form, setForm] = useState<SellerApplicationForm>({
     fullName: "",
     businessName: "",
@@ -67,12 +79,81 @@ export default function BecomeASeller() {
   const mainLight = "#7BAA5F";
   const borderColor = "#a0c16d";
 
-  // Check authentication on mount
+  // Check authentication and load user data on mount
   useEffect(() => {
-    const token = localStorage.getItem("authentication");
-    if (!token) {
-      router.replace("/login");
-    }
+    const checkAuth = async () => {
+      const token = localStorage.getItem("authentication");
+      if (!token) {
+        router.replace("/login?redirect=/request-store");
+        return;
+      }
+
+      // Decode JWT to get user data (fast, no API call needed!)
+      const tokenData = getUserFromToken(token);
+      if (!tokenData) {
+        console.log("❌ Invalid or expired token");
+        localStorage.clear();
+        router.replace("/login?redirect=/request-store");
+        return;
+      }
+
+      console.log("✅ Token data:", tokenData);
+
+      // Check if user is verified (from JWT - no API call!)
+      if (!tokenData.isVerified) {
+        console.log("⚠️ User not verified");
+        router.replace("/verify-identity");
+        return;
+      }
+
+      // Get full user data from localStorage for auto-fill
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          const userData = JSON.parse(userStr);
+          setForm((prev) => ({
+            ...prev,
+            fullName: userData.name || prev.fullName,
+            email: userData.email || prev.email,
+            phone: userData.contact || prev.phone,
+          }));
+        } catch {
+          console.log("Failed to parse user data from localStorage");
+        }
+      }
+
+      // Check shop status
+      try {
+        const shopResponse = await fetch(`${API_BASE}/api/shop/my-shop`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (shopResponse.ok) {
+          const shopData = await shopResponse.json();
+          // Backend returns { success: true, shop: {...} }
+          const shop = shopData.shop || shopData;
+          setShopStatus({
+            status: shop.shopStatus,
+            shopName: shop.shopName,
+            shopType: shop.shopType,
+            submittedAt: shop.shopRequestDate,
+            rejectionReason: shop.shopRejectionReason,
+          });
+        }
+      } catch (error) {
+        // No shop found - user can apply
+        console.log("No shop found:", error);
+      }
+
+      // Authentication check complete
+      setIsChecking(false);
+    };
+
+    // Add small delay to ensure localStorage is ready after redirect
+    const timer = setTimeout(checkAuth, 100);
+    return () => clearTimeout(timer);
   }, [router]);
 
   const handleChange = (
@@ -117,15 +198,26 @@ export default function BecomeASeller() {
     if (step === 2) {
       if (!form.businessName.trim())
         newErrors.businessName = "Business name is required";
+      else if (form.businessName.trim().length < 2)
+        newErrors.businessName = "Business name must be at least 2 characters";
       if (!form.businessType)
         newErrors.businessType = "Business type is required";
+      else if (form.businessType.length < 2)
+        newErrors.businessType = "Business type must be at least 2 characters";
       if (!form.productCategory)
         newErrors.productCategory = "Product category is required";
       if (!form.businessDescription.trim())
         newErrors.businessDescription = "Description is required";
+      else if (form.businessDescription.trim().length < 10)
+        newErrors.businessDescription =
+          "Description must be at least 10 characters";
+      else if (form.businessDescription.trim().length > 1000)
+        newErrors.businessDescription =
+          "Description must not exceed 1000 characters";
     }
 
     if (step === 3) {
+      if (!form.profileImage) newErrors.profileImage = "Shop photo is required";
       if (!form.whySell.trim())
         newErrors.whySell = "Please tell us why you want to sell";
       if (!form.agreeToTerms)
@@ -149,15 +241,224 @@ export default function BecomeASeller() {
   const prevStep = () =>
     setStep((prev) => (prev > 1 ? ((prev - 1) as Step) : prev));
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleCancelRequest = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel your shop request? You can apply again later."
+    );
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("authentication");
+      const response = await fetch(`${API_BASE}/api/shop/cancel`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        toast.success("Shop request canceled successfully!");
+        setShopStatus({ status: null });
+      } else {
+        const error = await response.json();
+        toast.error(error.error || "Failed to cancel request");
+      }
+    } catch (error) {
+      console.error("Cancel error:", error);
+      toast.error("Failed to cancel request");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!validateStep()) return;
+
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const token = localStorage.getItem("authentication");
+      const formData = new FormData();
+
+      formData.append("shopName", form.businessName.trim());
+      formData.append("shopType", form.businessType);
+      formData.append(
+        "productCategory",
+        JSON.stringify([form.productCategory])
+      );
+      formData.append("shopdescription", form.businessDescription.trim());
+
+      if (form.profileImage) {
+        formData.append("photo", form.profileImage);
+      }
+
+      console.log("📦 Submitting:", {
+        shopName: form.businessName.trim(),
+        shopNameLength: form.businessName.trim().length,
+        shopType: form.businessType,
+        category: form.productCategory,
+        descriptionLength: form.businessDescription.trim().length,
+        hasPhoto: !!form.profileImage,
+      });
+
+      const response = await fetch(`${API_BASE}/api/shop/request`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(
+          "Shop request submitted successfully! Redirecting to profile..."
+        );
+
+        // Redirect to profile after 1.5 seconds with full page reload
+        setTimeout(() => {
+          window.location.href = "/profile";
+        }, 1500);
+      } else {
+        // Show detailed validation errors
+        if (data.details && Array.isArray(data.details)) {
+          data.details.forEach((detail: string) => {
+            toast.error(detail, { duration: 4000 });
+          });
+        } else {
+          toast.error(data.error || "Failed to submit request");
+        }
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error("Failed to submit request");
+    } finally {
       setLoading(false);
-      setStep(5);
-    }, 1500);
+    }
   };
+
+  // Show loading while checking authentication
+  if (isChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show status page if user has already applied
+  if (shopStatus.status) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-8 border border-gray-200"
+        >
+          <div className="text-center mb-8">
+            {shopStatus.status === "pending" && (
+              <>
+                <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Clock className="w-10 h-10 text-yellow-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                  Application Pending
+                </h2>
+                <p className="text-gray-600">
+                  Your shop request is waiting for admin approval
+                </p>
+              </>
+            )}
+            {shopStatus.status === "approved" && (
+              <>
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-10 h-10 text-green-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                  Shop Approved!
+                </h2>
+                <p className="text-gray-600">
+                  Congratulations! Your shop has been approved
+                </p>
+              </>
+            )}
+            {shopStatus.status === "rejected" && (
+              <>
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <XCircle className="w-10 h-10 text-red-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                  Application Rejected
+                </h2>
+                <p className="text-gray-600">
+                  Unfortunately, your shop request was not approved
+                </p>
+              </>
+            )}
+          </div>
+
+          <div className="bg-gray-50 rounded-xl p-6 mb-6 space-y-3">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Shop Name:</span>
+              <span className="font-semibold text-gray-800">
+                {shopStatus.shopName || "N/A"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Shop Type:</span>
+              <span className="font-semibold text-gray-800">
+                {shopStatus.shopType || "N/A"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Submitted:</span>
+              <span className="font-semibold text-gray-800">
+                {shopStatus.submittedAt
+                  ? new Date(shopStatus.submittedAt).toLocaleDateString()
+                  : "N/A"}
+              </span>
+            </div>
+            {shopStatus.rejectionReason && (
+              <div className="pt-3 border-t border-gray-200">
+                <p className="text-gray-600 mb-2">Rejection Reason:</p>
+                <p className="text-red-600 font-medium">
+                  {shopStatus.rejectionReason}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-4">
+            {(shopStatus.status === "pending" ||
+              shopStatus.status === "rejected") && (
+              <button
+                onClick={handleCancelRequest}
+                disabled={loading}
+                className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
+                  loading
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg"
+                }`}
+              >
+                {loading ? "Canceling..." : "Cancel & Apply Again"}
+              </button>
+            )}
+            <button
+              onClick={() => (window.location.href = "/profile")}
+              className="flex-1 py-3 px-6 rounded-xl font-semibold bg-gray-200 hover:bg-gray-300 text-gray-800 transition-all shadow-md hover:shadow-lg"
+            >
+              Back to Profile
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   const steps = [
     "Personal Info",
@@ -531,12 +832,19 @@ export default function BecomeASeller() {
                     )}
                   </div>
 
-                  <FileUploadBox
-                    name="profileImage"
-                    label="Profile/Shop Image (Optional)"
-                    preview={previews.profileImage}
-                    icon={User}
-                  />
+                  <div>
+                    <FileUploadBox
+                      name="profileImage"
+                      label="Shop Photo *"
+                      preview={previews.profileImage}
+                      icon={Store}
+                    />
+                    {errors.profileImage && (
+                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                        {errors.profileImage}
+                      </p>
+                    )}
+                  </div>
 
                   <FileUploadBox
                     name="businessLicense"

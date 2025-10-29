@@ -26,7 +26,7 @@ export interface ShopRequest {
   shopType: string;
   productCategory: string[];
   description: string;
-  photo: string[];
+  shopPhoto: string;
   status: string;
   requestDate: string;
   owner: {

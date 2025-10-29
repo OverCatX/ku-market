@@ -31,9 +31,9 @@ const TableRow = memo(function TableRow({
     <tr className="border-b hover:bg-gray-50">
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
-          {shop.photo && shop.photo[0] && (
+          {shop.shopPhoto && (
             <Image
-              src={shop.photo[0]}
+              src={shop.shopPhoto}
               alt={shop.shopName}
               width={48}
               height={48}

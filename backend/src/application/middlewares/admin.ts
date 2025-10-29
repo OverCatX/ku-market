@@ -3,7 +3,9 @@ import jwt from "jsonwebtoken";
 import User from "../../data/models/User";
 
 interface AuthenticatedRequest extends Request {
-  userId: string;
+  user?: {
+    id: string;
+  };
 }
 
 export const adminMiddleware = async (
@@ -32,7 +34,7 @@ export const adminMiddleware = async (
       return;
     }
 
-    (req as AuthenticatedRequest).userId = decoded.id;
+    (req as AuthenticatedRequest).user = { id: decoded.id };
     next();
   } catch {
     res.status(401).json({ error: "Invalid token" });

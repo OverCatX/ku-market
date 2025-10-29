@@ -56,7 +56,7 @@ export function LoginForm() {
 
       setTimeout(() => {
         window.location.href = redirectTo;
-      }, 1000);
+      }, 500);
     } catch (err) {
       let message = "Something went wrong";
 
