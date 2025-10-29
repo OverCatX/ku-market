@@ -231,10 +231,16 @@ export default function Page() {
                 <h3 className="text-sm font-semibold text-gray-600 mb-2">Seller Information</h3>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold">
-                    {item.owner.charAt(0).toUpperCase()}
+                    {typeof item.owner === 'string' 
+                      ? item.owner.charAt(0).toUpperCase()
+                      : (item.owner as any)?.name?.charAt(0)?.toUpperCase() || 'S'}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">Seller ID: {item.owner.slice(0, 8)}...</p>
+                    <p className="font-medium text-gray-900">
+                      {typeof item.owner === 'string' 
+                        ? `Seller ID: ${item.owner.slice(0, 8)}...`
+                        : (item.owner as any)?.name || 'Seller'}
+                    </p>
                     <p className="text-sm text-gray-500">KU Market Seller</p>
                   </div>
                   <button
