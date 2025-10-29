@@ -2,10 +2,8 @@
 
 An online marketplace platform for Kasetsart University students to buy and sell items within the campus community.
 
-[![Backend Tests](https://img.shields.io/badge/backend%20tests-94%20passed-brightgreen)](https://github.com/OverCatX/ku-market)
-[![Frontend Lint](https://img.shields.io/badge/frontend%20lint-passing-brightgreen)](https://github.com/OverCatX/ku-market)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-
+![Backend Tests](https://img.shields.io/badge/backend%20tests-passing-brightgreen)
+![Frontend Lint](https://img.shields.io/badge/frontend%20lint-passing-brightgreen)[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green)](https://nodejs.org/)
