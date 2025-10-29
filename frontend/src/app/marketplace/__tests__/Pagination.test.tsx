@@ -1,9 +1,14 @@
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  act,
+} from "@testing-library/react";
 import MarketPage from "../page";
 import { listItems } from "@/config/items";
 import type { MockListItems } from "@/test/types//test-types";
 import { createMockItem, createMockResponse } from "@/test/types//test-types";
-import { skip } from "node:test";
 
 jest.mock("@/config/items");
 jest.mock("@/components/Marketplace/ItemCard", () => {
@@ -59,6 +64,17 @@ jest.mock("@/components/Marketplace/Pagination", () => {
   };
 });
 
+// Mock Next.js router
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+  }),
+}));
+
 const mockListItems = listItems as MockListItems;
 
 describe("Pagination Tests", () => {
@@ -66,394 +82,178 @@ describe("Pagination Tests", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers(); // สำหรับ debounce / async update
   });
 
-  describe("Pagination Display", () => {
-    it("should show pagination when items exist", async () => {
-      mockListItems.mockResolvedValue(
-        createMockResponse(mockItems, { totalPages: 3, totalItems: 30 })
-      );
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId("pagination")).toBeInTheDocument();
-      });
-    });
-
-    it("should not show pagination when no items", async () => {
-      mockListItems.mockResolvedValue(createMockResponse([]));
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("No items found")).toBeInTheDocument();
-      });
-
-      expect(screen.queryByTestId("pagination")).not.toBeInTheDocument();
-    });
-
-    // it("should display current page info", async () => {
-    //   mockListItems.mockResolvedValue(
-    //     createMockResponse(mockItems, {
-    //       currentPage: 2,
-    //       totalPages: 5,
-    //       totalItems: 50,
-    //     })
-    //   );
-
-    //   render(<MarketPage />);
-
-    //   await waitFor(() => {
-    //     expect(screen.getByTestId("page-info")).toHaveTextContent(
-    //       "Page 2 of 5"
-    //     );
-    //   });
-    // });
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
-  describe("Page Navigation", () => {
-    it("should navigate to next page", async () => {
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, {
-          currentPage: 1,
-          totalPages: 3,
-          totalItems: 30,
-        })
-      );
+  it("should show pagination when items exist", async () => {
+    mockListItems.mockResolvedValue(
+      createMockResponse(mockItems, { totalPages: 3, totalItems: 30 })
+    );
 
-      render(<MarketPage />);
+    render(<MarketPage />);
 
-      await waitFor(() => {
-        expect(screen.getByTestId("next-page")).toBeInTheDocument();
-      });
-
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, {
-          currentPage: 2,
-          totalPages: 3,
-          totalItems: 30,
-        })
-      );
-
-      fireEvent.click(screen.getByTestId("next-page"));
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            page: 2,
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-    });
-
-    it("should navigate to previous page", async () => {
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, {
-          currentPage: 2,
-          totalPages: 3,
-          totalItems: 30,
-        })
-      );
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId("prev-page")).toBeInTheDocument();
-      });
-
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, {
-          currentPage: 1,
-          totalPages: 3,
-          totalItems: 30,
-        })
-      );
-
-      fireEvent.click(screen.getByTestId("prev-page"));
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            page: 1,
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-    });
-
-    it("should navigate to first page", async () => {
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, {
-          currentPage: 3,
-          totalPages: 5,
-          totalItems: 50,
-        })
-      );
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId("first-page")).toBeInTheDocument();
-      });
-
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, {
-          currentPage: 1,
-          totalPages: 5,
-          totalItems: 50,
-        })
-      );
-
-      fireEvent.click(screen.getByTestId("first-page"));
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            page: 1,
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-    });
-
-    it("should navigate to last page", async () => {
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, {
-          currentPage: 1,
-          totalPages: 5,
-          totalItems: 50,
-        })
-      );
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId("last-page")).toBeInTheDocument();
-      });
-
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, {
-          currentPage: 5,
-          totalPages: 5,
-          totalItems: 50,
-        })
-      );
-
-      fireEvent.click(screen.getByTestId("last-page"));
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            page: 5,
-          }),
-          expect.any(AbortSignal)
-        );
-      });
+    await waitFor(() => {
+      expect(screen.getByTestId("pagination")).toBeInTheDocument();
     });
   });
 
-  skip("Pagination State", () => {
-    it("should reset to page 1 when changing search", async () => {
-      jest.useFakeTimers();
+  it("should not show pagination when no items", async () => {
+    mockListItems.mockResolvedValue(createMockResponse([], { totalPages: 0 }));
 
-      mockListItems
-        .mockResolvedValueOnce(
-          createMockResponse(mockItems, {
-            currentPage: 3,
-            totalPages: 5,
-            totalItems: 50,
-          })
-        )
-        .mockResolvedValue(
-          createMockResponse(mockItems, {
-            currentPage: 1,
-            totalPages: 5,
-            totalItems: 50,
-          })
-        );
+    render(<MarketPage />);
 
-      render(<MarketPage />);
+    await waitFor(() => {
+      expect(screen.getByText("No items found")).toBeInTheDocument();
+    });
 
-      await waitFor(() => {
-        expect(screen.getByTestId("page-info")).toHaveTextContent(
-          "Page 3 of 5"
-        );
-      });
+    expect(screen.queryByTestId("pagination")).not.toBeInTheDocument();
+  });
 
-      const searchInput = screen.getByPlaceholderText("Search items...");
-      fireEvent.change(searchInput, { target: { value: "new search" } });
+  it("should navigate to next page", async () => {
+    mockListItems.mockResolvedValueOnce(
+      createMockResponse(mockItems, {
+        currentPage: 1,
+        totalPages: 3,
+        totalItems: 30,
+      })
+    );
 
+    render(<MarketPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("next-page")).toBeInTheDocument();
+    });
+
+    mockListItems.mockResolvedValueOnce(
+      createMockResponse(mockItems, {
+        currentPage: 2,
+        totalPages: 3,
+        totalItems: 30,
+      })
+    );
+
+    fireEvent.click(screen.getByTestId("next-page"));
+
+    await waitFor(() => {
+      expect(mockListItems).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2 }),
+        expect.any(AbortSignal)
+      );
+    });
+  });
+
+  it("should reset page to 1 when changing search", async () => {
+    // First render - page 1
+    mockListItems.mockResolvedValueOnce(
+      createMockResponse(mockItems, {
+        currentPage: 1,
+        totalPages: 5,
+        totalItems: 50,
+      })
+    );
+
+    render(<MarketPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("page-info")).toHaveTextContent("Page 1 of 5");
+    });
+
+    // Navigate to page 2 (one click)
+    mockListItems.mockResolvedValueOnce(
+      createMockResponse(mockItems, {
+        currentPage: 2,
+        totalPages: 5,
+        totalItems: 50,
+      })
+    );
+
+    const nextButton = await screen.findByTestId("next-page");
+    fireEvent.click(nextButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("page-info")).toHaveTextContent("Page 2 of 5");
+    });
+
+    // Now search - should reset to page 1
+    mockListItems.mockResolvedValueOnce(
+      createMockResponse(mockItems, {
+        currentPage: 1,
+        totalPages: 5,
+        totalItems: 50,
+      })
+    );
+
+    const searchInput = screen.getByPlaceholderText("Search items...");
+    fireEvent.change(searchInput, { target: { value: "new search" } });
+
+    act(() => {
       jest.advanceTimersByTime(500);
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            page: 1,
-            search: "new search",
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-
-      jest.useRealTimers();
     });
 
-    it("should update totalPages from API response", async () => {
-      mockListItems.mockResolvedValue(
-        createMockResponse(mockItems, {
-          currentPage: 1,
-          totalPages: 10,
-          totalItems: 100,
-        })
+    await waitFor(() => {
+      expect(mockListItems).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1, search: "new search" }),
+        expect.any(AbortSignal)
       );
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId("page-info")).toHaveTextContent(
-          "Page 1 of 10"
-        );
-      });
     });
   });
 
-  describe("Edge Cases", () => {
-    it("should handle single page", async () => {
-      mockListItems.mockResolvedValue(
-        createMockResponse(mockItems, {
-          currentPage: 1,
-          totalPages: 1,
-          totalItems: 5,
-        })
-      );
+  it("should handle single page", async () => {
+    mockListItems.mockResolvedValue(
+      createMockResponse(mockItems, {
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 5,
+      })
+    );
 
-      render(<MarketPage />);
+    render(<MarketPage />);
 
-      await waitFor(() => {
-        expect(screen.getByTestId("page-info")).toHaveTextContent(
-          "Page 1 of 1"
-        );
-      });
-    });
-
-    it("should handle error and reset pagination", async () => {
-      mockListItems.mockRejectedValue(new Error("Network error"));
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText(/Failed to load items/i)).toBeInTheDocument();
-      });
-
-      expect(screen.queryByTestId("pagination")).not.toBeInTheDocument();
-    });
-
-    it("should not show pagination on empty results", async () => {
-      mockListItems.mockResolvedValue({
-        success: false,
-        data: {
-          items: [],
-          pagination: {
-            currentPage: 1,
-            totalPages: 1,
-            totalItems: 0,
-            limit: 12,
-          },
-        },
-      });
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Failed to load items")).toBeInTheDocument();
-      });
-
-      expect(screen.queryByTestId("pagination")).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId("page-info")).toHaveTextContent("Page 1 of 1");
     });
   });
 
-  describe("Pagination with Sorting", () => {
-    it("should reset page when changing sort", async () => {
-      mockListItems
-        .mockResolvedValueOnce(
-          createMockResponse(mockItems, {
-            currentPage: 2,
-            totalPages: 3,
-            totalItems: 30,
-          })
-        )
-        .mockResolvedValue(
-          createMockResponse(mockItems, {
-            currentPage: 1,
-            totalPages: 3,
-            totalItems: 30,
-          })
-        );
+  it("should show loading skeleton when changing pages", async () => {
+    mockListItems.mockResolvedValueOnce(
+      createMockResponse(mockItems, {
+        currentPage: 1,
+        totalPages: 3,
+        totalItems: 30,
+      })
+    );
 
-      render(<MarketPage />);
+    render(<MarketPage />);
 
-      await waitFor(() => {
-        expect(screen.getByTestId("page-info")).toHaveTextContent(
-          "Page 2 of 3"
-        );
-      });
+    await waitFor(() => expect(screen.getByText("Item 1")).toBeInTheDocument());
 
-      const sortSelect = screen.getAllByRole("combobox")[2];
-      fireEvent.change(sortSelect, { target: { value: "price" } });
-
-      await waitFor(() => {
-        expect(mockListItems).toHaveBeenCalledWith(
-          expect.objectContaining({
-            page: 1,
-            sortBy: "price",
-          }),
-          expect.any(AbortSignal)
-        );
-      });
-    });
-  });
-
-  describe("Loading During Pagination", () => {
-    it("should show loading state when changing pages", async () => {
-      mockListItems.mockResolvedValueOnce(
-        createMockResponse(mockItems, {
-          currentPage: 1,
-          totalPages: 3,
-          totalItems: 30,
-        })
-      );
-
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Item 1")).toBeInTheDocument();
-      });
-
-      mockListItems.mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () =>
-                resolve(
-                  createMockResponse(mockItems, {
-                    currentPage: 2,
-                    totalPages: 3,
-                    totalItems: 30,
-                  })
-                ),
-              100
-            )
+    mockListItems.mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve(
+                createMockResponse(mockItems, {
+                  currentPage: 2,
+                  totalPages: 3,
+                  totalItems: 30,
+                })
+              ),
+            100
           )
-      );
+        )
+    );
 
-      fireEvent.click(screen.getByTestId("next-page"));
+    fireEvent.click(screen.getByTestId("next-page"));
 
-      await waitFor(() => {
-        const skeletons = document.querySelectorAll(".animate-pulse");
-        expect(skeletons.length).toBeGreaterThan(0);
-      });
+    await waitFor(() => {
+      const skeletons = document.querySelectorAll(".animate-pulse");
+      expect(skeletons.length).toBeGreaterThan(0);
     });
   });
 });

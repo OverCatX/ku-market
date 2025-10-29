@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import ItemCard from "@/components/Marketplace/ItemCard";
+import Link from "next/link";
 import Pagination from "@/components/Marketplace/Pagination";
 import debounce from "lodash.debounce";
 import { listItems, Item, ListItemsResponse } from "../../config/items";
@@ -18,7 +20,7 @@ type SortOptions =
   | "";
 
 export default function MarketPage() {
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<Item[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -41,6 +43,8 @@ export default function MarketPage() {
     abortControllerRef.current = new AbortController();
     setLoading(true);
     setError(null);
+    // While fetching, set items to null so UI shows skeleton instead of "No items"
+    setItems(null);
 
     try {
       const res: ListItemsResponse = await listItems(
@@ -115,6 +119,22 @@ export default function MarketPage() {
     { label: "Updated", value: "updateAt" },
     { label: "Relevance", value: "relevance" },
   ];
+
+  const clearFilters = () => {
+    setSearch("");
+    setCategory("");
+    setStatus("");
+    setSortBy("");
+    setSortOrder("asc");
+    setCurrentPage(1);
+  };
+
+  const activeFilterChips = [
+    search ? { key: "search", label: `Search: ${search}` } : null,
+    category ? { key: "category", label: `Category: ${category}` } : null,
+    status ? { key: "status", label: `Status: ${status}` } : null,
+    sortBy ? { key: "sortBy", label: `Sort: ${sortBy} (${sortOrder})` } : null,
+  ].filter(Boolean) as { key: string; label: string }[];
 
   return (
     <div className="min-h-screen" style={{ background: LIGHT }}>
@@ -200,8 +220,56 @@ export default function MarketPage() {
                 {sortOrder === "asc" ? "↑" : "↓"}
               </button>
             )}
+
+            {activeFilterChips.length > 0 && (
+              <button
+                onClick={clearFilters}
+                className="px-3 py-2 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                aria-label="Clear filters"
+              >
+                Clear
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Active filters chips */}
+        {activeFilterChips.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            {activeFilterChips.map((chip) => (
+              <span
+                key={chip.key}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm"
+              >
+                {chip.label}
+                <button
+                  className="text-gray-500 hover:text-gray-700"
+                  onClick={() => {
+                    if (chip.key === "search") setSearch("");
+                    if (chip.key === "category") setCategory("");
+                    if (chip.key === "status") setStatus("");
+                    if (chip.key === "sortBy") {
+                      setSortBy("");
+                      setSortOrder("asc");
+                    }
+                    setCurrentPage(1);
+                  }}
+                  aria-label={`Remove ${chip.key}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Results count */}
+        {Array.isArray(items) && (
+          <div className="text-sm text-gray-500 mb-4">
+            Showing {items.length} result{items.length === 1 ? "" : "s"}
+            {totalPages > 1 ? ` • Page ${currentPage} of ${totalPages}` : ""}
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
@@ -218,7 +286,7 @@ export default function MarketPage() {
 
         {/* Items Grid */}
         {/* Items Grid */}
-        {loading ? (
+        {loading || items === null ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: limit }).map((_, i) => (
               <div
@@ -255,22 +323,39 @@ export default function MarketPage() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((item) => (
-              <ItemCard
-                key={item._id}
-                id={item._id}
-                title={item.title}
-                description={item.description}
-                price={item.price}
-                photo={item.photo[0] || ""}
-                status={item.status}
-              />
-            ))}
+            <AnimatePresence>
+              {items.map((item) => (
+                <motion.div
+                  key={item._id}
+                  layout
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 12 }}
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  className="transition-shadow"
+                >
+                  <Link
+                    href={`/marketplace/${item._id}`}
+                    className="block rounded-xl hover:shadow-lg"
+                  >
+                    <ItemCard
+                      id={item._id}
+                      title={item.title}
+                      description={item.description}
+                      price={item.price}
+                      photo={item.photo[0] || ""}
+                      status={item.status}
+                    />
+                  </Link>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
 
         {/* Pagination */}
-        {items.length > 0 && (
+        {Array.isArray(items) && items.length > 0 && (
           <div className="mt-8">
             <Pagination
               currentPage={currentPage}

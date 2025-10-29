@@ -1,4 +1,4 @@
-import { API_BASE } from "./index";
+import { API_BASE } from "./constants";
 
 export interface Item {
   _id: string;
@@ -48,11 +48,16 @@ export async function listItems(
     if (val !== undefined && val !== "") query.append(key, String(val));
   });
 
-  // API_BASE should be like http://localhost:5050/api
   const url = `${API_BASE}/items/list?${query.toString()}`;
 
   try {
-    const res = await fetch(url, { signal, cache: "no-store" });
+    const res = await fetch(url, {
+      signal,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
 
     if (!res.ok) {
       const errorText = await res.text();
@@ -75,8 +80,11 @@ export async function listItems(
     const data: ListItemsResponse = (await res.json()) as ListItemsResponse;
     return data;
   } catch (err: unknown) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    console.error("Fetch error:", err);
+    if (err instanceof Error) {
+      if (err.name === "AbortError") throw err;
+      console.error("Fetch error:", err.message);
+    }
+
     return {
       success: false,
       data: {
@@ -99,22 +107,29 @@ export interface GetItemResponse {
   error?: string;
 }
 
-// --- Get single item by ID ---
 export async function getItem(id: string): Promise<GetItemResponse> {
-  // API_BASE is like http://localhost:5050/api
-  const url = `${API_BASE}/items/${id}`; // no extra /api
+  const url = `${API_BASE}/items/${id}`;
 
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+
     if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`API Error (${res.status}):`, errorText);
       return { success: false, item: null, error: `HTTP ${res.status}` };
     }
+
     const data = (await res.json()) as { item?: Item } | Item;
-    // backend may return { item } or the item itself
-    const item = "item" in data ? (data.item ?? null) : (data as Item);
+    const item = "item" in data ? data.item ?? null : (data as Item);
+
     return { success: true, item };
   } catch (err: unknown) {
-    console.error("getItem error:", err);
+    if (err instanceof Error) {
+      console.error("getItem error:", err.message);
+    }
     return { success: false, item: null, error: "Network error" };
   }
 }
