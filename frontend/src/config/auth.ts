@@ -26,6 +26,16 @@ export type SignInResponse = {
   userId?: string;
 };
 
+export type UserData = {
+  id: string;
+  name: string;
+  email: string;
+  faculty: string;
+  contact: string;
+  role: string;
+  isVerified: boolean;
+};
+
 // ===== Helper Function =====
 async function request<T>(url: string, options: RequestInit): Promise<T> {
   const res = await fetch(url, options);
@@ -59,7 +69,7 @@ export function signin(data: SignInData): Promise<SignInResponse> {
 export async function login(
   email: string,
   password: string
-): Promise<{ token: string; user: unknown }> {
+): Promise<{ token: string; user: UserData }> {
   const res = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -74,7 +84,7 @@ export async function login(
 
   const data = (await res.json()) as {
     token: string;
-    user: unknown;
+    user: UserData;
     message?: string;
   };
 
