@@ -75,8 +75,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }, [pathname, router]);
 
   const handleLogout = (): void => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    // Clear all localStorage data (including old sessions)
+    localStorage.clear();
     router.replace("/admin/login");
   };
 
