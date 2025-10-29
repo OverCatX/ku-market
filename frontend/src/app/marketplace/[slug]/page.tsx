@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { getItem, Item } from "@/config/items";
 import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
@@ -21,51 +22,15 @@ export default function Page() {
   const [qty, setQty] = useState(1);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Mock reviews data (replace with API call later)
-  const [reviews] = useState<Review[]>([
-    {
-      _id: "1",
-      itemId: String(slug),
-      userId: "user1",
-      userName: "John Doe",
-      rating: 5,
-      title: "Excellent product!",
-      comment: "This item exceeded my expectations. Quality is top-notch and delivery was fast. Highly recommend to anyone looking for this type of product.",
-      helpful: 12,
-      verified: true,
-      createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    },
-    {
-      _id: "2",
-      itemId: String(slug),
-      userId: "user2",
-      userName: "Jane Smith",
-      rating: 4,
-      comment: "Good value for money. Works as described. Only minor issue is the packaging could be better.",
-      helpful: 8,
-      verified: true,
-      createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-    },
-    {
-      _id: "3",
-      itemId: String(slug),
-      userId: "user3",
-      userName: "Mike Johnson",
-      rating: 5,
-      title: "Amazing!",
-      comment: "Best purchase I've made this year. The seller was very responsive and helpful.",
-      helpful: 15,
-      verified: false,
-      createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
-    },
-  ]);
+  // Reviews data (will be fetched from API when backend is ready)
+  const [reviews, setReviews] = useState<Review[]>([]);
 
-  const [reviewSummary] = useState<ReviewSummary>({
-    averageRating: 4.7,
-    totalReviews: 3,
+  const [reviewSummary, setReviewSummary] = useState<ReviewSummary>({
+    averageRating: 0,
+    totalReviews: 0,
     ratingDistribution: {
-      5: 2,
-      4: 1,
+      5: 0,
+      4: 0,
       3: 0,
       2: 0,
       1: 0,
@@ -114,15 +79,56 @@ export default function Page() {
   };
 
   const handleSubmitReview = async (data: { rating: number; title?: string; comment: string }) => {
-    // TODO: Replace with actual API call
-    console.log("Submitting review:", data);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // In real implementation, add the new review to the reviews state
+    // TODO: Replace with actual API call when backend is ready
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
+    
+    // Get user name from localStorage or use default
+    const userName = localStorage.getItem("user_name") || "Anonymous User";
+    
+    // Create new review
+    const newReview: Review = {
+      _id: Date.now().toString(), // Generate temporary ID
+      itemId: String(slug),
+      userId: "current-user",
+      userName: userName,
+      rating: data.rating,
+      title: data.title,
+      comment: data.comment,
+      helpful: 0,
+      verified: false, // Would be true if user actually purchased
+      createdAt: new Date().toISOString(),
+    };
+    
+    // Add to reviews list
+    setReviews((prev) => [newReview, ...prev]); // Add at beginning
+    
+    // Update summary
+    const newTotalReviews = reviewSummary.totalReviews + 1;
+    const currentTotal = reviewSummary.averageRating * reviewSummary.totalReviews;
+    const newAverage = (currentTotal + data.rating) / newTotalReviews;
+    
+    const newDistribution = { ...reviewSummary.ratingDistribution };
+    newDistribution[data.rating as keyof typeof newDistribution] += 1;
+    
+    setReviewSummary({
+      averageRating: newAverage,
+      totalReviews: newTotalReviews,
+      ratingDistribution: newDistribution,
+    });
   };
 
   const handleHelpful = (reviewId: string) => {
-    // TODO: Replace with actual API call
-    console.log("Marked review as helpful:", reviewId);
+    // TODO: Replace with actual API call when backend is ready
+    
+    // Update the helpful count for this review
+    setReviews((prev) =>
+      prev.map((review) =>
+        review._id === reviewId
+          ? { ...review, helpful: review.helpful + 1 }
+          : review
+      )
+    );
+    
     toast.success("Thank you for your feedback!");
   };
 
@@ -295,9 +301,21 @@ export default function Page() {
 
         {/* Reviews Section */}
         <div className="mx-auto max-w-6xl px-6 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Customer Reviews</h2>
+            <Link
+              href={`/marketplace/${item._id}/reviews`}
+              className="text-[#84B067] hover:text-[#69773D] font-semibold transition-colors flex items-center gap-1"
+            >
+              View All Reviews
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
           <ReviewList
             itemId={item._id}
-            reviews={reviews}
+            reviews={reviews.slice(0, 3)}
             summary={reviewSummary}
             onSubmitReview={handleSubmitReview}
             onHelpful={handleHelpful}
