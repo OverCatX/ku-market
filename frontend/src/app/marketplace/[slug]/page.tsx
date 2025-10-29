@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { getItem, Item } from "@/config/items";
 import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
+import { ReviewList } from "@/components/Reviews";
+import { Review, ReviewSummary } from "@/types/review";
 
 const GREEN = "#69773D";
 const LIGHT = "#f7f4f1";
@@ -18,6 +20,57 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);
   const [isMounted, setIsMounted] = useState(false);
+
+  // Mock reviews data (replace with API call later)
+  const [reviews] = useState<Review[]>([
+    {
+      _id: "1",
+      itemId: String(slug),
+      userId: "user1",
+      userName: "John Doe",
+      rating: 5,
+      title: "Excellent product!",
+      comment: "This item exceeded my expectations. Quality is top-notch and delivery was fast. Highly recommend to anyone looking for this type of product.",
+      helpful: 12,
+      verified: true,
+      createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+    },
+    {
+      _id: "2",
+      itemId: String(slug),
+      userId: "user2",
+      userName: "Jane Smith",
+      rating: 4,
+      comment: "Good value for money. Works as described. Only minor issue is the packaging could be better.",
+      helpful: 8,
+      verified: true,
+      createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+    },
+    {
+      _id: "3",
+      itemId: String(slug),
+      userId: "user3",
+      userName: "Mike Johnson",
+      rating: 5,
+      title: "Amazing!",
+      comment: "Best purchase I've made this year. The seller was very responsive and helpful.",
+      helpful: 15,
+      verified: false,
+      createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
+    },
+  ]);
+
+  const [reviewSummary] = useState<ReviewSummary>({
+    averageRating: 4.7,
+    totalReviews: 3,
+    ratingDistribution: {
+      5: 2,
+      4: 1,
+      3: 0,
+      2: 0,
+      1: 0,
+    },
+  });
 
   useEffect(() => {
     setIsMounted(true);
@@ -58,6 +111,19 @@ export default function Page() {
       console.error("Add to cart error:", error);
       toast.error("Failed to add item");
     }
+  };
+
+  const handleSubmitReview = async (data: { rating: number; title?: string; comment: string }) => {
+    // TODO: Replace with actual API call
+    console.log("Submitting review:", data);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // In real implementation, add the new review to the reviews state
+  };
+
+  const handleHelpful = (reviewId: string) => {
+    // TODO: Replace with actual API call
+    console.log("Marked review as helpful:", reviewId);
+    toast.success("Thank you for your feedback!");
   };
 
   if (loading) {
@@ -225,6 +291,17 @@ export default function Page() {
               </button>
             </div>
           </section>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mx-auto max-w-6xl px-6 py-8">
+          <ReviewList
+            itemId={item._id}
+            reviews={reviews}
+            summary={reviewSummary}
+            onSubmitReview={handleSubmitReview}
+            onHelpful={handleHelpful}
+          />
         </div>
       </main>
     </div>
