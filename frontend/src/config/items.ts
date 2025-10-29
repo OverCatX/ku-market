@@ -1,4 +1,4 @@
-import { API_BASE } from "./index";
+import { API_BASE } from "./constants";
 
 export interface Item {
   _id: string;
@@ -116,7 +116,7 @@ export interface GetItemResponse {
 }
 
 export async function getItem(id: string): Promise<GetItemResponse> {
-  const url = `${API_BASE}/api/items/${id}`; // แก้ให้ตรงกับ listItems
+  const url = `${API_BASE}/api/items/${id}`;
 
   try {
     const res = await fetch(url, {

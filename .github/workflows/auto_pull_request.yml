@@ -37,15 +37,18 @@ jobs:
       - name: Create PR body
         id: content
         run: |
-          cat << 'EOF' >> $GITHUB_OUTPUT
+          BRANCH_NAME="${{ steps.branch.outputs.name }}"
+          ACTOR="${{ github.actor }}"
+
+          cat << EOF >> $GITHUB_OUTPUT
           body<<EOFBODY
           ## ✨ Feature Branch → Develop
 
-          **Branch:** `${{ steps.branch.outputs.name }}`
-          **Author:** @${{ github.actor }}
+          **Branch:** ${BRANCH_NAME}
+          **Author:** @${ACTOR}
 
           ### 📝 Description
-          Please describe your changes here.
+          Add ${BRANCH_NAME}.
 
           ### 🧪 Testing Status
           CI tests are running... Check status below.

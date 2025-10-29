@@ -2,13 +2,19 @@ import { Request, Response } from "express";
 import User from "../../data/models/User";
 
 interface AuthenticatedRequest extends Request {
-  userId: string;
+  user?: {
+    id: string;
+  };
 }
 
 export default class ProfileController {
     userView = async (req: Request, res: Response) =>{
         try {
-            const user = await User.findById((req as AuthenticatedRequest).userId).select("-password -__v");
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
+            const user = await User.findById(userId).select("-password -__v");
             if (!user){
                 return res.status(404).json({ error: "User not found" });
             }
@@ -22,9 +28,13 @@ export default class ProfileController {
 
     userUpdate = async (req: Request, res: Response) =>{
         try {
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
             const { name, faculty, contact } = req.body;
             const user = await User.findByIdAndUpdate(
-              (req as AuthenticatedRequest).userId,
+              userId,
               { name, faculty, contact },
               { new: true, runValidators: true }
             ).select("-password -__v");

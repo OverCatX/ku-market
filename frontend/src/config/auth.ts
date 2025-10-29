@@ -1,4 +1,4 @@
-import { API_BASE } from "./index";
+import { API_BASE } from "./constants";
 
 // ===== Types =====
 export type SignupData = {
@@ -26,14 +26,29 @@ export type SignInResponse = {
   userId?: string;
 };
 
+export type UserData = {
+  id: string;
+  name: string;
+  email: string;
+  faculty: string;
+  contact: string;
+  role: string;
+  isVerified: boolean;
+};
+
+// ===== Helper Function =====
 async function request<T>(url: string, options: RequestInit): Promise<T> {
   const res = await fetch(url, options);
-  const json = (await res.json()) as T & { message?: string };
+  const json = (await res.json()) as T & { message?: string; error?: string };
 
-  if (!res.ok) throw new Error(json.message || "Request failed");
+  if (!res.ok) {
+    const errorMessage = json.error || json.message || "Request failed";
+    throw new Error(errorMessage);
+  }
   return json;
 }
 
+// ===== API Functions =====
 export function signup(data: SignupData): Promise<SignupResponse> {
   return request(`${API_BASE}/api/auth/signup`, {
     method: "POST",
@@ -48,4 +63,34 @@ export function signin(data: SignInData): Promise<SignInResponse> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
+}
+
+// Login function that returns both token and user data
+export async function login(
+  email: string,
+  password: string
+): Promise<{ token: string; user: UserData }> {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ kuEmail: email, password }),
+  });
+
+  if (!res.ok) {
+    const json = (await res.json()) as { message?: string; error?: string };
+    const errorMessage = json.error || json.message || "Login failed";
+    throw new Error(errorMessage);
+  }
+
+  const data = (await res.json()) as {
+    token: string;
+    user: UserData;
+    message?: string;
+  };
+
+  if (!data.token || !data.user) {
+    throw new Error("Invalid response from server");
+  }
+
+  return { token: data.token, user: data.user };
 }

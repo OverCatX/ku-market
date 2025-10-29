@@ -1,4 +1,4 @@
-import { API_BASE } from "./index";
+import { API_BASE } from "./constants";
 
 // ===== Types =====
 export type ProfileData = {
@@ -6,6 +6,8 @@ export type ProfileData = {
   faculty: string;
   contact: string;
   email: string;
+  isVerified?: boolean;
+  role?: string;
 };
 
 export type ProfileResponse = ProfileData;

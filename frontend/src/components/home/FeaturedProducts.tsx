@@ -9,7 +9,7 @@ const fadeInVariants = {
 
 export default function FeaturedProducts() {
   return (
-    <section className="py-20 px-6 md:px-20 bg-white">
+    <section id="featured-products" className="py-20 px-6 md:px-20 bg-white">
       <motion.div
         initial="hidden"
         whileInView="visible"

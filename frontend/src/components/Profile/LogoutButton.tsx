@@ -7,9 +7,16 @@ export default function LogoutButton() {
   const router = useRouter();
 
   const handleLogout = () => {
-    localStorage.removeItem("authentication");
+    // Clear all localStorage data
+    localStorage.clear();
+
     toast.success("Logged out successfully");
+
+    // Redirect then refresh to clear all state
     router.replace("/login");
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return (

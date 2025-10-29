@@ -1,10 +1,11 @@
 import type React from "react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Header } from "@/components/Navbar";
+import { ConditionalHeader } from "@/components/ConditionalHeader";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { Titan_One, Ubuntu } from "next/font/google";
+import { CartProvider } from "@/contexts/CartContext";
 
 // Font - Header
 const titanOne = Titan_One({
@@ -34,9 +35,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${ubuntu.variable} ${titanOne.variable}`}>
-        <Header />
-        <Suspense fallback={null}>{children}</Suspense>
-        <Toaster position="top-right" />
+        <CartProvider>
+          <ConditionalHeader />
+          <Suspense fallback={null}>{children}</Suspense>
+          <Toaster position="top-right" />
+        </CartProvider>
       </body>
     </html>
   );

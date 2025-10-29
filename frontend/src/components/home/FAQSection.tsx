@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { faqData } from "@/config/faqData";
+import { faqData } from "@/constants/faq";
 
 const fadeInVariants = {
   hidden: { opacity: 0, y: 50 },

@@ -1,16 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { signin } from "@/config/auth";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { login } from "@/config/auth";
 import toast from "react-hot-toast";
 
 export function LoginForm() {
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({ email: "", password: "" });
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [redirectTo, setRedirectTo] = useState("/");
+
+  useEffect(() => {
+    const redirect = searchParams.get("redirect");
+    if (redirect) {
+      setRedirectTo(redirect);
+    }
+  }, [searchParams]);
 
   const validate = () => {
     let valid = true;
@@ -36,18 +46,51 @@ export function LoginForm() {
 
     setLoading(true);
     try {
-      const res = await signin({ kuEmail: email, password });
-      toast.success(res.message || "Login successful!");
-      if (res.token) localStorage.setItem("authentication", res.token);
+      const res = await login(email, password);
+
+      // Save token and user data to localStorage
+      localStorage.setItem("authentication", res.token);
+      localStorage.setItem("user", JSON.stringify(res.user));
+
+      toast.success("Login successful!");
 
       setTimeout(() => {
-        window.location.href = "/";
-      }, 1000);
+        window.location.href = redirectTo;
+      }, 500);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Something went wrong";
+      let message = "Something went wrong";
+
+      if (err instanceof Error) {
+        // Provide user-friendly messages
+        if (
+          err.message.includes("Email is not found") ||
+          err.message.includes("not found")
+        ) {
+          message = "❌ Email not found. Please check your email or sign up.";
+        } else if (
+          err.message.includes("Invalid credentials") ||
+          err.message.includes("password")
+        ) {
+          message = "🔒 Incorrect password. Please try again.";
+        } else if (
+          err.message.includes("Failed to fetch") ||
+          err.message.includes("Network")
+        ) {
+          message = "🌐 Network error. Please check your connection.";
+        } else {
+          message = err.message;
+        }
+      }
+
       setApiError(message);
-      toast.error(message);
+      toast.error(message, {
+        duration: 4000,
+        style: {
+          background: "#FEE2E2",
+          color: "#991B1B",
+          border: "1px solid #FCA5A5",
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -58,6 +101,15 @@ export function LoginForm() {
       <h2 className="text-2xl font-semibold text-center text-gray-700 mb-6">
         Login to Your Account
       </h2>
+
+      {redirectTo !== "/" && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800 text-center">
+            Please login to continue to checkout
+          </p>
+        </div>
+      )}
+
       <form onSubmit={handleLogin} className="space-y-5">
         {/* Email */}
         <div className="space-y-1">
