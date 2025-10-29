@@ -1,36 +1,249 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KU Market - Frontend 🎨
 
-## Getting Started
+Next.js 15 frontend application for KU Market platform.
 
-First, run the development server:
+## 📦 Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Animation**: Framer Motion
+- **Icons**: Lucide React
+- **State**: React Context API
+- **Notifications**: React Hot Toast
+
+## 🚀 Setup
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Environment Variables
+
+Create `.env.local`:
+
+```env
+NEXT_PUBLIC_API_BASE=http://localhost:8080
+```
+
+### Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+### Code Quality
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint        # Run linter
+npm run build       # Type check
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📁 Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+frontend/
+├── src/
+│   ├── app/              # Pages (App Router)
+│   │   ├── (admin)/     # Admin pages
+│   │   ├── (seller)/    # Seller pages
+│   │   ├── marketplace/ # Shop pages
+│   │   └── ...
+│   ├── components/       # React components
+│   ├── contexts/         # Context API (Cart)
+│   ├── config/           # API calls
+│   ├── lib/              # Utilities
+│   └── types/            # TypeScript types
+├── public/               # Static files
+└── tailwind.config.ts    # Tailwind config
+```
 
-## Deploy on Vercel
+## 🎯 Routes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Public (No Auth)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `/` - Home
+- `/marketplace` - Browse items
+- `/marketplace/[slug]` - Item details
+- `/login`, `/signup` - Authentication
+
+### User (Auth Required)
+
+- `/profile` - User profile
+- `/verify-identity` - Identity verification
+- `/cart` - Shopping cart
+- `/checkout` - Checkout
+- `/request-store` - Seller application
+
+### Seller (Approved Shop)
+
+- `/seller/dashboard` - Seller dashboard
+- `/seller/items` - Manage products
+- `/seller/add-item` - Add new item
+- `/seller/orders` - Manage orders
+
+### Admin (Admin Only)
+
+- `/admin/login` - Admin login
+- `/admin/dashboard` - Admin dashboard
+- `/admin/verifications` - Manage verifications
+- `/admin/shops` - Manage shops
+- `/admin/users` - Manage users
+
+## 🔐 Authentication
+
+### Token Storage
+
+```typescript
+localStorage.getItem("authentication"); // JWT token
+localStorage.getItem("user"); // User data
+```
+
+### Protected Routes
+
+```typescript
+useEffect(() => {
+  const token = localStorage.getItem("authentication");
+  if (!token) {
+    router.replace("/login");
+    return;
+  }
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  if (!user.isVerified) {
+    router.replace("/verify-identity");
+  }
+}, [router]);
+```
+
+## 🛒 Cart Context
+
+Cart uses Context API for state management:
+
+- **Guest**: localStorage only
+- **Logged-in**: Synced with backend + localStorage backup
+
+### Usage
+
+```typescript
+import { useCart } from "@/contexts/CartContext";
+
+function Component() {
+  const { items, addToCart, removeFromCart, updateQuantity, clearCart } =
+    useCart();
+
+  return (
+    <div>
+      {items.map((item) => (
+        <div key={item.id}>
+          {item.title} - {item.quantity}
+          <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+            +
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## 🎨 Styling
+
+### Tailwind CSS
+
+```tsx
+<div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+  <h2 className="text-2xl font-bold text-gray-900 mb-4">Title</h2>
+  <p className="text-gray-600">Content</p>
+</div>
+```
+
+### Responsive Breakpoints
+
+- `sm:` - 640px+
+- `md:` - 768px+
+- `lg:` - 1024px+
+- `xl:` - 1280px+
+
+## 🧪 Best Practices
+
+- ✅ Use TypeScript types everywhere
+- ✅ Avoid `any` type
+- ✅ Use `async/await` for async operations
+- ✅ Handle errors on all API calls
+- ✅ Use `useCallback` and `useMemo` when needed
+
+## 📱 Responsive Support
+
+- 📱 Mobile (375px+)
+- 📱 Tablet (768px+)
+- 💻 Desktop (1024px+)
+
+## ⚙️ Scripts
+
+```bash
+npm run dev          # Development server
+npm run build        # Production build
+npm start           # Start production server
+npm run lint         # Run ESLint
+```
+
+## 🐛 Debugging
+
+### Next.js Debug
+
+```bash
+NODE_OPTIONS='--inspect' npm run dev
+```
+
+### Build Errors
+
+```bash
+npm run build
+```
+
+## 🚨 Common Issues
+
+### Port Already in Use
+
+```bash
+npx kill-port 3000
+# Or use different port
+PORT=3001 npm run dev
+```
+
+### Module Not Found
+
+```bash
+rm -rf node_modules .next
+npm install
+```
+
+## 📦 Key Dependencies
+
+```json
+{
+  "next": "15.5.2",
+  "react": "19.0.0",
+  "typescript": "5.x",
+  "tailwindcss": "3.x",
+  "framer-motion": "^11.x",
+  "lucide-react": "^0.x",
+  "react-hot-toast": "^2.x"
+}
+```
+
+---
+
+**Happy Coding! 🚀**
