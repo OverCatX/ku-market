@@ -451,7 +451,6 @@ export default function Page() {
             </Link>
           </div>
           <ReviewList
-            itemId={item._id}
             reviews={reviews.slice(0, 3)}
             summary={reviewSummary}
             onSubmitReview={handleSubmitReview}

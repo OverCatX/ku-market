@@ -15,12 +15,10 @@ interface ReviewFormProps {
   onCancel?: () => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function ReviewForm({
-  itemId,
   onSubmit,
   onCancel,
-}: ReviewFormProps) {
+}: Omit<ReviewFormProps, 'itemId'>) {
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");

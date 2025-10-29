@@ -8,7 +8,6 @@ import ReviewItem from "./ReviewItem";
 import ReviewForm from "./ReviewForm";
 
 interface ReviewListProps {
-  itemId: string;
   reviews: Review[];
   summary: ReviewSummaryType;
   onSubmitReview: (data: { rating: number; title?: string; comment: string }) => Promise<void>;
@@ -16,7 +15,6 @@ interface ReviewListProps {
 }
 
 export default function ReviewList({
-  itemId,
   reviews,
   summary,
   onSubmitReview,
@@ -56,7 +54,6 @@ export default function ReviewList({
       {/* Review Form */}
       {showReviewForm && (
         <ReviewForm
-          itemId={itemId}
           onSubmit={onSubmitReview}
           onCancel={() => setShowReviewForm(false)}
         />

@@ -186,7 +186,6 @@ export default function ReviewsPage() {
           {/* Reviews List */}
           <div className="lg:col-span-2">
             <ReviewList
-              itemId={String(slug)}
               reviews={filteredReviews}
               summary={reviewSummary}
               onSubmitReview={handleSubmitReview}

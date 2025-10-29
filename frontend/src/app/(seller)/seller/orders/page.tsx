@@ -111,7 +111,6 @@ export default function SellerOrders() {
           o.id === orderId ? { ...o, status: "confirmed" as const } : o
         )
       );
-      setSelectedOrder(null);
     } catch (error) {
       console.error("Failed to confirm order:", error);
     }
@@ -130,7 +129,6 @@ export default function SellerOrders() {
           o.id === orderId ? { ...o, status: "rejected" as const } : o
         )
       );
-      setSelectedOrder(null);
     } catch (error) {
       console.error("Failed to reject order:", error);
     }
