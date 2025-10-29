@@ -55,6 +55,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setItems(res.items || []);
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "";
+
+      // If token is invalid, clear it and use guest mode
+      if (
+        errorMessage.toLowerCase().includes("invalid token") ||
+        errorMessage.toLowerCase().includes("unauthorized")
+      ) {
+        console.log(
+          "🔑 Invalid token detected, clearing and switching to guest mode"
+        );
+        localStorage.removeItem("authentication");
+        localStorage.removeItem("user");
+      }
+
       console.error("Load cart error:", error);
       const saved = localStorage.getItem("cart");
       if (saved) {
@@ -90,6 +104,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setItems(res.items || []);
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "";
+
+      // If token is invalid, clear it
+      if (
+        errorMessage.toLowerCase().includes("invalid token") ||
+        errorMessage.toLowerCase().includes("unauthorized")
+      ) {
+        console.log("🔑 Invalid token detected during refresh, clearing");
+        localStorage.removeItem("authentication");
+        localStorage.removeItem("user");
+      }
+
       console.error("Refresh error:", error);
     }
   };
@@ -114,6 +140,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
       await addToCartAPI(token, newItem.id);
       await refreshCart();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "";
+
+      // If token is invalid, clear it and switch to guest mode
+      if (
+        errorMessage.toLowerCase().includes("invalid token") ||
+        errorMessage.toLowerCase().includes("unauthorized")
+      ) {
+        console.log("🔑 Invalid token, switching to guest mode for add");
+        localStorage.removeItem("authentication");
+        localStorage.removeItem("user");
+        // Add to cart locally
+        setItems((prev) => {
+          const idx = prev.findIndex((i) => i.id === newItem.id);
+          if (idx > -1) {
+            const updated = [...prev];
+            updated[idx].quantity += 1;
+            return updated;
+          }
+          return [...prev, { ...newItem, quantity: 1 }];
+        });
+        return;
+      }
+
       console.error("Add error:", error);
       throw error;
     }
@@ -131,6 +180,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
       await removeFromCartAPI(token, itemId);
       await refreshCart();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "";
+
+      // If token is invalid, clear it and switch to guest mode
+      if (
+        errorMessage.toLowerCase().includes("invalid token") ||
+        errorMessage.toLowerCase().includes("unauthorized")
+      ) {
+        console.log("🔑 Invalid token, switching to guest mode for remove");
+        localStorage.removeItem("authentication");
+        localStorage.removeItem("user");
+        // Remove locally
+        setItems((prev) => prev.filter((i) => i.id !== itemId));
+        return;
+      }
+
       console.error("Remove error:", error);
       throw error;
     }
@@ -151,6 +215,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
       await updateCartQuantityAPI(token, itemId, quantity);
       await refreshCart();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "";
+
+      // If token is invalid, clear it and switch to guest mode
+      if (
+        errorMessage.toLowerCase().includes("invalid token") ||
+        errorMessage.toLowerCase().includes("unauthorized")
+      ) {
+        console.log("🔑 Invalid token, switching to guest mode for update");
+        localStorage.removeItem("authentication");
+        localStorage.removeItem("user");
+        // Update locally
+        setItems((prev) => {
+          if (quantity === 0) return prev.filter((i) => i.id !== itemId);
+          return prev.map((i) => (i.id === itemId ? { ...i, quantity } : i));
+        });
+        return;
+      }
+
       console.error("Update error:", error);
       throw error;
     }
@@ -169,6 +251,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
       await clearCartAPI(token);
       setItems([]);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "";
+
+      // If token is invalid, clear it and switch to guest mode
+      if (
+        errorMessage.toLowerCase().includes("invalid token") ||
+        errorMessage.toLowerCase().includes("unauthorized")
+      ) {
+        console.log("🔑 Invalid token, switching to guest mode for clear");
+        localStorage.removeItem("authentication");
+        localStorage.removeItem("user");
+        // Clear locally
+        setItems([]);
+        localStorage.removeItem("cart");
+        return;
+      }
+
       console.error("Clear error:", error);
       throw error;
     }
