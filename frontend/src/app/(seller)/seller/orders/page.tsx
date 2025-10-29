@@ -6,7 +6,6 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Eye,
   RefreshCw,
 } from "lucide-react";
 import Image from "next/image";
@@ -46,7 +45,7 @@ export default function SellerOrders() {
   const [filter, setFilter] = useState<
     "all" | "pending" | "confirmed" | "completed"
   >("all");
-  const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+  // const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
 
   useEffect(() => {
     loadOrders();

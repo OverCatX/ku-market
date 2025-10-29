@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, Edit, Trash2, Eye, RefreshCw } from "lucide-react";
+import { Package, Edit, Trash2, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 

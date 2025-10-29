@@ -7,11 +7,20 @@ import toast from "react-hot-toast";
 
 interface ReviewFormProps {
   itemId: string;
-  onSubmit: (data: { rating: number; title?: string; comment: string }) => Promise<void>;
+  onSubmit: (data: {
+    rating: number;
+    title?: string;
+    comment: string;
+  }) => Promise<void>;
   onCancel?: () => void;
 }
 
-export default function ReviewForm({ itemId, onSubmit, onCancel }: ReviewFormProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function ReviewForm({
+  itemId,
+  onSubmit,
+  onCancel,
+}: ReviewFormProps) {
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
@@ -39,7 +48,7 @@ export default function ReviewForm({ itemId, onSubmit, onCancel }: ReviewFormPro
       });
 
       toast.success("Review submitted successfully!");
-      
+
       // Reset form
       setRating(0);
       setTitle("");
@@ -54,7 +63,10 @@ export default function ReviewForm({ itemId, onSubmit, onCancel }: ReviewFormPro
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-gray-50 rounded-lg p-6 border border-gray-200"
+    >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Write a Review</h3>
         {onCancel && (
@@ -84,7 +96,10 @@ export default function ReviewForm({ itemId, onSubmit, onCancel }: ReviewFormPro
 
       {/* Title */}
       <div className="mb-4">
-        <label htmlFor="review-title" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="review-title"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Review Title (Optional)
         </label>
         <input
@@ -100,7 +115,10 @@ export default function ReviewForm({ itemId, onSubmit, onCancel }: ReviewFormPro
 
       {/* Comment */}
       <div className="mb-4">
-        <label htmlFor="review-comment" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="review-comment"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Your Review <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -141,4 +159,3 @@ export default function ReviewForm({ itemId, onSubmit, onCancel }: ReviewFormPro
     </form>
   );
 }
-
