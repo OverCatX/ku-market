@@ -14,33 +14,21 @@ export type Msg = {
   time: string;
 };
 
-// messagesByThread
+// messages per thread cache
 type MessageMap = {
   [threadId: string]: Msg[];
 };
 
 export default function ChatPage() {
-  // all chat threads (left panel list)
+  // ---------------- state ----------------
   const [threads, setThreads] = useState<Thread[]>([]);
-
-  // cached messages per thread
   const [messagesByThread, setMessagesByThread] = useState<MessageMap>({});
-
-  // which thread is currently opened in the right panel
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [selectedTitle, setSelectedTitle] = useState<string>("");
   const [selectedSeller, setSelectedSeller] = useState<string>("Seller");
 
+  // ---------------- load thread list once ----------------
   useEffect(() => {
-    const fallbackThreads: Thread[] = [
-      {
-        id: "demo-1",
-        title: "Demo item (KU tote bag)",
-        unread: 0,
-        sellerName: "Classic",
-      },
-    ];
-
     fetch("http://localhost:3000/api/chats/threads", {
       credentials: "include",
     })
@@ -49,41 +37,25 @@ export default function ChatPage() {
         if (data && Array.isArray(data) && data.length > 0) {
           setThreads(data);
 
+          // auto-open first thread on desktop
           const first = data[0];
           setSelectedId(first.id);
           setSelectedTitle(first.title);
           setSelectedSeller(first.sellerName);
-          return;
         }
-
-        setThreads(fallbackThreads);
-
-        const first = fallbackThreads[0];
-        setSelectedId(first.id);
-        setSelectedTitle(first.title);
-        setSelectedSeller(first.sellerName);
       })
       .catch((err) => {
         console.warn("failed to fetch threads", err);
-
-        // fetch totally failed → still fallback
-        setThreads(fallbackThreads);
-
-        const first = fallbackThreads[0];
-        setSelectedId(first.id);
-        setSelectedTitle(first.title);
-        setSelectedSeller(first.sellerName);
       });
   }, []);
 
-  // selectedId CHANGES → LOAD MESSAGES (FIRST TIME ONLY)
- 
+  // ---------------- load messages when selected thread changes ----------------
   useEffect(() => {
-    if (!selectedId) return; // nothing selected yet
+    if (!selectedId) return;
 
     const key = String(selectedId);
 
-    // if we already have messages in cache for this thread, skip fetch
+    // already have cache? skip re-fetch
     if (messagesByThread[key]?.length) return;
 
     fetch(`http://localhost:3000/api/chats/threads/${key}/messages`, {
@@ -93,27 +65,35 @@ export default function ChatPage() {
       .then((data) => {
         if (!data) return;
 
-        // backend -> simplified shape for UI
+        // ✅ define backend message structure
+        interface BackendMessage {
+          id: number;
+          text: string;
+          sender_is_me: boolean;
+          created_at_hhmm: string;
+        }
+
+        // normalize backend → UI Msg
         const mapped: Msg[] = Array.isArray(data.messages)
-          ? data.messages.map((m: Record<string, unknown>) => ({
-              id: m.id as string,
+          ? (data.messages as BackendMessage[]).map((m) => ({
+              id: m.id,
               who: m.sender_is_me ? "me" : "them",
               text: m.text,
               time: m.created_at_hhmm,
             }))
           : [];
 
-        // put into local cache
+        // store cache
         setMessagesByThread((prev) => ({
           ...prev,
           [key]: mapped,
         }));
 
-        // update thread info if backend sends fresh title / seller
+        // refresh metadata (title / seller)
         if (data.title) setSelectedTitle(data.title);
         if (data.seller_name) setSelectedSeller(data.seller_name);
 
-        // mark this thread as read (no unread badge)
+        // mark read
         markThreadReadOnServer(key);
         markThreadReadLocally(key);
       })
@@ -122,7 +102,7 @@ export default function ChatPage() {
       });
   }, [selectedId, messagesByThread]);
 
-  // remove unread badge in the left list for a given threadId
+  // ---------------- helpers ----------------
   function markThreadReadLocally(threadId: string | number) {
     setThreads((prev) =>
       prev.map((t) => (t.id === threadId ? { ...t, unread: 0 } : t))
@@ -139,7 +119,6 @@ export default function ChatPage() {
     ).catch((err) => console.warn("mark_read failed", err));
   }
 
-  // user clicked a chat item on the left
   function handleSelectThread(
     id: string | number,
     title: string,
@@ -149,154 +128,112 @@ export default function ChatPage() {
     setSelectedTitle(title);
     setSelectedSeller(sellerName);
 
-    // optimistic clear unread badge right away
+    // optimistic unread clear
     markThreadReadLocally(id);
     markThreadReadOnServer(id);
   }
 
-  // simulate server pushed new message into thread
-  // for testing
-  function mockIncomingMessage(threadId: string | number, text: string) {
-    const key = String(threadId);
-
-    // append new message in local cache
-    setMessagesByThread((prev) => {
-      const prevMsgs = prev[key] || [];
-      const newMsg: Msg = {
-        id: Date.now(),
-        who: "them",
-        text,
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      };
-      return { ...prev, [key]: [...prevMsgs, newMsg] };
-    });
-
-    // if the user is NOT currently viewing that thread,
-    // bump its unread badge
-    if (threadId !== selectedId) {
-      setThreads((prev) =>
-        prev.map((t) =>
-          t.id === threadId ? { ...t, unread: t.unread + 1 } : t
-        )
-      );
-    }
-  }
-
-  // RENDER
-
+  // ---------------- layout / responsive ----------------
+  // whole chat area height under navbar
   const heightStyle = { height: `calc(100dvh - ${NAV_H}px)` };
 
-  if (!selectedId) {
-    return (
-      <div className="bg-white overflow-y-auto" style={heightStyle}>
-        {threads.length === 0 && (
-          <div className="text-center text-sm text-slate-500 py-8">
-            No chats yet. Start messaging a seller from Marketplace.
-          </div>
-        )}
-  
-        <ChatList
-          threads={threads}
-          selectedId={selectedId}
-          onSelect={handleSelectThread}
-        />
-  
-        {/* dev helper / simulate incoming message */}
-        <div className="p-4 text-center text-xs text-slate-500">
-          <button
-            className="rounded bg-slate-200 px-3 py-1 text-[11px]"
-            onClick={() => {
-              if (threads.length === 0) return;
-              mockIncomingMessage(
-                threads[0].id,
-                "Hi there!"
-              );
-            }}
-          >
-            simulate new message (first chat)
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Normal 2-column chat layout
   return (
     <div className="bg-white">
+      {/* grid wrapper:
+         - mobile: single column (either list OR chat)
+         - md+: two columns (list + chat) */}
       <div
-        className="grid overflow-hidden grid-cols-[260px_1fr] md:grid-cols-[300px_1fr] xl:grid-cols-[340px_1fr]"
+        className="
+          grid overflow-hidden
+          md:grid-cols-[300px_1fr]
+          xl:grid-cols-[340px_1fr]
+        "
         style={heightStyle}
       >
-        {/* LEFT PANEL: chat list */}
-        <aside className="bg-white overflow-y-auto border-r border-slate-200">
-          <ChatList
-            threads={threads}
-            selectedId={selectedId}
-            onSelect={handleSelectThread}
-          />
+{/* LEFT PANEL (chat list) */}
+<aside
+  className={`
+    bg-white border-r border-slate-200 overflow-y-auto
+    flex justify-center items-start
+    ${selectedId ? "hidden md:flex" : "flex"}
+  `}
+  style={heightStyle}
+>
+  {threads.length === 0 ? (
+    // --- show when there are no chats at all ---
+    <div className="text-center text-base text-slate-500 leading-relaxed px-6 mt-6">
+      <p className="font-medium mb-1">No chats yet.</p>
+      <p>Start messaging a seller from Marketplace.</p>
+    </div>
+  ) : (
+    // --- otherwise show chat list normally ---
+    <div className="w-full">
+      <ChatList
+        threads={threads}
+        selectedId={selectedId}
+        onSelect={handleSelectThread}
+      />
+    </div>
+  )}
+</aside>
 
-          {/* simulate server pushing new message to the thread */}
-          <div className="p-4 text-center text-[11px] text-slate-500 border-t">
-            <button
-              className="rounded bg-slate-200 px-3 py-1"
-              onClick={() => {
-                if (!selectedId) return;
-                mockIncomingMessage(
-                  selectedId,
-                  "Hi"
-                );
+        {/* RIGHT PANEL (chat window) */}
+        <section
+          className={`
+            bg-[#F6F2E5] min-h-0 overflow-hidden
+            ${!selectedId ? "hidden md:block" : "block"}
+          `}
+          style={heightStyle}
+        >
+          {selectedId && threads.length > 0 ? (
+            <ChatWindow
+              threadId={String(selectedId)}
+              title={selectedTitle}
+              sellerName={selectedSeller}
+              messages={messagesByThread[String(selectedId)] || []}
+              onSendMessage={(text: string) => {
+                // optimistic local append
+                setMessagesByThread((prev) => {
+                  const key = String(selectedId);
+                  const prevMsgs = prev[key] || [];
+                  const newMsg: Msg = {
+                    id: Date.now(),
+                    who: "me",
+                    text,
+                    time: new Date().toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }),
+                  };
+                  return { ...prev, [key]: [...prevMsgs, newMsg] };
+                });
+
+                // send to backend
+                fetch(
+                  `http://localhost:3000/api/chats/threads/${String(
+                    selectedId
+                  )}/messages`,
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ text }),
+                  }
+                ).catch((err) => console.error("send failed", err));
               }}
-            >
-              simulate new message (current chat)
-            </button>
-          </div>
-        </aside>
-
-        {/* RIGHT PANEL: message area */}
-        <section className="bg-[#F6F2E5] min-h-0 overflow-hidden">
-          <ChatWindow
-            threadId={String(selectedId)}
-            title={selectedTitle}
-            sellerName={selectedSeller}
-            messages={messagesByThread[String(selectedId)] || []}
-            onSendMessage={(text: string) => {
-              // optimistic UI: show my message instantly
-              setMessagesByThread((prev) => {
-                const key = String(selectedId);
-                const prevMsgs = prev[key] || [];
-                const newMsg: Msg = {
-                  id: Date.now(),
-                  who: "me",
-                  text,
-                  time: new Date().toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }),
-                };
-                return { ...prev, [key]: [...prevMsgs, newMsg] };
-              });
-
-              // post to backend
-              fetch(
-                `http://localhost:3000/api/chats/threads/${String(
-                  selectedId
-                )}/messages`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  credentials: "include",
-                  body: JSON.stringify({ text }),
-                }
-              ).catch((err) => console.error("send failed", err));
-            }}
-            onBack={() => {
-              // mobile 'back' = go to list-only mode
-              setSelectedId(null);
-            }}
-          />
+              onBack={() => {
+                // on mobile: go back to list view
+                setSelectedId(null);
+              }}
+            />
+          ) : (
+            // placeholder on desktop when nothing selected YET
+            <div className="hidden h-full w-full md:flex items-center justify-center text-xs text-slate-500 italic">
+              {threads.length === 0
+                ? "No chats yet."
+                : "Select a conversation"}
+            </div>
+          )}
         </section>
       </div>
     </div>
