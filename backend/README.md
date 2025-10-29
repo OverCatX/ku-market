@@ -340,7 +340,7 @@ PORT=3001 npm run dev
 MONGO_URI=mongodb://127.0.0.1:27017/ku-market
 
 # Or use Atlas
-MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/ku-market
+MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/
 ```
 
 ### JWT Secret Missing
