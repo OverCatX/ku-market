@@ -30,6 +30,7 @@ router.put(
 );
 
 router.delete("/delete", authenticate, shopController.userDeleteShop);
+router.delete("/cancel", authenticate, shopController.cancelShopRequest);
 router.get("/my-shop", authenticate, shopController.userGetShop);
 
 // Public shop browsing

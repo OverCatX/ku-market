@@ -5,7 +5,9 @@ import User from "../../data/models/User";
 import mongoose from "mongoose";
 
 interface AuthenticatedRequest extends Request {
-  userId: string;
+  user?: {
+    id: string;
+  };
 }
 
 export default class AdminController {
@@ -33,25 +35,27 @@ export default class AdminController {
 
       return res.json({
         success: true,
-        verifications: verifications.map((v) => {
-          const user = v.userId as unknown as PopulatedUser;
-          return {
-            id: v._id,
-            user: {
-              id: user._id,
-              name: user.name,
-              email: user.kuEmail,
-              faculty: user.faculty,
-              contact: user.contact,
-            },
-            documentType: v.documentType,
-            documentUrl: v.documentUrl,
-            status: v.status,
-            createdAt: v.createdAt,
-            reviewedAt: v.reviewedAt,
-            rejectionReason: v.rejectionReason,
-          };
-        }),
+        verifications: verifications
+          .filter((v) => v.userId !== null) // Filter out verifications with deleted users
+          .map((v) => {
+            const user = v.userId as unknown as PopulatedUser;
+            return {
+              id: v._id,
+              user: {
+                id: user._id,
+                name: user.name,
+                email: user.kuEmail,
+                faculty: user.faculty,
+                contact: user.contact,
+              },
+              documentType: v.documentType,
+              documentUrl: v.documentUrl,
+              status: v.status,
+              createdAt: v.createdAt,
+              reviewedAt: v.reviewedAt,
+              rejectionReason: v.rejectionReason,
+            };
+          }),
       });
     } catch (error) {
       console.error("Get verifications error:", error);
@@ -63,7 +67,10 @@ export default class AdminController {
   approveVerification = async (req: Request, res: Response): Promise<Response> => {
     try {
       const { id } = req.params;
-      const adminId = (req as AuthenticatedRequest).userId;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "User not authenticated" });
+      }
 
       const verification = await Verification.findById(id);
       if (!verification) {
@@ -104,7 +111,10 @@ export default class AdminController {
     try {
       const { id } = req.params;
       const { reason } = req.body;
-      const adminId = (req as AuthenticatedRequest).userId;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "User not authenticated" });
+      }
 
       if (!reason) {
         return res.status(400).json({ success: false, error: "Rejection reason is required" });
@@ -163,28 +173,30 @@ export default class AdminController {
 
       return res.json({
         success: true,
-        shops: shops.map((s) => {
-          const owner = s.owner as unknown as PopulatedOwner;
-          return {
-            id: s._id,
-            shopName: s.shopName,
-            shopType: s.shopType,
-            productCategory: s.productCategory,
-            description: s.shopdescription,
-            photo: s.shopPhoto,
-            status: s.shopStatus,
-            requestDate: s.shopRequestDate,
-            approvalDate: s.shopApprovalDate,
-            rejectionReason: s.shopRejectionReason,
-            owner: {
-              id: owner._id,
-              name: owner.name,
-              email: owner.kuEmail,
-              faculty: owner.faculty,
-              contact: owner.contact,
-            },
-          };
-        }),
+        shops: shops
+          .filter((s) => s.owner !== null) // Filter out shops with deleted owners
+          .map((s) => {
+            const owner = s.owner as unknown as PopulatedOwner;
+            return {
+              id: s._id,
+              shopName: s.shopName,
+              shopType: s.shopType,
+              productCategory: s.productCategory,
+              description: s.shopdescription,
+              photo: s.shopPhoto,
+              status: s.shopStatus,
+              requestDate: s.shopRequestDate,
+              approvalDate: s.shopApprovalDate,
+              rejectionReason: s.shopRejectionReason,
+              owner: {
+                id: owner._id,
+                name: owner.name,
+                email: owner.kuEmail,
+                faculty: owner.faculty,
+                contact: owner.contact,
+              },
+            };
+          }),
       });
     } catch (error) {
       console.error("Get shops error:", error);
@@ -462,7 +474,10 @@ export default class AdminController {
   deleteAdmin = async (req: Request, res: Response): Promise<Response> => {
     try {
       const { userId } = req.params;
-      const currentUserId = (req as AuthenticatedRequest).userId;
+      const currentUserId = (req as AuthenticatedRequest).user?.id;
+      if (!currentUserId) {
+        return res.status(401).json({ success: false, error: "User not authenticated" });
+      }
 
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(400).json({ success: false, error: "Invalid user ID" });

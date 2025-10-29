@@ -5,22 +5,25 @@ import { uploadToCloudinary } from "../../lib/cloudinary";
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
 
 interface AuthenticatedRequest extends Request {
-    userId: string;
+  user?: {
+    id: string;
+  };
 }
 
 export default class ShopController {
     userRequestShop = async(req: Request, res: Response) => {
         try {
-            const userId = (req as AuthenticatedRequest).userId;
-            // Check if user exists and has seller role
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
+            // Check if user exists
             const user = await User.findById(userId);
             if (!user) {
                 return res.status(404).json({ error: "User not found" });
             }
 
-            if (user.role !== "seller") {
-                return res.status(403).json({ error: "You are not authorized to request a shop" });
-            }
+            // Note: User role will be set to "seller" only when admin approves the shop
             
             const { shopName, shopType, productCategory, shopdescription } = req.body;
 
@@ -115,7 +118,10 @@ export default class ShopController {
 
     userUpdateShop = async(req: Request, res: Response) => {
         try {
-            const userId = (req as AuthenticatedRequest).userId;
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
             const { shopName, shopType, productCategory, shopdescription } = req.body;
 
             const shop = await Shop.findOne({ owner: new mongoose.Types.ObjectId(userId) });
@@ -194,7 +200,10 @@ export default class ShopController {
 
     userDeleteShop = async(req: Request, res: Response) => {
         try {
-            const userId = (req as AuthenticatedRequest).userId;
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
             const shop = await Shop.findOne({ owner: new mongoose.Types.ObjectId(userId) });
             
             if (!shop) {
@@ -219,9 +228,42 @@ export default class ShopController {
         }
     }
 
+    // Cancel shop request (delete pending/rejected shop)
+    cancelShopRequest = async(req: Request, res: Response) => {
+        try {
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
+            
+            const shop = await Shop.findOne({ owner: new mongoose.Types.ObjectId(userId) });
+            
+            if (!shop) {
+                return res.status(404).json({ error: "No shop request found" });
+            }
+
+            // Only allow canceling pending or rejected requests
+            if (shop.shopStatus === "approved") {
+                return res.status(400).json({ error: "Cannot cancel an approved shop" });
+            }
+
+            await Shop.findByIdAndDelete(shop._id);
+            return res.status(200).json({ 
+                success: true,
+                message: "Shop request canceled successfully" 
+            });
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
+        }
+    }
+
     userGetShop = async(req: Request, res: Response) => {
         try {
-            const userId = (req as AuthenticatedRequest).userId;
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
             const shop = await Shop.findOne({ owner: new mongoose.Types.ObjectId(userId) })
                 .populate('owner', 'name kuEmail');
             

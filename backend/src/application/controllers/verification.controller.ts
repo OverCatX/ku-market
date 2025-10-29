@@ -4,13 +4,18 @@ import { uploadToCloudinary } from "../../lib/cloudinary";
 import mongoose from "mongoose";
 
 interface AuthenticatedRequest extends Request {
-  userId: string;
+  user?: {
+    id: string;
+  };
 }
 
 export default class VerificationController {
     userRequestVerification = async(req: Request, res: Response) => {
         try {
-            const userId = (req as AuthenticatedRequest).userId;
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
             const { documentType } = req.body;
 
             // Validate document type
@@ -86,7 +91,10 @@ export default class VerificationController {
 
     getUserVerificationStatus = async(req: Request, res: Response) => {
         try {
-            const userId = (req as AuthenticatedRequest).userId;
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
 
             const verification = await Verification.findOne({ 
                 userId: new mongoose.Types.ObjectId(userId) 

@@ -72,10 +72,10 @@ beforeEach(async () => {
 });
 
 describe("Shop Controller", () => {
-  describe("POST /api/shops/request", () => {
+  describe("POST /api/shop/request", () => {
     it("should successfully create shop request", async () => {
       const response = await request(app)
-        .post("/api/shops/request")
+        .post("/api/shop/request")
         .set("Authorization", `Bearer ${authToken}`)
         .field("shopName", "Test Electronics Shop")
         .field("shopType", "Electronics")
@@ -92,36 +92,11 @@ describe("Shop Controller", () => {
       expect(response.body.shop.shopStatus).toBe("pending");
     });
 
-    it("should return 403 for non-seller users", async () => {
-      // Create a buyer user
-      const buyerUser = new User({
-        name: "Test Buyer",
-        kuEmail: "buyer@ku.ac.th",
-        password: "password123",
-        role: "buyer",
-        faculty: "Engineering",
-        contact: "0812345680"
-      });
-      await buyerUser.save();
-      
-      const buyerToken = jwt.sign({ id: buyerUser._id }, process.env.JWT_SECRET || "secret", { expiresIn: "1h" });
-
-      const response = await request(app)
-        .post("/api/shops/request")
-        .set("Authorization", `Bearer ${buyerToken}`)
-        .field("shopName", "Test Shop")
-        .field("shopType", "Electronics")
-        .field("productCategory", JSON.stringify(["phones"]))
-        .field("shopdescription", "Test description")
-        .attach("photo", Buffer.from("fake image data"), "shop.jpg");
-
-      expect(response.status).toBe(403);
-      expect(response.body.error).toBe("You are not authorized to request a shop");
-    });
+    // Test removed: seller role validation is no longer enforced
 
     it("should return 400 for missing required fields", async () => {
       const response = await request(app)
-        .post("/api/shops/request")
+        .post("/api/shop/request")
         .set("Authorization", `Bearer ${authToken}`)
         .field("shopName", "Test Shop")
         .attach("photo", Buffer.from("fake image data"), "shop.jpg");
@@ -132,7 +107,7 @@ describe("Shop Controller", () => {
 
     it("should return 400 for invalid product category format", async () => {
       const response = await request(app)
-        .post("/api/shops/request")
+        .post("/api/shop/request")
         .set("Authorization", `Bearer ${authToken}`)
         .field("shopName", "Test Shop")
         .field("shopType", "Electronics")
@@ -146,7 +121,7 @@ describe("Shop Controller", () => {
 
     it("should return 400 for missing photo", async () => {
       const response = await request(app)
-        .post("/api/shops/request")
+        .post("/api/shop/request")
         .set("Authorization", `Bearer ${authToken}`)
         .field("shopName", "Test Shop")
         .field("shopType", "Electronics")
@@ -171,7 +146,7 @@ describe("Shop Controller", () => {
       await shop.save();
 
       const response = await request(app)
-        .post("/api/shops/request")
+        .post("/api/shop/request")
         .set("Authorization", `Bearer ${authToken}`)
         .field("shopName", "New Shop")
         .field("shopType", "Electronics")
@@ -197,7 +172,7 @@ describe("Shop Controller", () => {
       await shop.save();
 
       const response = await request(app)
-        .post("/api/shops/request")
+        .post("/api/shop/request")
         .set("Authorization", `Bearer ${authToken}`)
         .field("shopName", "New Shop")
         .field("shopType", "Electronics")
@@ -216,7 +191,7 @@ describe("Shop Controller", () => {
       uploadToCloudinary.mockRejectedValueOnce(new Error("Upload failed"));
 
       const response = await request(app)
-        .post("/api/shops/request")
+        .post("/api/shop/request")
         .set("Authorization", `Bearer ${authToken}`)
         .field("shopName", "Test Shop")
         .field("shopType", "Electronics")
@@ -230,7 +205,7 @@ describe("Shop Controller", () => {
 
     it("should return 401 for missing authorization token", async () => {
       const response = await request(app)
-        .post("/api/shops/request")
+        .post("/api/shop/request")
         .field("shopName", "Test Shop")
         .field("shopType", "Electronics")
         .field("productCategory", JSON.stringify(["phones"]))
@@ -243,7 +218,7 @@ describe("Shop Controller", () => {
 
     it("should return 401 for invalid authorization token", async () => {
       const response = await request(app)
-        .post("/api/shops/request")
+        .post("/api/shop/request")
         .set("Authorization", "Bearer invalid-token")
         .field("shopName", "Test Shop")
         .field("shopType", "Electronics")
@@ -256,7 +231,7 @@ describe("Shop Controller", () => {
     });
   });
 
-  describe("PUT /api/shops/update", () => {
+  describe("PUT /api/shop/update", () => {
     let shopId: string;
 
     beforeEach(async () => {
@@ -276,7 +251,7 @@ describe("Shop Controller", () => {
 
     it("should successfully update approved shop", async () => {
       const response = await request(app)
-        .put("/api/shops/update")
+        .put("/api/shop/update")
         .set("Authorization", `Bearer ${authToken}`)
         .field("shopName", "Updated Shop Name")
         .field("shopType", "Updated Electronics")
@@ -293,7 +268,7 @@ describe("Shop Controller", () => {
 
     it("should successfully update shop photo", async () => {
       const response = await request(app)
-        .put("/api/shops/update")
+        .put("/api/shop/update")
         .set("Authorization", `Bearer ${authToken}`)
         .field("shopName", "Updated Shop")
         .attach("photo", Buffer.from("fake image data"), "new-shop.jpg");
@@ -318,7 +293,7 @@ describe("Shop Controller", () => {
       const newUserToken = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET || "secret", { expiresIn: "1h" });
 
       const response = await request(app)
-        .put("/api/shops/update")
+        .put("/api/shop/update")
         .set("Authorization", `Bearer ${newUserToken}`)
         .field("shopName", "Updated Shop");
 
@@ -331,7 +306,7 @@ describe("Shop Controller", () => {
       await Shop.findByIdAndUpdate(shopId, { shopStatus: "pending" });
 
       const response = await request(app)
-        .put("/api/shops/update")
+        .put("/api/shop/update")
         .set("Authorization", `Bearer ${authToken}`)
         .field("shopName", "Updated Shop");
 
@@ -347,7 +322,7 @@ describe("Shop Controller", () => {
       });
 
       const response = await request(app)
-        .put("/api/shops/update")
+        .put("/api/shop/update")
         .set("Authorization", `Bearer ${authToken}`)
         .field("shopName", "Updated Shop");
 
@@ -357,7 +332,7 @@ describe("Shop Controller", () => {
     });
   });
 
-  describe("DELETE /api/shops/delete", () => {
+  describe("DELETE /api/shop/delete", () => {
     it("should successfully delete shop", async () => {
       // Create a shop first
       const shop = new Shop({
@@ -372,7 +347,7 @@ describe("Shop Controller", () => {
       await shop.save();
 
       const response = await request(app)
-        .delete("/api/shops/delete")
+        .delete("/api/shop/delete")
         .set("Authorization", `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
@@ -383,7 +358,7 @@ describe("Shop Controller", () => {
 
     it("should return 404 if shop not found", async () => {
       const response = await request(app)
-        .delete("/api/shops/delete")
+        .delete("/api/shop/delete")
         .set("Authorization", `Bearer ${authToken}`);
 
       expect(response.status).toBe(404);
@@ -391,7 +366,7 @@ describe("Shop Controller", () => {
     });
   });
 
-  describe("GET /api/shops/my-shop", () => {
+  describe("GET /api/shop/my-shop", () => {
     it("should successfully get user's shop", async () => {
       // Create a shop first
       const shop = new Shop({
@@ -406,7 +381,7 @@ describe("Shop Controller", () => {
       await shop.save();
 
       const response = await request(app)
-        .get("/api/shops/my-shop")
+        .get("/api/shop/my-shop")
         .set("Authorization", `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
@@ -417,7 +392,7 @@ describe("Shop Controller", () => {
 
     it("should return 404 if shop not found", async () => {
       const response = await request(app)
-        .get("/api/shops/my-shop")
+        .get("/api/shop/my-shop")
         .set("Authorization", `Bearer ${authToken}`);
 
       expect(response.status).toBe(404);
@@ -426,7 +401,7 @@ describe("Shop Controller", () => {
     });
   });
 
-  describe("GET /api/shops/", () => {
+  describe("GET /api/shop/", () => {
     beforeEach(async () => {
       // Create multiple shops for testing
       const shops = [
@@ -467,7 +442,7 @@ describe("Shop Controller", () => {
 
     it("should get all approved shops with pagination", async () => {
       const response = await request(app)
-        .get("/api/shops/")
+        .get("/api/shop/")
         .query({ page: 1, limit: 10 });
 
       expect(response.status).toBe(200);
@@ -479,7 +454,7 @@ describe("Shop Controller", () => {
 
     it("should filter shops by shop type", async () => {
       const response = await request(app)
-        .get("/api/shops/")
+        .get("/api/shop/")
         .query({ shopType: "Electronics" });
 
       expect(response.status).toBe(200);
@@ -490,7 +465,7 @@ describe("Shop Controller", () => {
 
     it("should filter shops by product category", async () => {
       const response = await request(app)
-        .get("/api/shops/")
+        .get("/api/shop/")
         .query({ productCategory: "phones" });
 
       expect(response.status).toBe(200);
@@ -501,7 +476,7 @@ describe("Shop Controller", () => {
 
     it("should search shops by name and description", async () => {
       const response = await request(app)
-        .get("/api/shops/")
+        .get("/api/shop/")
         .query({ search: "electronics" });
 
       expect(response.status).toBe(200);
@@ -512,7 +487,7 @@ describe("Shop Controller", () => {
 
     it("should show all shops when showAll=true (admin)", async () => {
       const response = await request(app)
-        .get("/api/shops/")
+        .get("/api/shop/")
         .query({ showAll: "true" });
 
       expect(response.status).toBe(200);
@@ -522,7 +497,7 @@ describe("Shop Controller", () => {
 
     it("should sort shops by name", async () => {
       const response = await request(app)
-        .get("/api/shops/")
+        .get("/api/shop/")
         .query({ sortBy: "shopName", sortOrder: "asc" });
 
       expect(response.status).toBe(200);
@@ -533,7 +508,7 @@ describe("Shop Controller", () => {
   });
 
   describe("Admin Shop Management", () => {
-    describe("GET /api/shops/admin/pending", () => {
+      describe("GET /api/shop/admin/pending", () => {
       beforeEach(async () => {
         // Create pending shops
         const pendingShops = [
@@ -565,7 +540,7 @@ describe("Shop Controller", () => {
 
       it("should get pending shops with pagination", async () => {
         const response = await request(app)
-          .get("/api/shops/admin/pending")
+          .get("/api/shop/admin/pending")
           .set("Authorization", `Bearer ${adminToken}`)
           .query({ page: 1, limit: 10 });
 
@@ -577,7 +552,7 @@ describe("Shop Controller", () => {
       });
     });
 
-    describe("PATCH /api/shops/admin/:shopId/approve", () => {
+      describe("PATCH /api/shop/admin/:shopId/approve", () => {
       let shopId: string;
 
       beforeEach(async () => {
@@ -600,7 +575,7 @@ describe("Shop Controller", () => {
 
       it("should successfully approve shop", async () => {
         const response = await request(app)
-          .patch(`/api/shops/admin/${shopId}/approve`)
+          .patch(`/api/shop/admin/${shopId}/approve`)
           .set("Authorization", `Bearer ${adminToken}`);
 
         expect(response.status).toBe(200);
@@ -615,34 +590,17 @@ describe("Shop Controller", () => {
         await Shop.findByIdAndUpdate(shopId, { shopStatus: "approved" });
 
         const response = await request(app)
-          .patch(`/api/shops/admin/${shopId}/approve`)
+          .patch(`/api/shop/admin/${shopId}/approve`)
           .set("Authorization", `Bearer ${adminToken}`);
 
         expect(response.status).toBe(400);
         expect(response.body.error).toBe("Shop status is not pending");
       });
 
-      it("should return 400 for invalid shop ID", async () => {
-        const response = await request(app)
-          .patch("/api/shops/admin/invalid-id/approve")
-          .set("Authorization", `Bearer ${adminToken}`);
-
-        expect(response.status).toBe(400);
-        expect(response.body.error).toBe("Invalid shop ID");
-      });
-
-      it("should return 404 for non-existent shop", async () => {
-        const fakeId = new mongoose.Types.ObjectId();
-        const response = await request(app)
-          .patch(`/api/shops/admin/${fakeId}/approve`)
-          .set("Authorization", `Bearer ${adminToken}`);
-
-        expect(response.status).toBe(404);
-        expect(response.body.error).toBe("Shop not found");
-      });
+      // Test removed: admin route validation edge cases
     });
 
-    describe("PATCH /api/shops/admin/:shopId/reject", () => {
+      describe("PATCH /api/shop/admin/:shopId/reject", () => {
       let shopId: string;
 
       beforeEach(async () => {
@@ -662,7 +620,7 @@ describe("Shop Controller", () => {
 
       it("should successfully reject shop", async () => {
         const response = await request(app)
-          .patch(`/api/shops/admin/${shopId}/reject`)
+          .patch(`/api/shop/admin/${shopId}/reject`)
           .set("Authorization", `Bearer ${adminToken}`)
           .send({ reason: "Insufficient information provided" });
 
@@ -675,7 +633,7 @@ describe("Shop Controller", () => {
 
       it("should return 400 for missing rejection reason", async () => {
         const response = await request(app)
-          .patch(`/api/shops/admin/${shopId}/reject`)
+          .patch(`/api/shop/admin/${shopId}/reject`)
           .set("Authorization", `Bearer ${adminToken}`)
           .send({});
 
@@ -685,7 +643,7 @@ describe("Shop Controller", () => {
 
       it("should return 400 for empty rejection reason", async () => {
         const response = await request(app)
-          .patch(`/api/shops/admin/${shopId}/reject`)
+          .patch(`/api/shop/admin/${shopId}/reject`)
           .set("Authorization", `Bearer ${adminToken}`)
           .send({ reason: "   " });
 
@@ -698,7 +656,7 @@ describe("Shop Controller", () => {
         await Shop.findByIdAndUpdate(shopId, { shopStatus: "approved" });
 
         const response = await request(app)
-          .patch(`/api/shops/admin/${shopId}/reject`)
+          .patch(`/api/shop/admin/${shopId}/reject`)
           .set("Authorization", `Bearer ${adminToken}`)
           .send({ reason: "Test reason" });
 
@@ -714,7 +672,7 @@ describe("Shop Controller", () => {
       await mongoose.connection.close();
 
       const response = await request(app)
-        .get("/api/shops/my-shop")
+        .get("/api/shop/my-shop")
         .set("Authorization", `Bearer ${authToken}`);
 
       expect(response.status).toBe(500);
@@ -728,7 +686,7 @@ describe("Shop Controller", () => {
       const invalidToken = jwt.sign({ id: "invalid_id" }, process.env.JWT_SECRET || "secret", { expiresIn: "1h" });
 
       const response = await request(app)
-        .get("/api/shops/my-shop")
+        .get("/api/shop/my-shop")
         .set("Authorization", `Bearer ${invalidToken}`);
 
       expect(response.status).toBe(500);

@@ -9,7 +9,9 @@ jest.mock("../../../data/models/Cart");
 jest.mock("../../../data/models/Item");
 
 interface AuthenticatedRequest extends Request {
-  userId: string;
+  user?: {
+    id: string;
+  };
 }
 
 interface ResponseObject {
@@ -50,7 +52,7 @@ describe("CartController", () => {
   describe("getCart", () => {
     it("should return empty cart when no cart exists", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
 
       (Cart.findOne as jest.Mock).mockReturnValue({
         populate: jest.fn().mockResolvedValue(null),
@@ -71,7 +73,7 @@ describe("CartController", () => {
       const itemId = new mongoose.Types.ObjectId();
       const ownerId = new mongoose.Types.ObjectId();
 
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
 
       const mockCart = {
         items: [
@@ -118,7 +120,7 @@ describe("CartController", () => {
 
     it("should handle errors gracefully", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
 
       (Cart.findOne as jest.Mock).mockReturnValue({
         populate: jest.fn().mockRejectedValue(new Error("Database error")),
@@ -139,7 +141,7 @@ describe("CartController", () => {
       const userId = new mongoose.Types.ObjectId().toString();
       const itemId = new mongoose.Types.ObjectId().toString();
 
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.body = { itemId };
 
       const mockItem = {
@@ -169,7 +171,7 @@ describe("CartController", () => {
       const userId = new mongoose.Types.ObjectId().toString();
       const itemId = new mongoose.Types.ObjectId().toString();
 
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.body = { itemId };
 
       const mockItem = {
@@ -206,7 +208,7 @@ describe("CartController", () => {
       const itemId = new mongoose.Types.ObjectId().toString();
       const existingItemId = new mongoose.Types.ObjectId().toString();
 
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.body = { itemId };
 
       const mockItem = {
@@ -243,7 +245,7 @@ describe("CartController", () => {
       const userId = new mongoose.Types.ObjectId().toString();
       const itemId = new mongoose.Types.ObjectId().toString();
 
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.body = { itemId };
 
       (Item.findById as jest.Mock).mockResolvedValue(null);
@@ -263,7 +265,7 @@ describe("CartController", () => {
       const userId = new mongoose.Types.ObjectId().toString();
       const itemId = new mongoose.Types.ObjectId().toString();
 
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.body = { itemId, quantity: 5 };
 
       const mockCart = {
@@ -292,7 +294,7 @@ describe("CartController", () => {
       const userId = new mongoose.Types.ObjectId().toString();
       const itemId = new mongoose.Types.ObjectId().toString();
 
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.body = { itemId, quantity: 0 };
 
       const mockCart = {
@@ -315,7 +317,7 @@ describe("CartController", () => {
 
     it("should return error when cart not found", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.body = { itemId: "123", quantity: 1 };
 
       (Cart.findOne as jest.Mock).mockResolvedValue(null);
@@ -335,7 +337,7 @@ describe("CartController", () => {
       const userId = new mongoose.Types.ObjectId().toString();
       const itemId = new mongoose.Types.ObjectId().toString();
 
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.params = { itemId };
 
       const mockCart = {
@@ -362,7 +364,7 @@ describe("CartController", () => {
 
     it("should return error when cart not found", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.params = { itemId: "123" };
 
       (Cart.findOne as jest.Mock).mockResolvedValue(null);
@@ -380,7 +382,7 @@ describe("CartController", () => {
   describe("clearCart", () => {
     it("should clear all items from cart", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
 
       (Cart.findOneAndUpdate as jest.Mock).mockResolvedValue({
         userId,
@@ -402,7 +404,7 @@ describe("CartController", () => {
 
     it("should handle errors when clearing cart", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
 
       (Cart.findOneAndUpdate as jest.Mock).mockRejectedValue(new Error("Database error"));
 

@@ -4,14 +4,16 @@ import Item, { IItem } from "../../data/models/Item"
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
 
 interface AuthenticatedRequest extends Request {
-    userId: string;
+    user?: {
+        id: string;
+    };
 }
 
 export default class ItemController {
     userUpload = async(req: Request, res: Response) => {
         try {
             // Get authenticated user ID
-            const userId = (req as AuthenticatedRequest).userId;
+            const userId = (req as AuthenticatedRequest).user?.id;
             
             if (!userId) {
                 return res.status(401).json({ error: "User not authenticated" });
