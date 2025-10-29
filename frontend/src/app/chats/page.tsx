@@ -65,10 +65,18 @@ export default function ChatPage() {
       .then((data) => {
         if (!data) return;
 
+        // ✅ define backend message structure
+        interface BackendMessage {
+          id: number;
+          text: string;
+          sender_is_me: boolean;
+          created_at_hhmm: string;
+        }
+
         // normalize backend → UI Msg
         const mapped: Msg[] = Array.isArray(data.messages)
-          ? data.messages.map((m: Record<string, any>) => ({
-              id: m.id as number,
+          ? (data.messages as BackendMessage[]).map((m) => ({
+              id: m.id,
               who: m.sender_is_me ? "me" : "them",
               text: m.text,
               time: m.created_at_hhmm,
