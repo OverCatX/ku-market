@@ -49,7 +49,7 @@ cd frontend && npm install && npm run dev
 **Auth:** JWT, bcrypt  
 **Storage:** Cloudinary
 
-## 📦 Project Structure
+## Project Structure
 
 ```
 ku-market/
@@ -59,13 +59,13 @@ ku-market/
 └── README.md          # This file
 ```
 
-## ⚠️ Important Notes
+## Important Notes
 
 - Email must be `@ku.ac.th`
 - Identity verification required before checkout
 - Admin account creation: `npm run bootstrap-admin`
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Backend tests
@@ -75,7 +75,7 @@ cd backend && npm test
 cd frontend && npm run lint
 ```
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
