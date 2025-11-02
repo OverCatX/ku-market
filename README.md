@@ -11,12 +11,12 @@ An online marketplace platform for Kasetsart University students to buy and sell
 
 ## 🎯 Features
 
-- 🔐 **Authentication** - KU email required (@ku.ac.th)
-- ✅ **Identity Verification** - Student ID or national ID verification
-- 🛒 **Marketplace** - Buy and sell items within campus
-- 🏪 **Seller Shops** - Create and manage your own shop
-- 👤 **User Profiles** - Manage personal information and orders
-- 🔒 **Admin Panel** - Approve verifications and shops
+- **Authentication** - KU email required (@ku.ac.th)
+- **Identity Verification** - Student ID or national ID verification
+- **Marketplace** - Buy and sell items within campus
+- **Seller Shops** - Create and manage your own shop
+- **User Profiles** - Manage personal information and orders
+- **Admin Panel** - Approve verifications and shops
 
 ## 🚀 Quick Start
 
