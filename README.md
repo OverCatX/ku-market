@@ -37,10 +37,10 @@ cd frontend && npm install && npm run dev
 
 ## 📚 Documentation
 
-- **[Installation Guide](docs/INSTALLATION.md)** - Setup instructions
-- **[User Guide](docs/USER_GUIDE.md)** - How to use the platform
-- **[API Documentation](docs/API.md)** - API reference
-- **[Project Wiki](https://github.com/OverCatX/ku-market/wiki)** - Project overview
+**[Installation Guide](docs/INSTALLATION.md)** - Setup instructions
+**[User Guide](docs/USER_GUIDE.md)** - How to use the platfor
+**[API Documentation](docs/API.md)** - API reference
+**[Project Wiki](https://github.com/OverCatX/ku-market/wiki)** - Project overview
 
 ## 🛠️ Tech Stack
 
