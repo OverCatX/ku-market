@@ -1255,7 +1255,7 @@ export default function BecomeASeller() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowImageModal(null)}
-            className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4 cursor-zoom-out"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md backdrop-saturate-150 z-50 flex items-center justify-center p-4 cursor-zoom-out"
           >
             <motion.div
               initial={{ scale: 0.8 }}

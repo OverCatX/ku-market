@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, Edit, Trash2, RefreshCw } from "lucide-react";
+import { Package, Edit, Trash2, RefreshCw, Clock, CheckCircle, XCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { API_BASE } from "@/config/constants";
+import toast from "react-hot-toast";
 
 interface ItemData {
   id: string;
@@ -11,9 +13,12 @@ interface ItemData {
   description: string;
   price: number;
   category: string;
-  status: "available" | "sold";
-  image: string;
+  status: "available" | "reserved" | "sold";
+  approvalStatus: "pending" | "approved" | "rejected";
+  rejectionReason?: string;
+  photo: string[];
   createdAt: string;
+  updatedAt: string;
 }
 
 export default function SellerItems() {
@@ -28,26 +33,26 @@ export default function SellerItems() {
     setLoading(true);
     try {
       const token = localStorage.getItem("authentication");
-      if (!token) return;
-
-      // TODO: API call
-      setTimeout(() => {
-        setItems([
-          {
-            id: "1",
-            title: "Programming Textbook",
-            description: "Introduction to Programming",
-            price: 450,
-            category: "Books",
-            status: "available",
-            image: "/placeholder.png",
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+      if (!token) {
         setLoading(false);
-      }, 500);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/api/seller/items`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load items");
+      }
+
+      const data = await response.json();
+      setItems(data.items || []);
     } catch (error) {
       console.error("Failed to load items:", error);
+      toast.error("Failed to load items");
+      setItems([]);
+    } finally {
       setLoading(false);
     }
   };
@@ -66,7 +71,8 @@ export default function SellerItems() {
         <div className="flex gap-2">
           <button
             onClick={loadItems}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            disabled={loading}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
           >
             <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
           </button>
@@ -101,15 +107,72 @@ export default function SellerItems() {
               className="bg-white rounded-lg shadow-sm overflow-hidden"
             >
               <div className="relative h-48 bg-gray-100">
-                <Image
-                  src={item.image}
-                  alt={item.title}
-                  fill
-                  className="object-cover"
-                />
+                {item.photo && item.photo.length > 0 ? (
+                  <Image
+                    src={item.photo[0]}
+                    alt={item.title}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <Package size={48} />
+                  </div>
+                )}
               </div>
               <div className="p-4">
-                <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="font-bold text-gray-900 flex-1 text-sm md:text-base">{item.title}</h3>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ml-2 flex items-center gap-1 whitespace-nowrap ${
+                      item.approvalStatus === "approved"
+                        ? "bg-green-100 text-green-800 border border-green-200"
+                        : item.approvalStatus === "pending"
+                        ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                        : "bg-red-100 text-red-800 border border-red-200"
+                    }`}
+                    title={
+                      item.approvalStatus === "pending"
+                        ? "Waiting for admin approval"
+                        : item.approvalStatus === "approved"
+                        ? "Approved and published"
+                        : "Rejected by admin"
+                    }
+                  >
+                    {item.approvalStatus === "pending" && <Clock size={12} />}
+                    {item.approvalStatus === "approved" && <CheckCircle size={12} />}
+                    {item.approvalStatus === "rejected" && <XCircle size={12} />}
+                    {item.approvalStatus}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 mb-2">
+                  Added: {(() => {
+                    if (!item.createdAt) return "N/A";
+                    try {
+                      const date = new Date(item.createdAt);
+                      if (isNaN(date.getTime())) {
+                        console.warn("Invalid date:", item.createdAt);
+                        return "Invalid date";
+                      }
+                      return new Intl.DateTimeFormat("th-TH", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }).format(date);
+                    } catch (error) {
+                      console.error("Date formatting error:", error, item.createdAt);
+                      return "Invalid date";
+                    }
+                  })()}
+                </div>
+                {item.approvalStatus === "rejected" && item.rejectionReason && (
+                  <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-800">
+                    <p className="font-medium mb-1">Rejection Reason:</p>
+                    <p className="text-red-700">{item.rejectionReason}</p>
+                  </div>
+                )}
                 <p className="text-sm text-gray-600 mb-2 line-clamp-2">
                   {item.description}
                 </p>
@@ -120,7 +183,9 @@ export default function SellerItems() {
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${
                       item.status === "available"
-                        ? "bg-green-100 text-green-800"
+                        ? "bg-blue-100 text-blue-800"
+                        : item.status === "reserved"
+                        ? "bg-orange-100 text-orange-800"
                         : "bg-gray-100 text-gray-800"
                     }`}
                   >
@@ -128,11 +193,57 @@ export default function SellerItems() {
                   </span>
                 </div>
                 <div className="flex gap-2">
-                  <button className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                  <Link
+                    href={`/seller/edit-item/${item.id}`}
+                    className={`flex-1 px-3 py-2 rounded-lg transition-colors text-sm font-medium text-center ${
+                      item.approvalStatus === "approved"
+                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                        : "bg-gray-400 text-white cursor-not-allowed opacity-50"
+                    }`}
+                    onClick={(e) => {
+                      if (item.approvalStatus !== "approved") {
+                        e.preventDefault();
+                        toast.error("You can only edit approved items");
+                      }
+                    }}
+                  >
                     <Edit size={14} className="inline mr-1" />
                     Edit
-                  </button>
-                  <button className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      if (!confirm(`Are you sure you want to delete "${item.title}"?`)) {
+                        return;
+                      }
+                      try {
+                        const token = localStorage.getItem("authentication");
+                        if (!token) {
+                          toast.error("Please login first");
+                          return;
+                        }
+                        const response = await fetch(
+                          `${API_BASE}/api/items/delete/${item.id}`,
+                          {
+                            method: "DELETE",
+                            headers: { Authorization: `Bearer ${token}` },
+                          }
+                        );
+                        if (!response.ok) {
+                          throw new Error("Failed to delete item");
+                        }
+                        toast.success("Item deleted successfully");
+                        await loadItems();
+                      } catch (error) {
+                        console.error("Delete error:", error);
+                        toast.error(
+                          error instanceof Error
+                            ? error.message
+                            : "Failed to delete item"
+                        );
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                  >
                     <Trash2 size={14} className="inline mr-1" />
                     Delete
                   </button>

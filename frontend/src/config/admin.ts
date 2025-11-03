@@ -170,3 +170,71 @@ export async function deleteUser(token: string, userId: string): Promise<void> {
   });
   if (!res.ok) throw new Error("Failed to delete user");
 }
+
+// Items Management
+export interface ItemData {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  status: "available" | "reserved" | "sold";
+  approvalStatus: "pending" | "approved" | "rejected";
+  rejectionReason?: string;
+  photo: string[];
+  owner: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getItems(
+  token: string,
+  approvalStatus?: string
+): Promise<ItemData[]> {
+  const url = approvalStatus
+    ? `${API_BASE}/api/admin/items?approvalStatus=${approvalStatus}`
+    : `${API_BASE}/api/admin/items`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to fetch items");
+  }
+  const data = await res.json();
+  return data.items;
+}
+
+export async function approveItem(token: string, id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/items/${id}/approve`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to approve item");
+  }
+}
+
+export async function rejectItem(
+  token: string,
+  id: string,
+  reason?: string
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/items/${id}/reject`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to reject item");
+  }
+}

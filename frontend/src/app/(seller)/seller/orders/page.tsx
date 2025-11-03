@@ -9,91 +9,84 @@ import {
   RefreshCw,
 } from "lucide-react";
 import Image from "next/image";
+import { API_BASE } from "@/config/constants";
+import toast from "react-hot-toast";
 
 interface OrderItem {
-  id: string;
+  itemId: string;
   title: string;
   price: number;
   quantity: number;
-  image: string;
+  image?: string;
 }
 
 interface OrderData {
   id: string;
-  orderNumber: string;
   buyer: {
+    id: string;
     name: string;
     email: string;
-    phone: string;
   };
   items: OrderItem[];
-  total: number;
+  totalPrice: number;
   deliveryMethod: "pickup" | "delivery";
-  paymentMethod: "cash" | "promptpay";
-  status: "pending" | "confirmed" | "rejected" | "completed";
-  createdAt: string;
+  paymentMethod: "cash" | "transfer";
+  status: "pending_seller_confirmation" | "confirmed" | "rejected" | "completed" | "cancelled";
+  buyerContact: {
+    fullName: string;
+    phone: string;
+  };
   shippingAddress?: {
     address: string;
     city: string;
     postalCode: string;
   };
+  createdAt: string;
+  confirmedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
 }
 
 export default function SellerOrders() {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<
-    "all" | "pending" | "confirmed" | "completed"
+    "all" | "pending_seller_confirmation" | "confirmed" | "completed"
   >("all");
   // const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
 
   useEffect(() => {
     loadOrders();
-  }, []);
+  }, [filter]);
 
   const loadOrders = async (): Promise<void> => {
     setLoading(true);
     try {
       const token = localStorage.getItem("authentication");
-      if (!token) return;
-
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${API_BASE}/api/seller/orders`, {
-      //   headers: { Authorization: `Bearer ${token}` }
-      // });
-      // const data = await response.json();
-
-      // Simulate data
-      setTimeout(() => {
-        setOrders([
-          {
-            id: "1",
-            orderNumber: "ORD-2024-001",
-            buyer: {
-              name: "John Doe",
-              email: "john@ku.th",
-              phone: "0812345678",
-            },
-            items: [
-              {
-                id: "1",
-                title: "Programming Textbook",
-                price: 450,
-                quantity: 1,
-                image: "/placeholder.png",
-              },
-            ],
-            total: 450,
-            deliveryMethod: "pickup",
-            paymentMethod: "cash",
-            status: "pending",
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+      if (!token) {
         setLoading(false);
-      }, 500);
+        return;
+      }
+
+      const url = filter === "all" 
+        ? `${API_BASE}/api/seller/orders`
+        : `${API_BASE}/api/seller/orders?status=${filter}`;
+
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load orders");
+      }
+
+      const data = await response.json();
+      setOrders(data.orders || []);
     } catch (error) {
       console.error("Failed to load orders:", error);
+      toast.error("Failed to load orders");
+      setOrders([]);
+    } finally {
       setLoading(false);
     }
   };
@@ -101,51 +94,84 @@ export default function SellerOrders() {
   const handleConfirmOrder = async (orderId: string): Promise<void> => {
     try {
       const token = localStorage.getItem("authentication");
-      if (!token) return;
+      if (!token) {
+        toast.error("Please login first");
+        return;
+      }
 
-      // TODO: API call
-      // await confirmOrder(token, orderId);
+      const response = await fetch(`${API_BASE}/api/seller/orders/${orderId}/confirm`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-      setOrders(
-        orders.map((o) =>
-          o.id === orderId ? { ...o, status: "confirmed" as const } : o
-        )
-      );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to confirm order");
+      }
+
+      toast.success("Order confirmed successfully!");
+      await loadOrders();
     } catch (error) {
       console.error("Failed to confirm order:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to confirm order");
     }
   };
 
   const handleRejectOrder = async (orderId: string): Promise<void> => {
+    const reason = prompt("Please provide a reason for rejection (optional):");
+    
     try {
       const token = localStorage.getItem("authentication");
-      if (!token) return;
+      if (!token) {
+        toast.error("Please login first");
+        return;
+      }
 
-      // TODO: API call
-      // await rejectOrder(token, orderId);
+      const response = await fetch(`${API_BASE}/api/seller/orders/${orderId}/reject`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reason: reason || undefined }),
+      });
 
-      setOrders(
-        orders.map((o) =>
-          o.id === orderId ? { ...o, status: "rejected" as const } : o
-        )
-      );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to reject order");
+      }
+
+      toast.success("Order rejected");
+      await loadOrders();
     } catch (error) {
       console.error("Failed to reject order:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to reject order");
     }
   };
 
-  const filteredOrders = orders.filter((o) =>
-    filter === "all" ? true : o.status === filter
-  );
-
   const getStatusBadge = (status: string) => {
-    const styles = {
-      pending: "bg-yellow-100 text-yellow-800",
+    const styles: Record<string, string> = {
+      pending_seller_confirmation: "bg-yellow-100 text-yellow-800",
       confirmed: "bg-blue-100 text-blue-800",
       rejected: "bg-red-100 text-red-800",
       completed: "bg-green-100 text-green-800",
+      cancelled: "bg-gray-100 text-gray-800",
     };
-    return styles[status as keyof typeof styles] || styles.pending;
+    return styles[status] || styles.pending_seller_confirmation;
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      pending_seller_confirmation: "Pending",
+      confirmed: "Confirmed",
+      rejected: "Rejected",
+      completed: "Completed",
+      cancelled: "Cancelled",
+    };
+    return labels[status] || status;
   };
 
   if (loading) {
@@ -176,20 +202,25 @@ export default function SellerOrders() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {(["all", "pending", "confirmed", "completed"] as const).map((f) => (
+        {([
+          { value: "all" as const, label: "All" },
+          { value: "pending_seller_confirmation" as const, label: "Pending" },
+          { value: "confirmed" as const, label: "Confirmed" },
+          { value: "completed" as const, label: "Completed" },
+        ]).map((f) => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
+            key={f.value}
+            onClick={() => setFilter(f.value)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filter === f
+              filter === f.value
                 ? "bg-green-600 text-white"
                 : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
           >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
-            {f !== "all" && (
+            {f.label}
+            {f.value !== "all" && (
               <span className="ml-2 text-xs">
-                ({orders.filter((o) => o.status === f).length})
+                ({orders.filter((o) => o.status === f.value).length})
               </span>
             )}
           </button>
@@ -198,7 +229,7 @@ export default function SellerOrders() {
 
       {/* Orders List */}
       <div className="space-y-4">
-        {filteredOrders.length === 0 ? (
+        {orders.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <ShoppingBag size={48} className="mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -207,19 +238,35 @@ export default function SellerOrders() {
             <p className="text-gray-600">
               {filter === "all"
                 ? "You haven't received any orders yet"
-                : `No ${filter} orders`}
+                : `No ${getStatusLabel(filter)} orders`}
             </p>
           </div>
         ) : (
-          filteredOrders.map((order) => (
+          orders.map((order) => (
             <div key={order.id} className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">
-                    {order.orderNumber}
+                    Order #{order.id.slice(-8)}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {new Date(order.createdAt).toLocaleDateString()}
+                    {order.createdAt ? (() => {
+                      try {
+                        const date = new Date(order.createdAt);
+                        if (isNaN(date.getTime())) {
+                          return "Invalid date";
+                        }
+                        return new Intl.DateTimeFormat("th-TH", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }).format(date);
+                      } catch {
+                        return "Invalid date";
+                      }
+                    })() : "N/A"}
                   </p>
                 </div>
                 <span
@@ -227,10 +274,10 @@ export default function SellerOrders() {
                     order.status
                   )}`}
                 >
-                  {order.status === "pending" && <Clock size={12} />}
+                  {order.status === "pending_seller_confirmation" && <Clock size={12} />}
                   {order.status === "confirmed" && <CheckCircle size={12} />}
                   {order.status === "rejected" && <XCircle size={12} />}
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  {getStatusLabel(order.status)}
                 </span>
               </div>
 
@@ -242,7 +289,7 @@ export default function SellerOrders() {
                 <div className="text-sm text-gray-700 space-y-1">
                   <p>
                     <span className="font-medium">Name:</span>{" "}
-                    {order.buyer.name}
+                    {order.buyerContact.fullName}
                   </p>
                   <p>
                     <span className="font-medium">Email:</span>{" "}
@@ -250,7 +297,7 @@ export default function SellerOrders() {
                   </p>
                   <p>
                     <span className="font-medium">Phone:</span>{" "}
-                    {order.buyer.phone}
+                    {order.buyerContact.phone}
                   </p>
                   <p>
                     <span className="font-medium">Delivery:</span>{" "}
@@ -258,29 +305,45 @@ export default function SellerOrders() {
                       ? "Self Pick-up"
                       : "Delivery"}
                   </p>
+                  {order.deliveryMethod === "delivery" && order.shippingAddress && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <p className="font-medium">Shipping Address:</p>
+                      <p className="text-gray-600">
+                        {order.shippingAddress.address}, {order.shippingAddress.city} {order.shippingAddress.postalCode}
+                      </p>
+                    </div>
+                  )}
                   <p>
                     <span className="font-medium">Payment:</span>{" "}
-                    {order.paymentMethod === "cash" ? "Cash" : "PromptPay"}
+                    {order.paymentMethod === "cash" ? "Cash" : "Transfer"}
                   </p>
+                  {order.rejectionReason && (
+                    <p className="text-red-600 mt-2">
+                      <span className="font-medium">Rejection Reason:</span>{" "}
+                      {order.rejectionReason}
+                    </p>
+                  )}
                 </div>
               </div>
 
               {/* Items */}
               <div className="space-y-2 mb-4">
-                {order.items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3">
-                    <div className="relative w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
+                {order.items.map((item, index) => (
+                  <div key={item.itemId || index} className="flex items-center gap-3">
+                    {item.image && (
+                      <div className="relative w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                        <Image
+                          src={item.image}
+                          alt={item.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">{item.title}</p>
                       <p className="text-sm text-gray-600">
-                        Qty: {item.quantity}
+                        Qty: {item.quantity} × ฿{item.price.toLocaleString()}
                       </p>
                     </div>
                     <p className="font-bold text-green-600">
@@ -294,12 +357,12 @@ export default function SellerOrders() {
               <div className="flex justify-between items-center pt-4 border-t">
                 <span className="text-lg font-bold text-gray-900">Total</span>
                 <span className="text-lg font-bold text-green-600">
-                  ฿{order.total.toLocaleString()}
+                  ฿{order.totalPrice.toLocaleString()}
                 </span>
               </div>
 
               {/* Actions */}
-              {order.status === "pending" && (
+              {order.status === "pending_seller_confirmation" && (
                 <div className="flex gap-2 mt-4">
                   <button
                     onClick={() => handleConfirmOrder(order.id)}
