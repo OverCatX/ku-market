@@ -19,6 +19,12 @@ jest.mock("@/config/categories", () => ({
   ]),
 }));
 
+jest.mock("@/components/home/FooterSection", () => {
+  return function FooterSection() {
+    return <footer data-testid="footer">Footer</footer>;
+  };
+});
+
 jest.mock("@/components/Marketplace/ItemCard", () => {
   return function ItemCard({
     title,

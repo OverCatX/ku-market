@@ -8,6 +8,7 @@ import Pagination from "@/components/Marketplace/Pagination";
 import debounce from "lodash.debounce";
 import { listItems, Item, ListItemsResponse } from "../../config/items";
 import { getCategories, Category } from "../../config/categories";
+import FooterSection from "@/components/home/FooterSection";
 
 const LIGHT = "#f9f9f7";
 const GREEN = "#69773D";
@@ -295,7 +296,7 @@ export default function MarketPage() {
         {/* Items Grid */}
         {/* Items Grid */}
         {loading || items === null ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-4 lg:gap-5 justify-items-center">
             {Array.from({ length: limit }).map((_, i) => (
               <div
                 key={i}
@@ -330,7 +331,7 @@ export default function MarketPage() {
             <p className="text-sm">Try adjusting your search or filters</p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-4 lg:gap-5 justify-items-center">
             <AnimatePresence>
               {items.map((item) => (
                 <motion.div
@@ -373,6 +374,9 @@ export default function MarketPage() {
           </div>
         )}
       </main>
+      <div className="mt-12">
+        <FooterSection />
+      </div>
     </div>
   );
 }
