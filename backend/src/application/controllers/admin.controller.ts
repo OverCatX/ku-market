@@ -3,6 +3,7 @@ import Verification from "../../data/models/Verification";
 import Shop from "../../data/models/Shop";
 import User from "../../data/models/User";
 import Item from "../../data/models/Item";
+import Review, { IReview } from "../../data/models/Review";
 import mongoose from "mongoose";
 
 interface AuthenticatedRequest extends Request {
@@ -791,6 +792,95 @@ export default class AdminController {
       });
     } catch (error) {
       console.error("Delete item error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // DELETE /api/admin/reviews/:id - Delete a review (admin only)
+  deleteReview = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      const { id } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid review ID" });
+      }
+
+      const review = await Review.findById(id);
+      if (!review) {
+        return res.status(404).json({ success: false, error: "Review not found" });
+      }
+
+      await Review.findByIdAndDelete(id);
+
+      return res.json({
+        success: true,
+        message: "Review deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete review error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // GET /api/admin/reviews/item/:itemId - Get all reviews for an item (admin)
+  getItemReviews = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      const { itemId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(itemId)) {
+        return res.status(400).json({ success: false, error: "Invalid item ID" });
+      }
+
+      const reviews = await Review.find({ item: itemId })
+        .populate("user", "name kuEmail")
+        .populate("item", "title")
+        .sort({ createAt: -1 });
+
+      interface PopulatedUser {
+        _id: mongoose.Types.ObjectId;
+        name?: string;
+        kuEmail?: string;
+      }
+
+      interface PopulatedItem {
+        _id: mongoose.Types.ObjectId;
+        title?: string;
+      }
+
+      return res.json({
+        success: true,
+        reviews: reviews.map((review: IReview & { user: PopulatedUser | null; item: PopulatedItem | null }) => {
+          const populatedUser = review.user as unknown as PopulatedUser | null;
+          const populatedItem = review.item as unknown as PopulatedItem | null;
+          return {
+            id: review._id,
+            itemId: review.item,
+            itemTitle: populatedItem?.title || "Unknown Item",
+            userId: review.user,
+            userName: populatedUser?.name || "Deleted User",
+            userEmail: populatedUser?.kuEmail || "N/A",
+            rating: review.rating,
+            title: review.title,
+            comment: review.comment,
+            helpful: review.helpful,
+            verified: review.verified,
+            createdAt: (review as unknown as { createdAt?: Date }).createdAt || review.createAt,
+            updatedAt: (review as unknown as { updatedAt?: Date }).updatedAt || review.updateAt,
+          };
+        }),
+      });
+    } catch (error) {
+      console.error("Get item reviews error:", error);
       return res.status(500).json({ success: false, error: "Server error" });
     }
   };

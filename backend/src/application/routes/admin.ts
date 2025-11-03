@@ -46,5 +46,9 @@ router.post("/categories", authenticate, adminMiddleware, categoryController.cre
 router.patch("/categories/:id", authenticate, adminMiddleware, categoryController.updateCategory);
 router.delete("/categories/:id", authenticate, adminMiddleware, categoryController.deleteCategory);
 
+// Review management
+router.get("/reviews/item/:itemId", authenticate, adminMiddleware, adminController.getItemReviews);
+router.delete("/reviews/:id", authenticate, adminMiddleware, adminController.deleteReview);
+
 export default router;
 
