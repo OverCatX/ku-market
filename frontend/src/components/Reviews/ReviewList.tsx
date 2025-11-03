@@ -25,20 +25,11 @@ export default function ReviewList({
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [sortBy, setSortBy] = useState<"recent" | "helpful" | "rating">("recent");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
 
-  // Check authentication and verification on mount and listen for changes
+  // Check authentication on mount and listen for changes
   useEffect(() => {
     const checkAuthStatus = () => {
-      const authenticated = checkAuth();
-      setIsAuthenticated(authenticated);
-      
-      if (authenticated) {
-        const user = getAuthUser();
-        setIsVerified(user?.isVerified || false);
-      } else {
-        setIsVerified(false);
-      }
+      setIsAuthenticated(checkAuth());
     };
     
     checkAuthStatus();
@@ -136,7 +127,7 @@ export default function ReviewList({
           {sortedReviews.length > 0 ? (
             sortedReviews.map((review, index) => (
               <ReviewItem
-                key={review._id || review.id || `review-${index}`}
+                key={review._id || `review-${index}`}
                 review={review}
                 onHelpful={onHelpful}
               />

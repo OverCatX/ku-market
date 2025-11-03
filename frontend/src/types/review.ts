@@ -28,7 +28,6 @@ export interface ReviewSummary {
 }
 
 export interface CreateReviewInput {
-  itemId: string;
   rating: number;
   title?: string;
   comment: string;

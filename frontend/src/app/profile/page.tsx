@@ -51,7 +51,7 @@ export default function ProfilePage() {
 
     const fetchData = async () => {
       try {
-        const userData = (await getProfile(token)) as unknown as BackendUser;
+        const userData = (await getProfile()) as unknown as BackendUser;
         setUser(userData);
         setForm({
           name: userData.name || "",
@@ -115,7 +115,6 @@ export default function ProfilePage() {
     setSaveMessage("");
     try {
       const updated = (await updateProfile(
-        token,
         form
       )) as unknown as BackendUser;
       setUser(updated);
