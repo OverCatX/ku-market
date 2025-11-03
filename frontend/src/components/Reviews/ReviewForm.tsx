@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import StarRating from "./StarRating";
 import toast from "react-hot-toast";
-import { isAuthenticated as checkAuth } from "@/lib/auth";
+import { isAuthenticated as checkAuth, getAuthUser } from "@/lib/auth";
 
 interface ReviewFormProps {
   itemId: string;
@@ -25,11 +25,20 @@ export default function ReviewForm({
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
-  // Check authentication on mount and listen for changes
+  // Check authentication and verification status on mount and listen for changes
   useEffect(() => {
     const checkAuthStatus = () => {
-      setIsAuthenticated(checkAuth());
+      const authenticated = checkAuth();
+      setIsAuthenticated(authenticated);
+
+      if (authenticated) {
+        const user = getAuthUser();
+        setIsVerified(user?.isVerified || false);
+      } else {
+        setIsVerified(false);
+      }
     };
 
     checkAuthStatus();
@@ -39,7 +48,7 @@ export default function ReviewForm({
     return () => clearInterval(interval);
   }, []);
 
-  const checkAuthAndRedirect = () => {
+  const checkAuthAndVerification = () => {
     if (!checkAuth()) {
       toast.error("Please login to submit a review", {
         duration: 3000,
@@ -47,14 +56,27 @@ export default function ReviewForm({
       });
       return false;
     }
+
+    const user = getAuthUser();
+    if (!user?.isVerified) {
+      toast.error(
+        "You must verify your identity before submitting a review. Please complete identity verification first.",
+        {
+          duration: 5000,
+          icon: "🆔",
+        }
+      );
+      return false;
+    }
+
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check authentication first
-    if (!checkAuthAndRedirect()) {
+    // Check authentication and verification first
+    if (!checkAuthAndVerification()) {
       return;
     }
 
@@ -148,6 +170,22 @@ export default function ReviewForm({
         </div>
       )}
 
+      {/* Verification warning */}
+      {isAuthenticated && !isVerified && (
+        <div className="mb-4 p-2.5 sm:p-3 bg-orange-50 border border-orange-200 rounded-lg">
+          <p className="text-xs sm:text-sm text-orange-800">
+            <span className="font-medium">🆔 Verification Required:</span> You
+            must verify your identity before submitting a review.
+          </p>
+          <a
+            href="/verify-identity"
+            className="mt-2 inline-block text-xs sm:text-sm text-orange-700 hover:text-orange-900 underline font-medium"
+          >
+            Verify Identity Now →
+          </a>
+        </div>
+      )}
+
       {/* Rating */}
       <div className="mb-3 sm:mb-4">
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
@@ -155,10 +193,10 @@ export default function ReviewForm({
         </label>
         <StarRating
           rating={rating}
-          interactive={isAuthenticated}
+          interactive={isAuthenticated && isVerified}
           onChange={setRating}
           size="lg"
-          disabled={!isAuthenticated}
+          disabled={!isAuthenticated || !isVerified}
         />
       </div>
 
@@ -182,7 +220,7 @@ export default function ReviewForm({
           }}
           placeholder="Sum up your review"
           maxLength={200}
-          disabled={!isAuthenticated}
+          disabled={!isAuthenticated || !isVerified}
           className="w-full px-3 py-2 sm:px-4 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
         {title.length > 0 && (
@@ -214,7 +252,7 @@ export default function ReviewForm({
           minLength={10}
           maxLength={2000}
           required
-          disabled={!isAuthenticated}
+          disabled={!isAuthenticated || !isVerified}
           className="w-full px-3 py-2 sm:px-4 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067] focus:border-transparent resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
         <p className="text-xs text-gray-500 mt-1">
@@ -235,16 +273,25 @@ export default function ReviewForm({
             submitting ||
             rating === 0 ||
             comment.trim().length < 10 ||
-            !isAuthenticated
+            !isAuthenticated ||
+            !isVerified
           }
           className="flex-1 px-4 py-2.5 sm:px-6 sm:py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition-colors text-sm sm:text-base font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed"
-          title={!isAuthenticated ? "Please login to submit a review" : ""}
+          title={
+            !isAuthenticated
+              ? "Please login to submit a review"
+              : !isVerified
+              ? "Please verify your identity to submit a review"
+              : ""
+          }
         >
           {submitting
             ? "Submitting..."
-            : isAuthenticated
-            ? "Submit Review"
-            : "Login to Review"}
+            : !isAuthenticated
+            ? "Login to Review"
+            : !isVerified
+            ? "Verify Identity"
+            : "Submit Review"}
         </button>
         <div className="flex gap-2 sm:gap-3">
           {!isAuthenticated && (

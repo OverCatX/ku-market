@@ -7,7 +7,7 @@ import ReviewSummary from "./ReviewSummary";
 import ReviewItem from "./ReviewItem";
 import ReviewForm from "./ReviewForm";
 import toast from "react-hot-toast";
-import { isAuthenticated as checkAuth } from "@/lib/auth";
+import { isAuthenticated as checkAuth, getAuthUser } from "@/lib/auth";
 
 interface ReviewListProps {
   reviews: Review[];
@@ -25,11 +25,20 @@ export default function ReviewList({
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [sortBy, setSortBy] = useState<"recent" | "helpful" | "rating">("recent");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
-  // Check authentication on mount and listen for changes
+  // Check authentication and verification on mount and listen for changes
   useEffect(() => {
     const checkAuthStatus = () => {
-      setIsAuthenticated(checkAuth());
+      const authenticated = checkAuth();
+      setIsAuthenticated(authenticated);
+      
+      if (authenticated) {
+        const user = getAuthUser();
+        setIsVerified(user?.isVerified || false);
+      } else {
+        setIsVerified(false);
+      }
     };
     
     checkAuthStatus();
@@ -47,6 +56,16 @@ export default function ReviewList({
       });
       return;
     }
+
+    const user = getAuthUser();
+    if (!user?.isVerified) {
+      toast.error("You must verify your identity before submitting a review. Please complete identity verification first.", {
+        duration: 5000,
+        icon: "🆔",
+      });
+      return;
+    }
+
     setShowReviewForm(true);
   };
 

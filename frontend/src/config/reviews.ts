@@ -60,6 +60,10 @@ export async function createReview(
       clearAuthTokens();
       throw new Error("Please login to submit a review");
     }
+    if (response.status === 403 && errorMessage.includes("verify")) {
+      // User not verified
+      throw new Error("You must verify your identity before submitting a review. Please complete identity verification first.");
+    }
     // Only show "already reviewed" error if user is authenticated
     // (if not authenticated, 401 would have been caught above)
     if (response.status === 400 && errorMessage.includes("already reviewed")) {

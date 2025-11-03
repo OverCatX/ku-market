@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Review from "../../data/models/Review";
 import Item from "../../data/models/Item";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import User from "../../data/models/User";
 import Order from "../../data/models/Order";
 import HelpfulVote from "../../data/models/HelpfulVote";
@@ -14,6 +15,19 @@ export default class ReviewController {
       const userId = (req as AuthenticatedRequest).user?.id;
       if (!userId) {
         return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      // Check if user is verified
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(401).json({ success: false, error: "User not found" });
+      }
+
+      if (!user.isVerified) {
+        return res.status(403).json({
+          success: false,
+          error: "You must verify your identity before submitting a review. Please complete identity verification first.",
+        });
       }
 
       const { itemId, rating, title, comment } = req.body;
