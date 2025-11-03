@@ -16,8 +16,8 @@ export function Header() {
   const linkClasses = useCallback(
     (path: string) =>
       pathName === path
-        ? "text-[#84B067] font-semibold relative group"
-        : "text-gray-800 hover:text-[#84B067] relative group",
+        ? "text-[#69773D] font-bold relative"
+        : "text-gray-800 hover:text-[#69773D] relative",
     [pathName]
   );
 
@@ -34,73 +34,77 @@ export function Header() {
   ];
 
   return (
-    <header className="bg-white/95 backdrop-blur-md sticky top-0 left-0 w-full z-50 shadow-md border-b border-gray-100">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-16">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo / Brand - Fixed width for balance */}
-          <div className="flex-shrink-0 w-32">
+    <header className="bg-gradient-to-b from-white to-green-50/30 backdrop-blur-xl sticky top-0 left-0 w-full z-50 border-b border-[#69773D]/10 shadow-lg shadow-green-900/5">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-20">
+        <div className="flex items-center justify-between h-[68px]">
+          {/* Logo / Brand */}
+          <div className="flex-shrink-0">
             <Link
               href="/"
-              className="font-header text-xl font-bold bg-gradient-to-r from-[#69773D] to-[#84B067] bg-clip-text text-transparent hover:from-[#84B067] hover:to-[#69773D] transition-all duration-300"
+              className="font-header text-2xl font-bold bg-gradient-to-r from-[#69773D] via-[#7BAA5F] to-[#84B067] bg-clip-text text-transparent hover:from-[#7BAA5F] hover:via-[#84B067] hover:to-[#69773D] transition-all duration-500 drop-shadow-sm"
             >
               KU Market
             </Link>
           </div>
 
           {/* Desktop Navigation - Centered with even spacing */}
-          <nav className="hidden lg:flex flex-1 justify-center items-center gap-8">
+          <nav className="hidden lg:flex flex-1 justify-center items-center gap-9">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 className={`${linkClasses(
                   link.href
-                )} capitalize transition-all duration-300`}
+                )} capitalize transition-all duration-300 px-5 py-2.5 text-sm font-semibold rounded-xl group`}
               >
-                {link.label}
-                <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-gradient-to-r from-[#69773D] to-[#84B067] transition-all duration-300 group-hover:w-full"></span>
+                <span className="relative z-10">{link.label}</span>
+                {pathName === link.href ? (
+                  <span className="absolute inset-0 bg-gradient-to-r from-[#69773D]/15 via-[#7BAA5F]/20 to-[#84B067]/15 rounded-xl border border-[#69773D]/20 shadow-inner"></span>
+                ) : (
+                  <span className="absolute inset-0 bg-gradient-to-r from-green-50/0 to-emerald-50/0 rounded-xl group-hover:from-green-50/80 group-hover:to-emerald-50/60 transition-all duration-300 border border-transparent group-hover:border-[#69773D]/10"></span>
+                )}
               </Link>
             ))}
           </nav>
 
-          {/* Right side - Fixed width matching logo for symmetry */}
-          <div className="hidden lg:flex items-center justify-end gap-2 w-32">
+          {/* Right side - Icons */}
+          <div className="hidden lg:flex items-center justify-end gap-1">
             <Link
               href="/cart"
-              className="relative p-2.5 rounded-full hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 transform hover:scale-110 hover:shadow-md group"
+              className="relative flex items-center justify-center w-10 h-10 rounded-xl hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50/60 transition-all duration-300 group border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5"
               title="Cart"
             >
-              <ShoppingCart className="w-5 h-5 text-gray-700 group-hover:text-[#69773D] transition-colors" />
+              <ShoppingCart className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
               {getTotalItems() > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-red-500 to-red-600 text-white text-[10px] rounded-full flex items-center justify-center font-bold shadow-lg animate-pulse">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-gradient-to-br from-red-500 to-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
                   {getTotalItems() > 9 ? "9+" : getTotalItems()}
                 </span>
               )}
             </Link>
 
-            <div className="transform hover:scale-110 transition-all duration-300">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50/60 transition-all duration-300 border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5">
               <NotificationBell />
             </div>
 
             <Link
               href={profileLink}
-              className="p-2.5 rounded-full hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 transform hover:scale-110 hover:shadow-md group"
+              className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50/60 transition-all duration-300 group border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5"
               title="Profile"
             >
-              <User className="w-5 h-5 text-gray-700 group-hover:text-[#69773D] transition-colors" />
+              <User className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
             </Link>
           </div>
 
           {/* Mobile Hamburger */}
           <button
-            className="lg:hidden p-2 rounded-lg hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 hover:shadow-md"
+            className="lg:hidden p-2.5 rounded-xl hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50/60 transition-all duration-300 border border-transparent hover:border-[#69773D]/10"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-gray-700 transition-transform duration-300 rotate-90" />
+              <X className="w-6 h-6 text-gray-800 hover:text-[#69773D] transition-all duration-300 rotate-90" />
             ) : (
-              <Menu className="w-6 h-6 text-gray-700 transition-transform duration-300" />
+              <Menu className="w-6 h-6 text-gray-800 hover:text-[#69773D] transition-all duration-300" />
             )}
           </button>
         </div>
