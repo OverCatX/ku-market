@@ -1,9 +1,46 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import Order from "../../data/models/Order";
 import Cart from "../../data/models/Cart";
-import Item from "../../data/models/Item";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../middlewares/authentication";
+
+interface PopulatedItem {
+  _id: mongoose.Types.ObjectId;
+  title: string;
+  price: number;
+  photo?: string[];
+  owner: {
+    _id: mongoose.Types.ObjectId;
+    name?: string;
+  };
+  approvalStatus?: string;
+  status?: string;
+}
+
+interface PopulatedSeller {
+  _id: mongoose.Types.ObjectId;
+  name?: string;
+}
+
+interface PopulatedBuyer {
+  _id: mongoose.Types.ObjectId;
+  name?: string;
+  kuEmail?: string;
+}
+
+interface OrderItem {
+  itemId: mongoose.Types.ObjectId;
+  title: string;
+  price: number;
+  quantity: number;
+  image?: string;
+}
+
+interface OrderFilter {
+  buyer?: mongoose.Types.ObjectId;
+  seller?: mongoose.Types.ObjectId;
+  status?: string;
+}
 
 export default class OrderController {
   /**
@@ -48,10 +85,10 @@ export default class OrderController {
       }
 
       // Group items by seller
-      const itemsBySeller = new Map<string, any[]>();
+      const itemsBySeller = new Map<string, OrderItem[]>();
       
       for (const cartItem of cart.items) {
-        const item = cartItem.itemId as any;
+        const item = cartItem.itemId as unknown as PopulatedItem;
         if (!item || !item.owner) {
           return res.status(400).json({
             success: false,
@@ -147,9 +184,9 @@ export default class OrderController {
       }
 
       const { status } = req.query;
-      const filter: any = { buyer: new mongoose.Types.ObjectId(userId) };
+      const filter: OrderFilter = { buyer: new mongoose.Types.ObjectId(userId) };
 
-      if (status && ["pending_seller_confirmation", "confirmed", "rejected", "completed", "cancelled"].includes(status as string)) {
+      if (status && typeof status === "string" && ["pending_seller_confirmation", "confirmed", "rejected", "completed", "cancelled"].includes(status)) {
         filter.status = status;
       }
 
@@ -162,8 +199,8 @@ export default class OrderController {
         orders: orders.map((order) => ({
           id: order._id,
           seller: {
-            id: (order.seller as any)._id,
-            name: (order.seller as any).name,
+            id: (order.seller as unknown as PopulatedSeller)._id,
+            name: (order.seller as unknown as PopulatedSeller).name,
           },
           items: order.items,
           totalPrice: order.totalPrice,
@@ -226,13 +263,13 @@ export default class OrderController {
         order: {
           id: order._id,
           buyer: {
-            id: (order.buyer as any)._id,
-            name: (order.buyer as any).name,
-            email: (order.buyer as any).kuEmail,
+            id: (order.buyer as unknown as PopulatedBuyer)._id,
+            name: (order.buyer as unknown as PopulatedBuyer).name,
+            email: (order.buyer as unknown as PopulatedBuyer).kuEmail,
           },
           seller: {
-            id: (order.seller as any)._id,
-            name: (order.seller as any).name,
+            id: (order.seller as unknown as PopulatedSeller)._id,
+            name: (order.seller as unknown as PopulatedSeller).name,
           },
           items: order.items,
           totalPrice: order.totalPrice,

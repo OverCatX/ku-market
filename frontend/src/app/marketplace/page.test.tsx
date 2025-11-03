@@ -12,6 +12,12 @@ import type { MockListItems } from "@/test/types/test-types";
 import { createMockItem, createMockResponse } from "@/test/types/test-types";
 
 jest.mock("@/config/items");
+jest.mock("@/config/categories", () => ({
+  getCategories: jest.fn().mockResolvedValue([
+    { id: "1", name: "Electronics", slug: "electronics" },
+    { id: "2", name: "Books", slug: "books" },
+  ]),
+}));
 
 jest.mock("@/components/Marketplace/ItemCard", () => {
   return function ItemCard({

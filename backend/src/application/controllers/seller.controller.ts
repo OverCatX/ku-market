@@ -71,9 +71,13 @@ export default class SellerController {
 
       // Get query parameters
       const { status } = req.query;
-      const filter: any = { seller: new mongoose.Types.ObjectId(userId) };
+      interface OrderFilter {
+        seller: mongoose.Types.ObjectId;
+        status?: string;
+      }
+      const filter: OrderFilter = { seller: new mongoose.Types.ObjectId(userId) };
 
-      if (status && ["pending_seller_confirmation", "confirmed", "rejected", "completed", "cancelled"].includes(status as string)) {
+      if (status && typeof status === "string" && ["pending_seller_confirmation", "confirmed", "rejected", "completed", "cancelled"].includes(status)) {
         filter.status = status;
       }
 
@@ -82,28 +86,37 @@ export default class SellerController {
         .populate("buyer", "name kuEmail")
         .sort({ createdAt: -1 });
 
+      interface PopulatedBuyer {
+        _id: mongoose.Types.ObjectId;
+        name?: string;
+        kuEmail?: string;
+      }
+      
       return res.json({
-        orders: orders.map((order) => ({
-          id: order._id,
-          buyer: {
-            id: (order.buyer as any)._id,
-            name: (order.buyer as any).name,
-            email: (order.buyer as any).kuEmail,
-          },
-          items: order.items,
-          totalPrice: order.totalPrice,
-          status: order.status,
-          deliveryMethod: order.deliveryMethod,
-          shippingAddress: order.shippingAddress,
-          paymentMethod: order.paymentMethod,
-          buyerContact: order.buyerContact,
-          confirmedAt: order.confirmedAt,
-          rejectedAt: order.rejectedAt,
-          rejectionReason: order.rejectionReason,
-          completedAt: order.completedAt,
-          createdAt: order.createdAt,
-          updatedAt: order.updatedAt,
-        })),
+        orders: orders.map((order) => {
+          const buyer = order.buyer as unknown as PopulatedBuyer;
+          return {
+            id: order._id,
+            buyer: {
+              id: buyer._id,
+              name: buyer.name,
+              email: buyer.kuEmail,
+            },
+            items: order.items,
+            totalPrice: order.totalPrice,
+            status: order.status,
+            deliveryMethod: order.deliveryMethod,
+            shippingAddress: order.shippingAddress,
+            paymentMethod: order.paymentMethod,
+            buyerContact: order.buyerContact,
+            confirmedAt: order.confirmedAt,
+            rejectedAt: order.rejectedAt,
+            rejectionReason: order.rejectionReason,
+            completedAt: order.completedAt,
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt,
+          };
+        }),
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to get orders";
