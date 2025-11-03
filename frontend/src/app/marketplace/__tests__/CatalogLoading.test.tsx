@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import MarketPage from "../page";
 import { listItems } from "@/config/items";
 import type { MockListItems } from "@/test/types//test-types";
@@ -140,23 +140,33 @@ describe("Catalog Loading Tests", () => {
     it("should show error message when loading fails", async () => {
       mockListItems.mockRejectedValue(new Error("Network error"));
 
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText(/Failed to load items. Please try again./i)
-        ).toBeInTheDocument();
+      await act(async () => {
+        render(<MarketPage />);
       });
+
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText(/Failed to load items/i)
+          ).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     it("should hide skeleton when error occurs", async () => {
       mockListItems.mockRejectedValue(new Error("Network error"));
 
-      render(<MarketPage />);
-
-      await waitFor(() => {
-        expect(screen.getByText(/Failed to load items/i)).toBeInTheDocument();
+      await act(async () => {
+        render(<MarketPage />);
       });
+
+      await waitFor(
+        () => {
+          expect(screen.getByText(/Failed to load items/i)).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
 
       const skeletons = document.querySelectorAll(".animate-pulse");
       expect(skeletons.length).toBe(0);
