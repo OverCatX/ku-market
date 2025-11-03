@@ -10,12 +10,14 @@ import cartRoutes from "./application/routes/cart";
 import adminRoutes from "./application/routes/admin";
 import sellerRoutes from "./application/routes/seller";
 import orderRoutes from "./application/routes/order";
+import healthRoutes from "./application/routes/health";
 
 const app: Application = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
 
+app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/items", itemRoutes);

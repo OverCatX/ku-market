@@ -5,7 +5,7 @@ export interface ICartItem {
   quantity: number;
   addedAt: Date;
 }
-
+ 
 export interface ICart extends Document {
   userId: Types.ObjectId;
   items: ICartItem[];
