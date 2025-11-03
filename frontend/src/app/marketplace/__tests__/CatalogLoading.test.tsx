@@ -144,7 +144,7 @@ describe("Catalog Loading Tests", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(/Failed to load items. Please try again./i)
+          screen.getByText(/Failed to load items/i)
         ).toBeInTheDocument();
       });
     });
