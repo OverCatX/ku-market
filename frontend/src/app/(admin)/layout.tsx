@@ -8,6 +8,7 @@ import {
   Store,
   Users,
   Package,
+  FolderTree,
   LogOut,
   Menu,
   X,
@@ -29,6 +30,7 @@ const navItems: NavItem[] = [
   { label: "Verifications", path: "/admin/verifications", icon: FileCheck },
   { label: "Shop Requests", path: "/admin/shops", icon: Store },
   { label: "Items", path: "/admin/items", icon: Package },
+  { label: "Categories", path: "/admin/categories", icon: FolderTree },
   { label: "Users", path: "/admin/users", icon: Users },
 ];
 

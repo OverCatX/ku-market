@@ -238,3 +238,92 @@ export async function rejectItem(
     throw new Error(errorData.error || "Failed to reject item");
   }
 }
+
+// Category Management
+export interface CategoryData {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export async function getCategories(token: string): Promise<CategoryData[]> {
+  const res = await fetch(`${API_BASE}/api/admin/categories`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to get categories");
+  }
+  const data = await res.json();
+  return data.categories || [];
+}
+
+export async function createCategory(
+  token: string,
+  category: {
+    name: string;
+    description?: string;
+    isActive?: boolean;
+  }
+): Promise<CategoryData> {
+  const res = await fetch(`${API_BASE}/api/admin/categories`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(category),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to create category");
+  }
+  const data = await res.json();
+  return data.category;
+}
+
+export async function updateCategory(
+  token: string,
+  id: string,
+  updates: {
+    name?: string;
+    description?: string;
+    isActive?: boolean;
+  }
+): Promise<CategoryData> {
+  const res = await fetch(`${API_BASE}/api/admin/categories/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updates),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to update category");
+  }
+  const data = await res.json();
+  return data.category;
+}
+
+export async function deleteCategory(token: string, id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/categories/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to delete category");
+  }
+}

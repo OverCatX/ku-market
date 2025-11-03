@@ -6,9 +6,8 @@ import { Upload, X, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { API_BASE } from "@/config/constants";
+import { getCategories, Category } from "@/config/categories";
 import Link from "next/link";
-
-type Category = "Electronics" | "Books" | "Fashion" | "Dorm" | "Other";
 
 interface ItemData {
   id: string;
@@ -33,10 +32,22 @@ export default function EditItemPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [category, setCategory] = useState<Category>("Other");
+  const [category, setCategory] = useState<string>("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [newImages, setNewImages] = useState<File[]>([]);
   const [removedImages, setRemovedImages] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    getCategories()
+      .then((cats) => {
+        setCategories(cats);
+      })
+      .catch((error) => {
+        console.error("Failed to load categories:", error);
+        toast.error("Failed to load categories");
+      });
+  }, []);
 
   const canEdit = useMemo(() => item?.approvalStatus === "approved", [item]);
 
@@ -284,15 +295,20 @@ export default function EditItemPage() {
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
+              onChange={(e) => setCategory(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               required
+              disabled={categories.length === 0}
             >
-              <option value="Electronics">Electronics</option>
-              <option value="Books">Books</option>
-              <option value="Fashion">Fashion</option>
-              <option value="Dorm">Dorm</option>
-              <option value="Other">Other</option>
+              {categories.length === 0 ? (
+                <option value="">Loading categories...</option>
+              ) : (
+                categories.map((cat) => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))
+              )}
             </select>
           </div>
         </div>

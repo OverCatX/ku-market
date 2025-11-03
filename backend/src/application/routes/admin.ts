@@ -1,10 +1,12 @@
 import { Router } from "express";
 import AdminController from "../controllers/admin.controller";
+import CategoryController from "../controllers/category.controller";
 import { authenticate } from "../middlewares/authentication";
 import { adminMiddleware } from "../middlewares/admin";
 
 const router = Router();
 const adminController = new AdminController();
+const categoryController = new CategoryController();
 
 // Bootstrap admin (no auth required, only works if no admin exists)
 router.post("/bootstrap", adminController.bootstrapAdmin);
@@ -35,6 +37,12 @@ router.delete("/users/:userId", authenticate, adminMiddleware, adminController.d
 router.get("/items", authenticate, adminMiddleware, adminController.getItems);
 router.patch("/items/:id/approve", authenticate, adminMiddleware, adminController.approveItem);
 router.patch("/items/:id/reject", authenticate, adminMiddleware, adminController.rejectItem);
+
+// Category management
+router.get("/categories", authenticate, adminMiddleware, categoryController.getCategories);
+router.post("/categories", authenticate, adminMiddleware, categoryController.createCategory);
+router.patch("/categories/:id", authenticate, adminMiddleware, categoryController.updateCategory);
+router.delete("/categories/:id", authenticate, adminMiddleware, categoryController.deleteCategory);
 
 export default router;
 

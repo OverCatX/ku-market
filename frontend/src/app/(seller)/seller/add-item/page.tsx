@@ -1,22 +1,36 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, X } from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { API_BASE } from "@/config/constants";
-
-type Category = "Electronics" | "Books" | "Fashion" | "Dorm" | "Other";
+import { getCategories, Category } from "@/config/categories";
 
 export default function AddItemPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [category, setCategory] = useState<Category>("Other");
+  const [category, setCategory] = useState<string>("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [images, setImages] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    getCategories()
+      .then((cats) => {
+        setCategories(cats);
+        if (cats.length > 0 && !category) {
+          setCategory(cats[0].name);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load categories:", error);
+        toast.error("Failed to load categories");
+      });
+  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -171,15 +185,20 @@ export default function AddItemPage() {
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
+              onChange={(e) => setCategory(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               required
+              disabled={categories.length === 0}
             >
-              <option value="Electronics">Electronics</option>
-              <option value="Books">Books</option>
-              <option value="Fashion">Fashion</option>
-              <option value="Dorm">Dorm</option>
-              <option value="Other">Other</option>
+              {categories.length === 0 ? (
+                <option value="">Loading categories...</option>
+              ) : (
+                categories.map((cat) => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))
+              )}
             </select>
           </div>
         </div>
