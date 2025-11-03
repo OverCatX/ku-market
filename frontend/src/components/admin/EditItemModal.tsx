@@ -78,7 +78,7 @@ const EditItemModal = memo(function EditItemModal({
 
       await onSave(filteredData);
       onClose();
-    } catch (error) {
+    } catch {
       // Error already handled in onSave
     } finally {
       setSubmitting(false);

@@ -49,7 +49,7 @@ export async function getCategories(): Promise<Category[]> {
 
     const data = await res.json();
     return data.categories || [];
-  } catch (error) {
+  } catch {
     // Any other error - return fallback categories silently
     return [
       { id: "1", name: "Electronics", slug: "electronics" },

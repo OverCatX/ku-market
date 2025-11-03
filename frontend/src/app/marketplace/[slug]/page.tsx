@@ -119,7 +119,7 @@ export default function Page() {
     // It will automatically handle expired tokens
 
     try {
-      const { createReview: createReviewAPI, getItemReviews, getReviewSummary } = await import("@/config/reviews");
+      const { createReview: createReviewAPI, getReviewSummary } = await import("@/config/reviews");
       
       // Validate before submitting
       if (!data.rating || data.rating < 1 || data.rating > 5) {

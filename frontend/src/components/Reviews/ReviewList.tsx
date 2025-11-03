@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { MessageSquare } from "lucide-react";
 import { Review, ReviewSummary as ReviewSummaryType } from "@/types/review";
 import ReviewSummary from "./ReviewSummary";

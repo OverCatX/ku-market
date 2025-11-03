@@ -85,7 +85,8 @@ export async function listItems(
     }
 
     if (!res.ok) {
-      const errorText = await res.text().catch(() => "Unknown error");
+      // Error occurred, return empty result
+      await res.text().catch(() => "Unknown error");
       return {
         success: false,
         data: {

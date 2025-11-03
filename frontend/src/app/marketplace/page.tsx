@@ -103,7 +103,7 @@ export default function MarketPage() {
             
             const itemsWithRatings = await Promise.all(ratingsPromises);
             setItemsWithRating(itemsWithRatings);
-          } catch (err) {
+          } catch {
             // If fetching ratings fails, just use items without ratings
             setItemsWithRating(res.data.items.map(item => ({ ...item, rating: 0, totalReviews: 0 })));
           }
