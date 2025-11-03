@@ -110,7 +110,9 @@ export default function FeaturedProducts() {
             <p className="text-gray-500 text-lg">No featured products available yet.</p>
             <Link
               href="/marketplace"
-              className="inline-block mt-4 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="inline-block mt-4 px-8 py-4 rounded-xl font-semibold text-white 
+               bg-gradient-to-r from-[#4B5D34] to-[#7BAA5F] 
+               shadow-lg transition-all hover:shadow-xl hover:scale-105"
             >
               Browse Marketplace
             </Link>
