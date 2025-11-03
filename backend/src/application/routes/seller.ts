@@ -13,8 +13,8 @@ router.get("/stats", sellerController.getStats);
 
 // Orders management
 router.get("/orders", sellerController.getOrders);
-router.post("/orders/:orderId/confirm", sellerController.confirmOrder);
-router.post("/orders/:orderId/reject", sellerController.rejectOrder);
+router.patch("/orders/:orderId/confirm", sellerController.confirmOrder);
+router.patch("/orders/:orderId/reject", sellerController.rejectOrder);
 
 // Items management
 router.get("/items", sellerController.getItems);

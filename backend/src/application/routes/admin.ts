@@ -31,5 +31,10 @@ router.post("/users/:userId/promote", authenticate, adminMiddleware, adminContro
 router.post("/users/:userId/demote", authenticate, adminMiddleware, adminController.demoteAdmin);
 router.delete("/users/:userId", authenticate, adminMiddleware, adminController.deleteAdmin);
 
+// Item management
+router.get("/items", authenticate, adminMiddleware, adminController.getItems);
+router.patch("/items/:id/approve", authenticate, adminMiddleware, adminController.approveItem);
+router.patch("/items/:id/reject", authenticate, adminMiddleware, adminController.rejectItem);
+
 export default router;
 

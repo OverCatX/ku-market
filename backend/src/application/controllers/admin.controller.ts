@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Verification from "../../data/models/Verification";
 import Shop from "../../data/models/Shop";
 import User from "../../data/models/User";
+import Item from "../../data/models/Item";
 import mongoose from "mongoose";
 
 interface AuthenticatedRequest extends Request {
@@ -287,12 +288,14 @@ export default class AdminController {
         pendingVerifications,
         totalShops,
         pendingShops,
+        pendingItems,
       ] = await Promise.all([
         User.countDocuments(),
         Verification.countDocuments(),
         Verification.countDocuments({ status: "pending" }),
         Shop.countDocuments(),
         Shop.countDocuments({ shopStatus: "pending" }),
+        Item.countDocuments({ approvalStatus: "pending" }),
       ]);
 
       return res.json({
@@ -303,6 +306,7 @@ export default class AdminController {
           pendingVerifications,
           totalShops,
           pendingShops,
+          pendingItems,
         },
       });
     } catch (error) {
@@ -542,6 +546,155 @@ export default class AdminController {
       });
     } catch (error) {
       console.error("Clear admins error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // GET /api/admin/items - Get all items for approval
+  getItems = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { approvalStatus, status } = req.query;
+      const filter: { approvalStatus?: string; status?: string } = {};
+
+      if (approvalStatus && typeof approvalStatus === "string" && ["pending", "approved", "rejected"].includes(approvalStatus)) {
+        filter.approvalStatus = approvalStatus;
+      } else {
+        // Default to pending items
+        filter.approvalStatus = "pending";
+      }
+
+      if (status && typeof status === "string" && ["available", "reserved", "sold"].includes(status)) {
+        filter.status = status;
+      }
+
+      interface PopulatedOwner {
+        _id: mongoose.Types.ObjectId;
+        name: string;
+        kuEmail: string;
+      }
+
+      const items = await Item.find(filter)
+        .populate("owner", "name kuEmail")
+        .sort({ createAt: -1 });
+
+      return res.json({
+        success: true,
+        items: items.map((item) => {
+          const owner = item.owner as unknown as PopulatedOwner;
+          return {
+            id: item._id,
+            title: item.title,
+            description: item.description,
+            category: item.category,
+            price: item.price,
+            status: item.status,
+            approvalStatus: item.approvalStatus,
+            photo: item.photo,
+            owner: {
+              id: owner._id,
+              name: owner.name,
+              email: owner.kuEmail,
+            },
+            createdAt: (item as unknown as { createdAt?: Date }).createdAt || item.createAt || new Date(),
+            updatedAt: (item as unknown as { updatedAt?: Date }).updatedAt || item.updateAt || new Date(),
+          };
+        }),
+      });
+    } catch (error) {
+      console.error("Get items error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // PATCH /api/admin/items/:id/approve - Approve an item
+  approveItem = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { id } = req.params;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid item ID" });
+      }
+
+      const item = await Item.findById(id);
+      if (!item) {
+        return res.status(404).json({ success: false, error: "Item not found" });
+      }
+
+      if (item.approvalStatus === "approved") {
+        return res.status(400).json({
+          success: false,
+          error: "Item is already approved",
+        });
+      }
+
+      item.approvalStatus = "approved";
+      await item.save();
+
+      return res.json({
+        success: true,
+        message: "Item approved successfully",
+        item: {
+          id: item._id,
+          title: item.title,
+          approvalStatus: item.approvalStatus,
+        },
+      });
+    } catch (error) {
+      console.error("Approve item error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // PATCH /api/admin/items/:id/reject - Reject an item
+  rejectItem = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid item ID" });
+      }
+
+      const item = await Item.findById(id);
+      if (!item) {
+        return res.status(404).json({ success: false, error: "Item not found" });
+      }
+
+      if (item.approvalStatus === "rejected") {
+        return res.status(400).json({
+          success: false,
+          error: "Item is already rejected",
+        });
+      }
+
+      item.approvalStatus = "rejected";
+      if (reason) {
+        item.rejectionReason = reason;
+      }
+      await item.save();
+
+      return res.json({
+        success: true,
+        message: "Item rejected successfully",
+        item: {
+          id: item._id,
+          title: item.title,
+          approvalStatus: item.approvalStatus,
+          rejectionReason: item.rejectionReason,
+        },
+      });
+    } catch (error) {
+      console.error("Reject item error:", error);
       return res.status(500).json({ success: false, error: "Server error" });
     }
   };
