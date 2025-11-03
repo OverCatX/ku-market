@@ -117,10 +117,6 @@ export default function MarketPage() {
   }, [fetchItems]);
 
   const statusOptions = ["", "available", "reserved", "sold"] as const;
-  const categoryOptions = useMemo(() => {
-    const allCategories = ["", ...categories.map(cat => cat.slug)];
-    return allCategories;
-  }, [categories]);
   const sortOptions: { label: string; value: SortOptions }[] = [
     { label: "Sort By", value: "" },
     { label: "Price", value: "price" },

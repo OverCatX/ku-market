@@ -30,6 +30,7 @@ export default function AddItemPage() {
         console.error("Failed to load categories:", error);
         toast.error("Failed to load categories");
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,7 +108,7 @@ export default function AddItemPage() {
         throw new Error(errorMessage);
       }
 
-      const data = await response.json();
+      await response.json();
       
       toast.success("Item added successfully! It will be reviewed by admin before being published.");
       router.push("/seller/items");

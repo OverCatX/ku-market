@@ -71,8 +71,8 @@ export default function EditItemPage() {
         throw new Error("Failed to load item");
       }
 
-      const data = await response.json();
-      const itemData = data.item as ItemData;
+      const responseData = await response.json();
+      const itemData = responseData.item as ItemData;
       
       if (itemData.approvalStatus !== "approved") {
         toast.error("You can only edit approved items");
@@ -84,7 +84,7 @@ export default function EditItemPage() {
       setTitle(itemData.title);
       setDescription(itemData.description);
       setPrice(itemData.price.toString());
-      setCategory(itemData.category as Category);
+      setCategory(itemData.category);
       setExistingImages(itemData.photo || []);
     } catch (error) {
       console.error("Load error:", error);
@@ -109,7 +109,7 @@ export default function EditItemPage() {
     const toAdd = validImages.slice(0, Math.min(remainingSlots, 5));
     
     setNewImages((prev) => [...prev, ...toAdd]);
-  }, [existingImages.length, removedImages.size]);
+  }, [existingImages.length, removedImages.size, newImages.length]);
 
   const removeExistingImage = useCallback((index: number) => {
     setRemovedImages((prev) => new Set(prev).add(index));
