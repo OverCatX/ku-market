@@ -9,6 +9,7 @@ import {
   Clock,
   CheckCircle,
 } from "lucide-react";
+import { API_BASE } from "@/config/constants";
 
 interface DashboardStats {
   totalOrders: number;
@@ -27,27 +28,28 @@ interface StatCardProps {
 
 function StatCard({ title, value, icon: Icon, color, trend }: StatCardProps) {
   return (
-    <div
-      className="bg-white rounded-lg shadow-sm p-6 border-l-4"
-      style={{ borderColor: color }}
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
+    <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border-l-4 relative overflow-hidden group">
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent to-gray-50/50 opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderColor: color }} />
+      <div className="relative flex items-center justify-between">
+        <div className="flex-1">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{title}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-3">{value}</p>
           {trend && (
-            <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+            <p className="text-sm text-emerald-600 mt-2 flex items-center gap-1 font-medium">
               <TrendingUp size={14} />
               {trend}
             </p>
           )}
         </div>
         <div
-          className="w-12 h-12 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: color + "20" }}
+          className="w-14 h-14 rounded-xl flex items-center justify-center shadow-md transition-transform group-hover:scale-110"
+          style={{ backgroundColor: color + "15", border: `2px solid ${color}40` }}
         >
-          <Icon size={24} style={{ color }} />
+          <Icon size={28} style={{ color }} />
         </div>
+      </div>
+      <div className="absolute top-0 right-0 w-20 h-20 opacity-10" style={{ borderColor: color }}>
+        <div className="absolute inset-0 rounded-full" style={{ backgroundColor: color, transform: "translate(30%, -30%)" }} />
       </div>
     </div>
   );
@@ -70,26 +72,35 @@ export default function SellerDashboard() {
     setLoading(true);
     try {
       const token = localStorage.getItem("authentication");
-      if (!token) return;
-
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${API_BASE}/api/seller/stats`, {
-      //   headers: { Authorization: `Bearer ${token}` }
-      // });
-      // const data = await response.json();
-
-      // Simulate data for now
-      setTimeout(() => {
-        setStats({
-          totalOrders: 24,
-          pendingOrders: 5,
-          totalItems: 12,
-          totalRevenue: 15600,
-        });
+      if (!token) {
         setLoading(false);
-      }, 500);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/api/seller/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load stats");
+      }
+
+      const data = await response.json();
+      setStats({
+        totalOrders: data.totalOrders || 0,
+        pendingOrders: data.pendingOrders || 0,
+        totalItems: data.totalItems || 0,
+        totalRevenue: data.totalRevenue || 0,
+      });
     } catch (error) {
       console.error("Failed to load stats:", error);
+      setStats({
+        totalOrders: 0,
+        pendingOrders: 0,
+        totalItems: 0,
+        totalRevenue: 0,
+      });
+    } finally {
       setLoading(false);
     }
   };
@@ -111,10 +122,15 @@ export default function SellerDashboard() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">
-          Welcome back! Here&apos;s your store overview.
-        </p>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-1 h-8 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-full"></div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-gray-600 mt-1">
+              Welcome back! Here&apos;s your store overview.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -124,7 +140,6 @@ export default function SellerDashboard() {
           value={stats.totalOrders}
           icon={ShoppingBag}
           color="#3B82F6"
-          trend="+12% from last month"
         />
         <StatCard
           title="Pending Orders"
@@ -143,24 +158,26 @@ export default function SellerDashboard() {
           value={`฿${stats.totalRevenue.toLocaleString()}`}
           icon={DollarSign}
           color="#8B5CF6"
-          trend="+8% from last month"
         />
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+      <div className="bg-white rounded-xl shadow-md p-6 mb-8 border border-gray-100">
+        <h2 className="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+          <div className="w-1 h-6 bg-emerald-500 rounded-full"></div>
+          Quick Actions
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <a
             href="/seller/add-item"
-            className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all group"
+            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-emerald-400 hover:bg-gradient-to-br hover:from-emerald-50 hover:to-teal-50 transition-all group hover:shadow-md"
           >
-            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-200 transition-colors">
-              <Package size={20} className="text-green-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center group-hover:from-emerald-200 group-hover:to-emerald-300 transition-all shadow-sm">
+              <Package size={22} className="text-emerald-600 group-hover:scale-110 transition-transform" />
             </div>
             <div>
-              <div className="font-medium text-gray-900">Add New Item</div>
-              <div className="text-sm text-gray-600">
+              <div className="font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">Add New Item</div>
+              <div className="text-sm text-gray-600 group-hover:text-gray-700">
                 List a product for sale
               </div>
             </div>
@@ -168,51 +185,62 @@ export default function SellerDashboard() {
 
           <a
             href="/seller/orders"
-            className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
+            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-blue-400 hover:bg-gradient-to-br hover:from-blue-50 hover:to-cyan-50 transition-all group hover:shadow-md"
           >
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-              <ShoppingBag size={20} className="text-blue-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center group-hover:from-blue-200 group-hover:to-blue-300 transition-all shadow-sm">
+              <ShoppingBag size={22} className="text-blue-600 group-hover:scale-110 transition-transform" />
             </div>
             <div>
-              <div className="font-medium text-gray-900">View Orders</div>
-              <div className="text-sm text-gray-600">Manage your orders</div>
+              <div className="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">View Orders</div>
+              <div className="text-sm text-gray-600 group-hover:text-gray-700">Manage your orders</div>
             </div>
           </a>
 
           <a
             href="/seller/items"
-            className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all group"
+            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-purple-400 hover:bg-gradient-to-br hover:from-purple-50 hover:to-pink-50 transition-all group hover:shadow-md"
           >
-            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-              <CheckCircle size={20} className="text-purple-600" />
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center group-hover:from-purple-200 group-hover:to-purple-300 transition-all shadow-sm">
+              <CheckCircle size={22} className="text-purple-600 group-hover:scale-110 transition-transform" />
             </div>
             <div>
-              <div className="font-medium text-gray-900">Manage Items</div>
-              <div className="text-sm text-gray-600">Edit your listings</div>
+              <div className="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">Manage Items</div>
+              <div className="text-sm text-gray-600 group-hover:text-gray-700">Edit your listings</div>
             </div>
           </a>
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+        <h2 className="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+          <div className="w-1 h-6 bg-emerald-500 rounded-full"></div>
           Recent Activity
         </h2>
         <div className="space-y-4">
           {stats.pendingOrders > 0 ? (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div className="flex items-center gap-2 text-yellow-800">
-                <Clock size={20} />
-                <span className="font-medium">
-                  You have {stats.pendingOrders} pending order
-                  {stats.pendingOrders > 1 ? "s" : ""} waiting for confirmation
-                </span>
+            <div className="p-5 bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-400 rounded-xl shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <Clock size={22} className="text-amber-600" />
+                </div>
+                <div>
+                  <span className="font-semibold text-amber-900 block">
+                    {stats.pendingOrders} Pending Order{stats.pendingOrders > 1 ? "s" : ""}
+                  </span>
+                  <span className="text-sm text-amber-700 mt-0.5 block">
+                    Waiting for your confirmation
+                  </span>
+                </div>
               </div>
             </div>
           ) : (
-            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center text-gray-600">
-              No pending orders at the moment
+            <div className="p-5 bg-gray-50 border border-gray-200 rounded-xl text-center">
+              <div className="flex flex-col items-center gap-2">
+                <CheckCircle size={32} className="text-gray-400" />
+                <p className="text-gray-600 font-medium">No pending orders at the moment</p>
+                <p className="text-sm text-gray-500">All caught up!</p>
+              </div>
             </div>
           )}
         </div>

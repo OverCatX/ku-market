@@ -57,6 +57,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "";
 
+      // Network/server connection errors - fallback to local storage
+      if (
+        errorMessage.toLowerCase().includes("failed to fetch") ||
+        errorMessage.toLowerCase().includes("cannot connect to server") ||
+        errorMessage.toLowerCase().includes("network error")
+      ) {
+        console.warn(
+          "⚠️ Cannot connect to backend. Using local cart storage."
+        );
+        const saved = localStorage.getItem("cart");
+        if (saved) {
+          try {
+            setItems(JSON.parse(saved));
+          } catch {
+            setItems([]);
+          }
+        }
+        setLoading(false);
+        return;
+      }
+
       // If token is invalid, clear it and use guest mode
       if (
         errorMessage.toLowerCase().includes("invalid token") ||

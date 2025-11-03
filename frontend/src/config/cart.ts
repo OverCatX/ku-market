@@ -32,7 +32,26 @@ export async function getCart(token: string): Promise<CartResponse> {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
+    }).catch((fetchError) => {
+      console.error("❌ Network error:", fetchError);
+      throw new Error(
+        fetchError instanceof TypeError && fetchError.message.includes("Failed to fetch")
+          ? "Cannot connect to server. Please check if the backend is running."
+          : fetchError instanceof Error
+          ? fetchError.message
+          : "Network error occurred"
+      );
     });
+
+    if (!res.ok) {
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || json.message || `Server error: ${res.status}`);
+      } else {
+        throw new Error(`Server error: ${res.status} ${res.statusText}`);
+      }
+    }
 
     const contentType = res.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
@@ -41,10 +60,6 @@ export async function getCart(token: string): Promise<CartResponse> {
     }
 
     const json = await res.json();
-
-    if (!res.ok) {
-      throw new Error(json.error || json.message || "Failed to get cart");
-    }
 
     console.log(`✅ Got cart: ${json.items?.length || 0} items`);
     return json;

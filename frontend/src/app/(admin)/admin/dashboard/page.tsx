@@ -3,13 +3,14 @@
 import { useEffect, useState, memo } from "react";
 import { getStats } from "@/config/admin";
 import toast from "react-hot-toast";
-import { Users, FileCheck, Store, TrendingUp } from "lucide-react";
+import { Users, FileCheck, Store, Package } from "lucide-react";
 import Link from "next/link";
 
 interface AdminStats {
   totalUsers: number;
   pendingVerifications: number;
   pendingShops: number;
+  pendingItems?: number;
 }
 
 interface StatCardProps {
@@ -120,10 +121,11 @@ export default function AdminDashboard() {
             link="/admin/shops"
           />
           <StatCard
-            icon={TrendingUp}
-            label="Active Items"
-            value={0}
+            icon={Package}
+            label="Pending Items"
+            value={stats.pendingItems || 0}
             color="green"
+            link="/admin/items"
           />
         </div>
       )}
@@ -159,6 +161,20 @@ export default function AdminDashboard() {
               </div>
               <div className="text-sm text-gray-600">
                 Approve or reject new shop applications
+              </div>
+            </div>
+          </Link>
+          <Link
+            href="/admin/items"
+            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all"
+          >
+            <Package className="text-green-600" size={24} />
+            <div>
+              <div className="font-semibold text-gray-900">
+                Review Items
+              </div>
+              <div className="text-sm text-gray-600">
+                Approve or reject item listings
               </div>
             </div>
           </Link>

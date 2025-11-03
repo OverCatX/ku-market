@@ -1,39 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, X } from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { API_BASE } from "@/config/constants";
-
-type Category = "Electronics" | "Books" | "Fashion" | "Dorm" | "Other";
+import { getCategories, Category } from "@/config/categories";
 
 export default function AddItemPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [category, setCategory] = useState<Category>("Other");
+  const [category, setCategory] = useState<string>("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [images, setImages] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    getCategories()
+      .then((cats) => {
+        setCategories(cats);
+        if (cats.length > 0 && !category) {
+          setCategory(cats[0].name);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load categories:", error);
+        toast.error("Failed to load categories");
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    const newImages: File[] = [];
-    for (let i = 0; i < Math.min(files.length, 3); i++) {
+    const validFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
       if (files[i].type.startsWith("image/")) {
-        newImages.push(files[i]);
+        validFiles.push(files[i]);
       }
     }
-    setImages(newImages);
+
+    const remainingSlots = 5 - images.length;
+    const toAdd = validFiles.slice(0, remainingSlots);
+    
+    if (toAdd.length === 0 && validFiles.length > 0) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+
+    setImages((prev) => [...prev, ...toAdd]);
+    // Reset input
+    e.target.value = "";
   };
 
-  const removeImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index));
-  };
+  const removeImage = useCallback((index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +94,7 @@ export default function AddItemPage() {
         formData.append("photos", img);
       });
 
-      const response = await fetch(`${API_BASE}/api/items/upload`, {
+      const response = await fetch(`${API_BASE}/api/items/create`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -77,10 +103,14 @@ export default function AddItemPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to upload item");
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || errorData.message || "Failed to upload item";
+        throw new Error(errorMessage);
       }
 
-      toast.success("Item added successfully!");
+      await response.json();
+      
+      toast.success("Item added successfully! It will be reviewed by admin before being published.");
       router.push("/seller/items");
     } catch (error) {
       console.error("Upload error:", error);
@@ -156,15 +186,20 @@ export default function AddItemPage() {
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
+              onChange={(e) => setCategory(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               required
+              disabled={categories.length === 0}
             >
-              <option value="Electronics">Electronics</option>
-              <option value="Books">Books</option>
-              <option value="Fashion">Fashion</option>
-              <option value="Dorm">Dorm</option>
-              <option value="Other">Other</option>
+              {categories.length === 0 ? (
+                <option value="">Loading categories...</option>
+              ) : (
+                categories.map((cat) => (
+                  <option key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))
+              )}
             </select>
           </div>
         </div>
@@ -172,17 +207,17 @@ export default function AddItemPage() {
         {/* Images */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Images * (Max 3)
+            Images * (Max 5)
           </label>
 
-          {images.length < 3 && (
+          {images.length < 5 && (
             <label className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-green-500 hover:bg-green-50 transition-colors">
               <Upload size={48} className="text-gray-400 mb-2" />
               <span className="text-sm text-gray-600">
                 Click to upload images
               </span>
               <span className="text-xs text-gray-500 mt-1">
-                PNG, JPG up to 5MB
+                PNG, JPG up to 5MB (Max 5 images)
               </span>
               <input
                 type="file"
@@ -195,27 +230,37 @@ export default function AddItemPage() {
           )}
 
           {images.length > 0 && (
-            <div className="grid grid-cols-3 gap-4 mt-4">
-              {images.map((img, index) => (
-                <div
-                  key={index}
-                  className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden"
-                >
-                  <Image
-                    src={URL.createObjectURL(img)}
-                    alt={`Preview ${index + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+            <div className="mt-4">
+              <p className="text-sm text-gray-600 mb-2">
+                Preview ({images.length}/5 images):
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                {images.map((img, index) => (
+                  <div
+                    key={index}
+                    className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200"
                   >
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
+                    <Image
+                      src={URL.createObjectURL(img)}
+                      alt={`Preview ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                      aria-label={`Remove image ${index + 1}`}
+                    >
+                      <X size={14} />
+                    </button>
+                    <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                      {index + 1}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

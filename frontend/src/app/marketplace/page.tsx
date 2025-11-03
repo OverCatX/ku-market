@@ -7,6 +7,7 @@ import Link from "next/link";
 import Pagination from "@/components/Marketplace/Pagination";
 import debounce from "lodash.debounce";
 import { listItems, Item, ListItemsResponse } from "../../config/items";
+import { getCategories, Category } from "../../config/categories";
 
 const LIGHT = "#f9f9f7";
 const GREEN = "#69773D";
@@ -31,8 +32,14 @@ export default function MarketPage() {
   const [status, setStatus] = useState("");
   const [sortBy, setSortBy] = useState<SortOptions>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Load categories on mount
+  useEffect(() => {
+    getCategories().then(setCategories).catch(console.error);
+  }, []);
 
   const fetchItems = useCallback(async () => {
     // Cancel previous request
@@ -110,7 +117,6 @@ export default function MarketPage() {
   }, [fetchItems]);
 
   const statusOptions = ["", "available", "reserved", "sold"] as const;
-  const categoryOptions = ["", "electronics", "clothing", "books"] as const;
   const sortOptions: { label: string; value: SortOptions }[] = [
     { label: "Sort By", value: "" },
     { label: "Price", value: "price" },
@@ -185,11 +191,10 @@ export default function MarketPage() {
               }}
               className="p-2 rounded-xl border border-gray-300"
             >
-              {categoryOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt
-                    ? opt.charAt(0).toUpperCase() + opt.slice(1)
-                    : "All Categories"}
+              <option value="">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.slug}>
+                  {cat.name}
                 </option>
               ))}
             </select>

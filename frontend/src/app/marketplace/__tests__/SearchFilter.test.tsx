@@ -12,6 +12,12 @@ import type { MockListItems } from "@/test/types//test-types";
 import { createMockItem, createMockResponse } from "@/test/types//test-types";
 
 jest.mock("@/config/items");
+jest.mock("@/config/categories", () => ({
+  getCategories: jest.fn().mockResolvedValue([
+    { id: "1", name: "Electronics", slug: "electronics" },
+    { id: "2", name: "Books", slug: "books" },
+  ]),
+}));
 jest.mock("@/components/Marketplace/ItemCard", () => {
   return function ItemCard({ title }: { title: string }) {
     return <div data-testid="item-card">{title}</div>;
@@ -221,6 +227,16 @@ describe("MarketPage Tests", () => {
       jest.useRealTimers();
       const user = userEvent.setup();
       render(<MarketPage />);
+      
+      // Wait for categories to load and appear in the select dropdown
+      await waitFor(() => {
+        const categorySelect = screen.getAllByRole("combobox")[1];
+        const electronicsOption = Array.from(categorySelect.querySelectorAll("option")).find(
+          (opt) => opt.getAttribute("value") === "electronics"
+        );
+        expect(electronicsOption).toBeInTheDocument();
+      });
+      
       const categorySelect = screen.getAllByRole("combobox")[1];
       await user.selectOptions(categorySelect, "electronics");
       await waitFor(() =>

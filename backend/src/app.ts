@@ -9,6 +9,8 @@ import shopRoutes from "./application/routes/shop";
 import cartRoutes from "./application/routes/cart";
 import adminRoutes from "./application/routes/admin";
 import sellerRoutes from "./application/routes/seller";
+import orderRoutes from "./application/routes/order";
+import categoryRoutes from "./application/routes/category";
 import healthRoutes from "./application/routes/health";
 
 const app: Application = express();
@@ -23,7 +25,9 @@ app.use("/api/items", itemRoutes);
 app.use("/api/verification", verificationRoutes);
 app.use("/api/shop", shopRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/seller", sellerRoutes);
+app.use("/api/categories", categoryRoutes);
 
 export default app;
