@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { Star } from "lucide-react";
 
 interface ItemCardProps {
   id?: string;
@@ -8,6 +9,8 @@ interface ItemCardProps {
   price: number;
   photo?: string;
   status: "available" | "reserved" | "sold" | string;
+  rating?: number; // Average rating (0-5)
+  totalReviews?: number; // Total number of reviews
 }
 
 export default function ItemCard({
@@ -16,6 +19,8 @@ export default function ItemCard({
   price,
   photo,
   status,
+  rating,
+  totalReviews,
 }: ItemCardProps) {
   const statusConfig = {
     available: {
@@ -81,6 +86,23 @@ export default function ItemCard({
         <p className="text-[11px] sm:text-xs text-gray-600 line-clamp-2 mb-2 sm:mb-3 flex-1">
           {description || "No description"}
         </p>
+
+        {/* Rating section */}
+        {rating !== undefined && rating > 0 && (
+          <div className="flex items-center gap-1.5 mb-2 sm:mb-2.5">
+            <div className="flex items-center gap-0.5">
+              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs sm:text-sm font-semibold text-gray-900">
+                {rating.toFixed(1)}
+              </span>
+            </div>
+            {totalReviews !== undefined && totalReviews > 0 && (
+              <span className="text-[10px] sm:text-xs text-gray-500">
+                ({totalReviews})
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Price section */}
         <div className="flex items-center justify-between pt-1.5 sm:pt-2 border-t border-gray-100">

@@ -4,16 +4,22 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { listItems, Item } from "@/config/items";
+import { getReviewSummary } from "@/config/reviews";
 import Image from "next/image";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Star } from "lucide-react";
 
 const fadeInVariants = {
   hidden: { opacity: 0, y: 50 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.8 } },
 };
 
+interface ItemWithRating extends Item {
+  rating?: number;
+  totalReviews?: number;
+}
+
 export default function FeaturedProducts() {
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<ItemWithRating[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +33,27 @@ export default function FeaturedProducts() {
           sortOrder: "desc",
         });
         if (res.success && res.data.items) {
-          setItems(res.data.items);
+          // Fetch ratings for each item
+          const itemsWithRatings = await Promise.all(
+            res.data.items.map(async (item) => {
+              try {
+                const summary = await getReviewSummary(item._id);
+                return {
+                  ...item,
+                  rating: summary.averageRating,
+                  totalReviews: summary.totalReviews,
+                };
+              } catch {
+                // If review summary fails, return item without rating
+                return {
+                  ...item,
+                  rating: 0,
+                  totalReviews: 0,
+                };
+              }
+            })
+          );
+          setItems(itemsWithRatings);
         } else {
           // If API call failed, show empty state
           setItems([]);
@@ -125,6 +151,24 @@ export default function FeaturedProducts() {
                     <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                       {item.description}
                     </p>
+                    
+                    {/* Rating section */}
+                    {item.rating !== undefined && item.rating > 0 && (
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <div className="flex items-center gap-0.5">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-semibold text-gray-900">
+                            {item.rating.toFixed(1)}
+                          </span>
+                        </div>
+                        {item.totalReviews !== undefined && item.totalReviews > 0 && (
+                          <span className="text-xs text-gray-500">
+                            ({item.totalReviews})
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    
                     <div className="flex items-center justify-between">
                       <div className="text-xl font-bold text-[#69773D]">
                         ฿{item.price.toLocaleString()}

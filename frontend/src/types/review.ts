@@ -10,6 +10,7 @@ export interface Review {
   images?: string[];
   helpful: number;
   verified: boolean; // verified purchase
+  hasVoted?: boolean; // Whether current user has marked this review as helpful
   createdAt: string;
   updatedAt?: string;
 }

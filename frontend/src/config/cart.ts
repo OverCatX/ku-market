@@ -1,4 +1,5 @@
 import { API_BASE } from "./constants";
+import { getAuthToken, clearAuthTokens } from "../lib/auth";
 
 export interface CartItem {
   id: string;
@@ -23,7 +24,12 @@ export interface CartResponse {
 /**
  * Get cart from backend
  */
-export async function getCart(token: string): Promise<CartResponse> {
+export async function getCart(): Promise<CartResponse> {
+  const token = getAuthToken();
+  if (!token) {
+    // Return empty cart if not authenticated (guest mode)
+    return { success: true, items: [], totalItems: 0, totalPrice: 0 };
+  }
   try {
     console.log("📡 GET /api/cart");
     const res = await fetch(`${API_BASE}/api/cart`, {
@@ -44,28 +50,65 @@ export async function getCart(token: string): Promise<CartResponse> {
     });
 
     if (!res.ok) {
+      // Handle 401/403 - not authenticated or unauthorized
+      if (res.status === 401 || res.status === 403) {
+        // Token expired or invalid - clear it
+        clearAuthTokens();
+        console.warn("Cart API: Token expired, returning empty cart");
+        return { success: true, items: [], totalItems: 0, totalPrice: 0 };
+      }
+
       const contentType = res.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         const json = await res.json().catch(() => ({}));
-        throw new Error(json.error || json.message || `Server error: ${res.status}`);
+        const errorMessage = json.error || json.message || `Server error: ${res.status}`;
+        
+        // For other errors, log but return empty cart gracefully
+        console.warn("Cart API error:", errorMessage);
+        return { success: true, items: [], totalItems: 0, totalPrice: 0 };
       } else {
-        throw new Error(`Server error: ${res.status} ${res.statusText}`);
+        // For non-JSON errors, return empty cart gracefully
+        console.warn(`Cart API error: ${res.status} ${res.statusText}`);
+        return { success: true, items: [], totalItems: 0, totalPrice: 0 };
       }
     }
 
     const contentType = res.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
-      console.error("❌ Expected JSON but got:", contentType);
-      throw new Error(`Server error: ${res.status}`);
+      console.warn("❌ Expected JSON but got:", contentType, "- returning empty cart");
+      return { success: true, items: [], totalItems: 0, totalPrice: 0 };
     }
 
-    const json = await res.json();
+    const json = await res.json().catch(() => {
+      console.warn("❌ Failed to parse JSON response - returning empty cart");
+      return { success: true, items: [], totalItems: 0, totalPrice: 0 };
+    });
+
+    // Validate response structure
+    if (!json.success || !Array.isArray(json.items)) {
+      console.warn("❌ Invalid cart response structure - returning empty cart");
+      return { success: true, items: [], totalItems: 0, totalPrice: 0 };
+    }
 
     console.log(`✅ Got cart: ${json.items?.length || 0} items`);
     return json;
   } catch (error) {
-    console.error("❌ Get cart error:", error);
-    throw error;
+    // Network errors or other exceptions - return empty cart gracefully
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    // Network/server connection errors - return empty cart
+    if (
+      errorMessage.toLowerCase().includes("failed to fetch") ||
+      errorMessage.toLowerCase().includes("cannot connect to server") ||
+      errorMessage.toLowerCase().includes("network error")
+    ) {
+      console.warn("⚠️ Cart API network error - returning empty cart:", errorMessage);
+      return { success: true, items: [], totalItems: 0, totalPrice: 0 };
+    }
+    
+    // For other errors, log but still return empty cart
+    console.warn("⚠️ Cart API error - returning empty cart:", errorMessage);
+    return { success: true, items: [], totalItems: 0, totalPrice: 0 };
   }
 }
 
@@ -73,11 +116,13 @@ export async function getCart(token: string): Promise<CartResponse> {
  * Add item to cart
  */
 export async function addToCart(
-  token: string,
   itemId: string,
   quantity: number = 1
 ): Promise<CartResponse> {
   try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Please login to add items to cart");
+    
     console.log(`📡 POST /api/cart/add (itemId: ${itemId}, qty: ${quantity})`);
     const res = await fetch(`${API_BASE}/api/cart/add`, {
       method: "POST",
@@ -97,6 +142,10 @@ export async function addToCart(
     const json = await res.json();
 
     if (!res.ok) {
+      if (res.status === 401) {
+        clearAuthTokens();
+        throw new Error("Please login to add items to cart");
+      }
       throw new Error(json.error || json.message || "Failed to add to cart");
     }
 
@@ -112,11 +161,13 @@ export async function addToCart(
  * Update cart item quantity
  */
 export async function updateCartQuantity(
-  token: string,
   itemId: string,
   quantity: number
 ): Promise<CartResponse> {
   try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Please login to update cart");
+    
     console.log(`📡 PUT /api/cart/update (itemId: ${itemId}, qty: ${quantity})`);
     const res = await fetch(`${API_BASE}/api/cart/update`, {
       method: "PUT",
@@ -136,6 +187,10 @@ export async function updateCartQuantity(
     const json = await res.json();
 
     if (!res.ok) {
+      if (res.status === 401) {
+        clearAuthTokens();
+        throw new Error("Please login to update cart");
+      }
       throw new Error(json.error || json.message || "Failed to update cart");
     }
 
@@ -151,10 +206,12 @@ export async function updateCartQuantity(
  * Remove item from cart
  */
 export async function removeFromCart(
-  token: string,
   itemId: string
 ): Promise<CartResponse> {
   try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Please login to remove items from cart");
+    
     console.log(`📡 DELETE /api/cart/remove/${itemId}`);
     const res = await fetch(`${API_BASE}/api/cart/remove/${itemId}`, {
       method: "DELETE",
@@ -173,6 +230,10 @@ export async function removeFromCart(
     const json = await res.json();
 
     if (!res.ok) {
+      if (res.status === 401) {
+        clearAuthTokens();
+        throw new Error("Please login to remove items from cart");
+      }
       throw new Error(json.error || json.message || "Failed to remove from cart");
     }
 
@@ -187,8 +248,11 @@ export async function removeFromCart(
 /**
  * Clear cart
  */
-export async function clearCart(token: string): Promise<CartResponse> {
+export async function clearCart(): Promise<CartResponse> {
   try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Please login to clear cart");
+    
     console.log("📡 DELETE /api/cart/clear");
     const res = await fetch(`${API_BASE}/api/cart/clear`, {
       method: "DELETE",
@@ -207,6 +271,10 @@ export async function clearCart(token: string): Promise<CartResponse> {
     const json = await res.json();
 
     if (!res.ok) {
+      if (res.status === 401) {
+        clearAuthTokens();
+        throw new Error("Please login to clear cart");
+      }
       throw new Error(json.error || json.message || "Failed to clear cart");
     }
 
