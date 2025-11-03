@@ -61,11 +61,8 @@ export default function AdminDashboard() {
   }, []);
 
   const loadStats = async (): Promise<void> => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
     try {
-      const data = await getStats(token);
+      const data = await getStats();
       setStats(data);
     } catch (error) {
       console.error("Failed to load stats:", error);

@@ -8,6 +8,7 @@ import Pagination from "@/components/Marketplace/Pagination";
 import debounce from "lodash.debounce";
 import { listItems, Item, ListItemsResponse } from "../../config/items";
 import { getCategories, Category } from "../../config/categories";
+import { getReviewSummary } from "../../config/reviews";
 import FooterSection from "@/components/home/FooterSection";
 
 const LIGHT = "#f9f9f7";
@@ -21,8 +22,14 @@ type SortOptions =
   | "relevance"
   | "";
 
+interface ItemWithRating extends Item {
+  rating?: number;
+  totalReviews?: number;
+}
+
 export default function MarketPage() {
   const [items, setItems] = useState<Item[] | null>(null);
+  const [itemsWithRating, setItemsWithRating] = useState<ItemWithRating[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,8 +79,40 @@ export default function MarketPage() {
         setItems(res.data.items);
         setTotalPages(res.data.pagination.totalPages);
         setCurrentPage(res.data.pagination.currentPage);
+        
+        // Fetch review summaries for all items
+        const fetchRatings = async () => {
+          try {
+            const ratingsPromises = res.data.items.map(async (item) => {
+              try {
+                const summary = await getReviewSummary(item._id);
+                return {
+                  ...item,
+                  rating: summary.averageRating,
+                  totalReviews: summary.totalReviews,
+                };
+              } catch {
+                // If review summary fails, return item without rating
+                return {
+                  ...item,
+                  rating: 0,
+                  totalReviews: 0,
+                };
+              }
+            });
+            
+            const itemsWithRatings = await Promise.all(ratingsPromises);
+            setItemsWithRating(itemsWithRatings);
+          } catch {
+            // If fetching ratings fails, just use items without ratings
+            setItemsWithRating(res.data.items.map(item => ({ ...item, rating: 0, totalReviews: 0 })));
+          }
+        };
+        
+        fetchRatings();
       } else {
         setItems([]);
+        setItemsWithRating([]);
         setTotalPages(1);
         setError("Failed to load items");
       }
@@ -88,6 +127,7 @@ export default function MarketPage() {
       }
       setError("Failed to load items. Please check your connection and try again.");
       setItems([]);
+      setItemsWithRating([]);
       setTotalPages(1);
     } finally {
       setLoading(false);
@@ -333,7 +373,7 @@ export default function MarketPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-4 lg:gap-5 justify-items-center">
             <AnimatePresence>
-              {items.map((item) => (
+              {(itemsWithRating.length > 0 ? itemsWithRating : items).map((item) => (
                 <motion.div
                   key={item._id}
                   layout
@@ -355,6 +395,8 @@ export default function MarketPage() {
                       price={item.price}
                       photo={item.photo[0] || ""}
                       status={item.status}
+                      rating={(item as ItemWithRating).rating}
+                      totalReviews={(item as ItemWithRating).totalReviews}
                     />
                   </Link>
                 </motion.div>

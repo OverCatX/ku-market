@@ -1,4 +1,5 @@
 import { API_BASE } from "./constants";
+import { getAuthToken, clearAuthTokens } from "../lib/auth";
 
 export interface AdminStats {
   totalUsers: number;
@@ -47,12 +48,19 @@ export interface UserData {
   isVerified: boolean;
 }
 
-export async function getStats(token: string): Promise<AdminStats> {
+export async function getStats(): Promise<AdminStats> {
+  const token = getAuthToken();
+  if (!token) throw new Error("Please login to view admin stats");
+  
   const res = await fetch(`${API_BASE}/api/admin/stats`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   
   if (!res.ok) {
+    if (res.status === 401) {
+      clearAuthTokens();
+      throw new Error("Please login to view admin stats");
+    }
     const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
     throw new Error(errorData.error || `Failed to fetch stats (${res.status})`);
   }
@@ -365,5 +373,53 @@ export async function deleteCategory(token: string, id: string): Promise<void> {
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
     throw new Error(errorData.error || "Failed to delete category");
+  }
+}
+
+// Review Management
+export interface AdminReview {
+  id: string;
+  itemId: string;
+  itemTitle: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  rating: number;
+  title?: string;
+  comment: string;
+  helpful: number;
+  verified: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export async function getItemReviews(
+  token: string,
+  itemId: string
+): Promise<AdminReview[]> {
+  const res = await fetch(`${API_BASE}/api/admin/reviews/item/${itemId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to get reviews");
+  }
+  const data = await res.json();
+  return data.reviews || [];
+}
+
+export async function deleteReview(token: string, reviewId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/reviews/${reviewId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to delete review");
   }
 }

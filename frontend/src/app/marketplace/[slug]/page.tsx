@@ -56,6 +56,22 @@ export default function Page() {
       try {
         const res = await getItem(String(slug));
         if (ok) setItem(res.item);
+        
+        // Load reviews and summary
+        const { getItemReviews, getReviewSummary } = await import("@/config/reviews");
+        const [reviewsData, summaryData] = await Promise.all([
+          getItemReviews(String(slug)).catch(() => []),
+          getReviewSummary(String(slug)).catch(() => ({
+            averageRating: 0,
+            totalReviews: 0,
+            ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+          })),
+        ]);
+        
+        if (ok) {
+          setReviews(reviewsData);
+          setReviewSummary(summaryData);
+        }
       } catch {
         if (ok) setItem(null);
       } finally {
@@ -99,58 +115,75 @@ export default function Page() {
     title?: string;
     comment: string;
   }) => {
-    // TODO: Replace with actual API call when backend is ready
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
+    // Authentication check is done in createReview API function
+    // It will automatically handle expired tokens
 
-    // Get user name from localStorage or use default
-    const userName = localStorage.getItem("user_name") || "Anonymous User";
+    try {
+      const { createReview: createReviewAPI, getReviewSummary } = await import("@/config/reviews");
+      
+      // Validate before submitting
+      if (!data.rating || data.rating < 1 || data.rating > 5) {
+        toast.error("Rating must be between 1 and 5");
+        return;
+      }
 
-    // Create new review
-    const newReview: Review = {
-      _id: Date.now().toString(), // Generate temporary ID
-      itemId: String(slug),
-      userId: "current-user",
-      userName: userName,
-      rating: data.rating,
-      title: data.title,
-      comment: data.comment,
-      helpful: 0,
-      verified: false, // Would be true if user actually purchased
-      createdAt: new Date().toISOString(),
-    };
+      if (!data.comment || data.comment.trim().length < 10) {
+        toast.error("Comment must be at least 10 characters");
+        return;
+      }
 
-    // Add to reviews list
-    setReviews((prev) => [newReview, ...prev]); // Add at beginning
+      if (data.comment.trim().length > 2000) {
+        toast.error("Comment must not exceed 2000 characters");
+        return;
+      }
 
-    // Update summary
-    const newTotalReviews = reviewSummary.totalReviews + 1;
-    const currentTotal =
-      reviewSummary.averageRating * reviewSummary.totalReviews;
-    const newAverage = (currentTotal + data.rating) / newTotalReviews;
+      // Create review via API
+      const newReview = await createReviewAPI(String(slug), data);
+      
+      // Add to reviews list
+      setReviews((prev) => [newReview, ...prev]);
 
-    const newDistribution = { ...reviewSummary.ratingDistribution };
-    newDistribution[data.rating as keyof typeof newDistribution] += 1;
-
-    setReviewSummary({
-      averageRating: newAverage,
-      totalReviews: newTotalReviews,
-      ratingDistribution: newDistribution,
-    });
+      // Fetch updated summary
+      const updatedSummary = await getReviewSummary(String(slug));
+      setReviewSummary(updatedSummary);
+      
+      toast.success("Review submitted successfully!");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit review";
+      
+      // Show specific error messages (only show once)
+      if (errorMessage.includes("login") || errorMessage.includes("authenticated")) {
+        toast.error("Please login to submit a review");
+      } else if (errorMessage.includes("already reviewed")) {
+        toast.error("You have already reviewed this item");
+      } else {
+        toast.error(errorMessage);
+      }
+      // Don't re-throw - error already handled
+    }
   };
 
-  const handleHelpful = (reviewId: string) => {
-    // TODO: Replace with actual API call when backend is ready
+  const handleHelpful = async (reviewId: string, currentHasVoted: boolean): Promise<{ helpful: number; hasVoted: boolean }> => {
+    try {
+      const { toggleHelpful } = await import("@/config/reviews");
+      const result = await toggleHelpful(reviewId, currentHasVoted);
+      
+      // Update the helpful count and hasVoted status for this review
+      setReviews((prev) =>
+        prev.map((review) => {
+          const reviewIdValue = review._id || (review as { id?: string }).id || "";
+          return reviewIdValue === reviewId
+            ? { ...review, helpful: result.helpful, hasVoted: result.hasVoted }
+            : review;
+        })
+      );
 
-    // Update the helpful count for this review
-    setReviews((prev) =>
-      prev.map((review) =>
-        review._id === reviewId
-          ? { ...review, helpful: review.helpful + 1 }
-          : review
-      )
-    );
-
-    toast.success("Thank you for your feedback!");
+      toast.success(currentHasVoted ? "Removed helpful vote" : "Thank you for your feedback!");
+      return result;
+    } catch (error) {
+      // Error handling is done in ReviewItem component
+      throw error;
+    }
   };
 
   if (loading) {
@@ -425,18 +458,19 @@ export default function Page() {
         </div>
 
         {/* Reviews Section */}
-        <div className="mx-auto max-w-6xl px-6 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
               Customer Reviews
             </h2>
             <Link
               href={`/marketplace/${item._id}/reviews`}
-              className="text-[#84B067] hover:text-[#69773D] font-semibold transition-colors flex items-center gap-1"
+              className="text-[#84B067] hover:text-[#69773D] font-semibold text-sm sm:text-base transition-colors flex items-center gap-1 self-start sm:self-auto"
             >
-              View All Reviews
+              <span className="hidden sm:inline">View All Reviews</span>
+              <span className="sm:hidden">View All</span>
               <svg
-                className="w-4 h-4"
+                className="w-3.5 h-3.5 sm:w-4 sm:h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

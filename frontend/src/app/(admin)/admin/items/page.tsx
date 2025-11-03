@@ -13,6 +13,8 @@ import {
   ChevronRight,
   Edit,
   Trash2,
+  MessageSquare,
+  Star,
 } from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -22,8 +24,11 @@ import {
   rejectItem,
   updateItem,
   deleteItem,
+  getItemReviews,
+  deleteReview,
   type ItemData,
   type UpdateItemData,
+  type AdminReview,
 } from "@/config/admin";
 import RejectModal from "@/components/admin/RejectModal";
 import EditItemModal from "@/components/admin/EditItemModal";
@@ -87,6 +92,9 @@ const ItemCard = memo(function ItemCard({
   const [showImageModal, setShowImageModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
+  const [reviews, setReviews] = useState<AdminReview[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -306,6 +314,32 @@ const ItemCard = memo(function ItemCard({
             )}
           </div>
           <div className="flex gap-2 mt-3 pt-3 border-t">
+            <button
+              onClick={async () => {
+                setShowReviewsModal(true);
+                setLoadingReviews(true);
+                try {
+                  const token = localStorage.getItem("token");
+                  if (!token) {
+                    toast.error("Please login first");
+                    return;
+                  }
+                  const itemReviews = await getItemReviews(token, item.id);
+                  setReviews(itemReviews);
+                } catch (error) {
+                  toast.error(
+                    error instanceof Error ? error.message : "Failed to load reviews"
+                  );
+                  setReviews([]);
+                } finally {
+                  setLoadingReviews(false);
+                }
+              }}
+              className="flex-1 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium flex items-center justify-center gap-1"
+            >
+              <MessageSquare size={14} />
+              Reviews
+            </button>
             {item.approvalStatus === "pending" && (
               <>
                 <button
@@ -434,6 +468,125 @@ const ItemCard = memo(function ItemCard({
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Reviews Modal */}
+      {showReviewsModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">
+                Reviews for &quot;{item.title}&quot;
+              </h2>
+              <button
+                onClick={() => {
+                  setShowReviewsModal(false);
+                  setReviews([]);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              {loadingReviews ? (
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="w-6 h-6 text-gray-400 animate-spin" />
+                </div>
+              ) : reviews.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>No reviews yet</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <div
+                      key={review.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  size={16}
+                                  className={
+                                    i < review.rating
+                                      ? "text-yellow-400 fill-yellow-400"
+                                      : "text-gray-300"
+                                  }
+                                />
+                              ))}
+                            </div>
+                            {review.verified && (
+                              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                                Verified Purchase
+                              </span>
+                            )}
+                          </div>
+                          {review.title && (
+                            <h4 className="font-semibold text-gray-900 mb-1">
+                              {review.title}
+                            </h4>
+                          )}
+                          <p className="text-sm text-gray-700 mb-3">{review.comment}</p>
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <span>
+                              <span className="font-medium">By:</span> {review.userName}
+                            </span>
+                            <span>
+                              <span className="font-medium">Email:</span> {review.userEmail}
+                            </span>
+                            <span>
+                              <span className="font-medium">Helpful:</span> {review.helpful}
+                            </span>
+                            <span>
+                              {new Date(review.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (
+                              !confirm(
+                                "Are you sure you want to delete this review? This action cannot be undone."
+                              )
+                            ) {
+                              return;
+                            }
+                            try {
+                              const token = localStorage.getItem("token");
+                              if (!token) {
+                                toast.error("Please login first");
+                                return;
+                              }
+                              await deleteReview(token, review.id);
+                              toast.success("Review deleted successfully");
+                              setReviews((prev) => prev.filter((r) => r.id !== review.id));
+                            } catch (error) {
+                              toast.error(
+                                error instanceof Error
+                                  ? error.message
+                                  : "Failed to delete review"
+                              );
+                            }
+                          }}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-2"
+                          title="Delete review"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

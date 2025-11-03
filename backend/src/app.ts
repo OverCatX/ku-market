@@ -11,6 +11,7 @@ import adminRoutes from "./application/routes/admin";
 import sellerRoutes from "./application/routes/seller";
 import orderRoutes from "./application/routes/order";
 import categoryRoutes from "./application/routes/category";
+import reviewRoutes from "./application/routes/review";
 import healthRoutes from "./application/routes/health";
 
 const app: Application = express();
@@ -29,5 +30,6 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 export default app;

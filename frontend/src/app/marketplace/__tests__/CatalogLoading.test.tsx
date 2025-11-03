@@ -143,9 +143,7 @@ describe("Catalog Loading Tests", () => {
       render(<MarketPage />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/Failed to load items/i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Failed to load items/i)).toBeInTheDocument();
       });
     });
 
