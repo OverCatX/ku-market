@@ -6,7 +6,7 @@ import FooterSection from "@/components/home/FooterSection";
 
 export default function HomePage() {
   return (
-    <div className="bg-gray-50">
+    <div className="bg-white">
       <Hero />
       <FeaturedProducts />
       <About />
@@ -15,4 +15,3 @@ export default function HomePage() {
     </div>
   );
 }
-

@@ -81,8 +81,11 @@ export default function MarketPage() {
         // Request was cancelled, ignore
         return;
       }
-      console.error("Fetch items error:", err);
-      setError("Failed to load items. Please try again.");
+      // Only log non-AbortError errors
+      if (err instanceof Error) {
+        console.warn("Fetch items error:", err.message);
+      }
+      setError("Failed to load items. Please check your connection and try again.");
       setItems([]);
       setTotalPages(1);
     } finally {

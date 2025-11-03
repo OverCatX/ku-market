@@ -17,17 +17,40 @@ export async function getCategories(): Promise<Category[]> {
       headers: {
         "Content-Type": "application/json",
       },
+    }).catch((fetchError) => {
+      // Handle network errors silently
+      if (fetchError instanceof TypeError && fetchError.message.includes("Failed to fetch")) {
+        return null; // Indicate network error
+      }
+      throw fetchError;
     });
 
+    if (!res) {
+      // Network error - return fallback categories silently
+      return [
+        { id: "1", name: "Electronics", slug: "electronics" },
+        { id: "2", name: "Books", slug: "books" },
+        { id: "3", name: "Fashion", slug: "fashion" },
+        { id: "4", name: "Dorm", slug: "dorm" },
+        { id: "5", name: "Other", slug: "other" },
+      ];
+    }
+
     if (!res.ok) {
-      throw new Error("Failed to fetch categories");
+      // Server error - return fallback categories
+      return [
+        { id: "1", name: "Electronics", slug: "electronics" },
+        { id: "2", name: "Books", slug: "books" },
+        { id: "3", name: "Fashion", slug: "fashion" },
+        { id: "4", name: "Dorm", slug: "dorm" },
+        { id: "5", name: "Other", slug: "other" },
+      ];
     }
 
     const data = await res.json();
     return data.categories || [];
   } catch (error) {
-    console.error("Get categories error:", error);
-    // Return default categories as fallback
+    // Any other error - return fallback categories silently
     return [
       { id: "1", name: "Electronics", slug: "electronics" },
       { id: "2", name: "Books", slug: "books" },
