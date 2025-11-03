@@ -11,6 +11,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -18,9 +20,14 @@ import {
   getItems,
   approveItem,
   rejectItem,
+  updateItem,
+  deleteItem,
   type ItemData,
+  type UpdateItemData,
 } from "@/config/admin";
 import RejectModal from "@/components/admin/RejectModal";
+import EditItemModal from "@/components/admin/EditItemModal";
+import DeleteConfirmModal from "@/components/admin/DeleteConfirmModal";
 
 type ApprovalStatus = "pending" | "approved" | "rejected";
 
@@ -63,17 +70,23 @@ interface ItemCardProps {
   item: ItemData;
   onApprove: (id: string) => Promise<void>;
   onReject: (id: string, reason?: string) => Promise<void>;
+  onEdit: (id: string, data: UpdateItemData) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }
 
 const ItemCard = memo(function ItemCard({
   item,
   onApprove,
   onReject,
+  onEdit,
+  onDelete,
 }: ItemCardProps) {
   const [processing, setProcessing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -162,6 +175,39 @@ const ItemCard = memo(function ItemCard({
     } catch (error) {
       console.error("formatDate error:", error, dateString);
       return "Invalid date";
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (processing) return;
+    setProcessing(true);
+    try {
+      await onDelete(item.id);
+      toast.success(`Item "${item.title}" deleted successfully`);
+      setShowDeleteConfirm(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete item"
+      );
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleEditSubmit = async (data: UpdateItemData) => {
+    if (processing) return;
+    setProcessing(true);
+    try {
+      await onEdit(item.id, data);
+      toast.success(`Item "${item.title}" updated successfully`);
+      setShowEditModal(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update item"
+      );
+      throw error;
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -259,26 +305,44 @@ const ItemCard = memo(function ItemCard({
               </div>
             )}
           </div>
-          {item.approvalStatus === "pending" && (
-            <div className="flex gap-2 mt-3 pt-3 border-t">
-              <button
-                onClick={handleApprove}
-                disabled={processing}
-                className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-              >
-                <CheckCircle size={14} className="inline mr-1" />
-                Approve
-              </button>
-              <button
-                onClick={() => setShowRejectModal(true)}
-                disabled={processing}
-                className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-              >
-                <XCircle size={14} className="inline mr-1" />
-                Reject
-              </button>
-            </div>
-          )}
+          <div className="flex gap-2 mt-3 pt-3 border-t">
+            {item.approvalStatus === "pending" && (
+              <>
+                <button
+                  onClick={handleApprove}
+                  disabled={processing}
+                  className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                >
+                  <CheckCircle size={14} className="inline mr-1" />
+                  Approve
+                </button>
+                <button
+                  onClick={() => setShowRejectModal(true)}
+                  disabled={processing}
+                  className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                >
+                  <XCircle size={14} className="inline mr-1" />
+                  Reject
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => setShowEditModal(true)}
+              disabled={processing}
+              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              title="Edit item"
+            >
+              <Edit size={14} className="inline" />
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={processing}
+              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              title="Delete item"
+            >
+              <Trash2 size={14} className="inline" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -289,6 +353,27 @@ const ItemCard = memo(function ItemCard({
         onConfirm={handleRejectConfirm}
         itemTitle={item.title}
       />
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <EditItemModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSave={handleEditSubmit}
+          item={item}
+        />
+      )}
+
+      {/* Delete Confirm Modal */}
+      {showDeleteConfirm && (
+        <DeleteConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDeleteConfirm}
+          itemTitle={item.title}
+          processing={processing}
+        />
+      )}
 
       {/* Image Gallery Modal */}
       {showImageModal && item.photo && item.photo.length > 0 && (
@@ -416,6 +501,32 @@ export default function ItemsPage() {
     [loadItems]
   );
 
+  const handleEdit = useCallback(
+    async (id: string, data: UpdateItemData) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please login first");
+        return;
+      }
+      await updateItem(token, id, data);
+      await loadItems();
+    },
+    [loadItems]
+  );
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please login first");
+        return;
+      }
+      await deleteItem(token, id);
+      await loadItems();
+    },
+    [loadItems]
+  );
+
   const pendingCount = items.filter((i) => i.approvalStatus === "pending").length;
   const approvedCount = items.filter((i) => i.approvalStatus === "approved").length;
   const rejectedCount = items.filter((i) => i.approvalStatus === "rejected").length;
@@ -429,7 +540,7 @@ export default function ItemsPage() {
             Item Management
           </h1>
           <p className="text-sm md:text-base text-gray-600 mt-1">
-            Review and approve items for the marketplace
+            Manage all items in the marketplace - approve, reject, edit, or delete
           </p>
         </div>
         <button
@@ -490,6 +601,8 @@ export default function ItemsPage() {
               item={item}
               onApprove={handleApprove}
               onReject={handleReject}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           ))}
         </div>

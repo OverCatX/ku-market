@@ -37,6 +37,8 @@ router.delete("/users/:userId", authenticate, adminMiddleware, adminController.d
 router.get("/items", authenticate, adminMiddleware, adminController.getItems);
 router.patch("/items/:id/approve", authenticate, adminMiddleware, adminController.approveItem);
 router.patch("/items/:id/reject", authenticate, adminMiddleware, adminController.rejectItem);
+router.patch("/items/:id", authenticate, adminMiddleware, adminController.updateItem);
+router.delete("/items/:id", authenticate, adminMiddleware, adminController.deleteItem);
 
 // Category management
 router.get("/categories", authenticate, adminMiddleware, categoryController.getCategories);

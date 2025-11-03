@@ -239,6 +239,46 @@ export async function rejectItem(
   }
 }
 
+export interface UpdateItemData {
+  title?: string;
+  description?: string;
+  price?: number;
+  status?: "available" | "reserved" | "sold";
+  category?: string;
+}
+
+export async function updateItem(
+  token: string,
+  id: string,
+  data: UpdateItemData
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/items/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to update item");
+  }
+}
+
+export async function deleteItem(token: string, id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/items/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to delete item");
+  }
+}
+
 // Category Management
 export interface CategoryData {
   id: string;
