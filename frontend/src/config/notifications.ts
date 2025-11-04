@@ -5,12 +5,24 @@ import { getAuthToken, clearAuthTokens } from "../lib/auth";
 export type NotificationsResponse = {
   notifications: Notification[];
   unreadCount: number;
+  pagination?: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
 };
 
-export async function getNotifications(): Promise<NotificationsResponse> {
+export async function getNotifications(page: number = 1, limit: number = 20): Promise<NotificationsResponse> {
   try {
     const token = getAuthToken();
-    const res = await fetch(`${API_BASE}/api/notifications`, {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    
+    const res = await fetch(`${API_BASE}/api/notifications?${params}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -37,6 +49,7 @@ export async function getNotifications(): Promise<NotificationsResponse> {
     return {
       notifications,
       unreadCount: data.unreadCount,
+      pagination: data.pagination,
     };
   } catch (err) {
     if (err instanceof Error) {

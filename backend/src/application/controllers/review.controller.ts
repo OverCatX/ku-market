@@ -7,6 +7,7 @@ import User from "../../data/models/User";
 import Order from "../../data/models/Order";
 import HelpfulVote from "../../data/models/HelpfulVote";
 import { AuthenticatedRequest } from "../middlewares/authentication";
+import { createNotification } from "../../lib/notifications";
 
 export default class ReviewController {
   // POST /api/reviews - Create a review
@@ -97,6 +98,15 @@ export default class ReviewController {
 
       // Populate user info for response
       await review.populate("user", "name kuEmail");
+
+      // Notify item owner about new review
+      await createNotification(
+        item.owner,
+        "item",
+        "New Review",
+        `Your item "${item.title}" received a new ${rating}-star review!`,
+        `/marketplace/${itemId}`
+      );
 
       interface PopulatedUser {
         _id: mongoose.Types.ObjectId;

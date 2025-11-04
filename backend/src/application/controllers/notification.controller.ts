@@ -1,27 +1,104 @@
 import { Request, Response } from "express";
 import Notification from "../../data/models/Notification";
 import mongoose from "mongoose";
-
-interface AuthenticatedRequest extends Request {
-  userId: string;
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 export default class NotificationController {
+  // POST /api/notifications - Create a notification (for testing)
+  createNotification = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: "User not authenticated",
+        });
+      }
+      const { type, title, message, link } = req.body;
+
+      if (!type || !title || !message) {
+        return res.status(400).json({
+          success: false,
+          error: "Type, title, and message are required",
+        });
+      }
+
+      if (!["order", "message", "item", "system"].includes(type)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid notification type",
+        });
+      }
+
+      const notification = new Notification({
+        userId: new mongoose.Types.ObjectId(userId),
+        type,
+        title,
+        message,
+        link,
+        read: false,
+        timestamp: new Date(),
+      });
+
+      await notification.save();
+
+      return res.status(201).json({
+        success: true,
+        message: "Notification created",
+        notification: {
+          id: notification._id?.toString() || "",
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          timestamp: notification.timestamp,
+          read: notification.read,
+          link: notification.link || undefined,
+        },
+      });
+    } catch (err: unknown) {
+      console.error("Create notification error:", err);
+      const message = err instanceof Error ? err.message : "Server error";
+      return res.status(500).json({
+        success: false,
+        error: message,
+      });
+    }
+  };
+
   // GET /api/notifications
   getNotifications = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: "User not authenticated",
+        });
+      }
 
-      const notifications = await Notification.find({
+      // Pagination parameters
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const skip = (page - 1) * limit;
+
+      // Get total count for pagination
+      const totalCount = await Notification.countDocuments({
         userId: new mongoose.Types.ObjectId(userId),
-      })
-        .sort({ timestamp: -1 }) // Most recent first
-        .lean();
+      });
 
       const unreadCount = await Notification.countDocuments({
         userId: new mongoose.Types.ObjectId(userId),
         read: false,
       });
+
+      // Get paginated notifications
+      const notifications = await Notification.find({
+        userId: new mongoose.Types.ObjectId(userId),
+      })
+        .sort({ timestamp: -1 }) // Most recent first
+        .skip(skip)
+        .limit(limit)
+        .lean();
 
       // Format for frontend (convert _id to id, timestamp to Date)
       const formattedNotifications = notifications.map((notif) => ({
@@ -34,10 +111,20 @@ export default class NotificationController {
         link: notif.link || undefined,
       }));
 
+      const totalPages = Math.ceil(totalCount / limit);
+      const hasMore = page < totalPages;
+
       return res.status(200).json({
         success: true,
         notifications: formattedNotifications,
         unreadCount,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages,
+          hasMore,
+        },
       });
     } catch (err: unknown) {
       console.error("Get notifications error:", err);
@@ -52,7 +139,13 @@ export default class NotificationController {
   // PATCH /api/notifications/:id/read
   markAsRead = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: "User not authenticated",
+        });
+      }
       const { id } = req.params;
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -95,7 +188,13 @@ export default class NotificationController {
   // PATCH /api/notifications/read-all
   markAllAsRead = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: "User not authenticated",
+        });
+      }
 
       const result = await Notification.updateMany(
         {
@@ -123,7 +222,13 @@ export default class NotificationController {
   // DELETE /api/notifications/:id
   deleteNotification = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: "User not authenticated",
+        });
+      }
       const { id } = req.params;
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -162,7 +267,13 @@ export default class NotificationController {
   // DELETE /api/notifications/clear-all
   clearAll = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: "User not authenticated",
+        });
+      }
 
       const result = await Notification.deleteMany({
         userId: new mongoose.Types.ObjectId(userId),

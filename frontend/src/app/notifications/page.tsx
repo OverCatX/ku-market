@@ -13,7 +13,13 @@ import {
   Filter,
 } from "lucide-react";
 import type { Notification } from "@/components/notifications";
-// import { getNotifications } from "@/config/notifications"; // Uncomment when backend is ready
+import { 
+  getNotifications, 
+  markNotificationAsRead, 
+  markAllNotificationsAsRead, 
+  deleteNotification, 
+  clearAllNotifications 
+} from "@/config/notifications";
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -22,6 +28,11 @@ export default function NotificationsPage() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     // Check authentication
@@ -34,21 +45,47 @@ export default function NotificationsPage() {
 
     setIsAuthenticated(true);
 
-    // TODO: Replace with actual API call when backend is ready
-    // getNotifications().then(data => {
-    //   setNotifications(data.notifications);
-    //   setLoading(false);
-    // }).catch(err => {
-    //   console.error(err);
-    //   setLoading(false);
-    // });
-
-    // For now, just show empty state
-    setTimeout(() => {
-      setNotifications([]);
-      setLoading(false);
-    }, 500);
+    // Fetch first page of notifications
+    loadNotifications(1, true);
   }, [router]);
+
+  const loadNotifications = async (pageNum: number, reset: boolean = false) => {
+    try {
+      if (reset) {
+        setLoading(true);
+        setNotifications([]);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const data = await getNotifications(pageNum, 20);
+      
+      if (reset) {
+        setNotifications(data.notifications);
+      } else {
+        setNotifications((prev) => [...prev, ...data.notifications]);
+      }
+
+      setHasMore(data.pagination?.hasMore || false);
+      setTotalCount(data.pagination?.totalCount || 0);
+      setUnreadCount(data.unreadCount);
+      setPage(pageNum);
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+      if (reset) {
+        setNotifications([]);
+      }
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      loadNotifications(page + 1, false);
+    }
+  };
 
   const filteredNotifications = notifications.filter((notification) => {
     // Apply read/unread filter
@@ -61,24 +98,68 @@ export default function NotificationsPage() {
     return true;
   });
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const markAsRead = (notificationId: string) => {
+  const markAsRead = async (notificationId: string) => {
+    // Update UI optimistically (immediately)
     setNotifications((prev) =>
-      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+      prev.map((n) => {
+        if (n.id === notificationId && !n.read) {
+          setUnreadCount((count) => Math.max(0, count - 1));
+          return { ...n, read: true };
+        }
+        return n;
+      })
     );
+    // Call API in background
+    try {
+      await markNotificationAsRead(notificationId);
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+      // Revert on error
+      setNotifications((prev) =>
+        prev.map((n) => {
+          if (n.id === notificationId) {
+            setUnreadCount((count) => count + 1);
+            return { ...n, read: false };
+          }
+          return n;
+        })
+      );
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Failed to mark all as read:", err);
+    }
   };
 
-  const deleteNotification = (notificationId: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+  const handleDeleteNotification = async (notificationId: string) => {
+    try {
+      await deleteNotification(notificationId);
+      setNotifications((prev) => {
+        const updated = prev.filter((n) => n.id !== notificationId);
+        setTotalCount((count) => Math.max(0, count - 1));
+        return updated;
+      });
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
+    }
   };
 
-  const clearAll = () => {
-    setNotifications([]);
+  const handleClearAll = async () => {
+    try {
+      await clearAllNotifications();
+      setNotifications([]);
+      setTotalCount(0);
+      setHasMore(false);
+      setPage(1);
+    } catch (err) {
+      console.error("Failed to clear all notifications:", err);
+    }
   };
 
   const getNotificationIcon = (type: Notification["type"]) => {
@@ -115,7 +196,11 @@ export default function NotificationsPage() {
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    markAsRead(notification.id);
+    // Mark as read optimistically (update UI immediately)
+    if (!notification.read) {
+      markAsRead(notification.id);
+    }
+    // Navigate immediately without waiting
     if (notification.link) {
       window.location.href = notification.link;
     }
@@ -152,7 +237,13 @@ export default function NotificationsPage() {
             Notifications
           </h1>
           <p className="text-gray-600">
-            {unreadCount > 0
+            {totalCount > 0
+              ? `${totalCount} total notification${totalCount > 1 ? "s" : ""}${
+                  unreadCount > 0
+                    ? ` • ${unreadCount} unread`
+                    : ""
+                }`
+              : unreadCount > 0
               ? `You have ${unreadCount} unread notification${
                   unreadCount > 1 ? "s" : ""
                 }`
@@ -198,7 +289,7 @@ export default function NotificationsPage() {
             <div className="flex gap-2">
               {unreadCount > 0 && (
                 <button
-                  onClick={markAllAsRead}
+                  onClick={handleMarkAllAsRead}
                   className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition"
                 >
                   <CheckCheck className="w-4 h-4" />
@@ -207,7 +298,7 @@ export default function NotificationsPage() {
               )}
               {notifications.length > 0 && (
                 <button
-                  onClick={clearAll}
+                  onClick={handleClearAll}
                   className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -286,7 +377,7 @@ export default function NotificationsPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteNotification(notification.id);
+                            handleDeleteNotification(notification.id);
                           }}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                           title="Delete"
@@ -299,6 +390,24 @@ export default function NotificationsPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Load More Button */}
+        {hasMore && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="px-6 py-3 bg-[#69773D] text-white rounded-lg font-medium hover:bg-[#84B067] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loadingMore ? "Loading..." : "Load More"}
+            </button>
+            {totalCount > 0 && (
+              <p className="text-sm text-gray-500 mt-2">
+                Showing {notifications.length} of {totalCount} notifications
+              </p>
+            )}
           </div>
         )}
       </div>

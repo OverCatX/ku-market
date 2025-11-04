@@ -5,6 +5,7 @@ import User from "../../data/models/User";
 import Item from "../../data/models/Item";
 import Review, { IReview } from "../../data/models/Review";
 import mongoose from "mongoose";
+import { createNotification } from "../../lib/notifications";
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -97,6 +98,15 @@ export default class AdminController {
         verificationDate: new Date(),
       });
 
+      // Notify user that verification is approved
+      await createNotification(
+        verification.userId,
+        "system",
+        "Identity Verified",
+        "Your identity verification has been approved! You can now use all features.",
+        "/profile"
+      );
+
       return res.json({
         success: true,
         message: "Verification approved successfully",
@@ -139,6 +149,15 @@ export default class AdminController {
       verification.reviewedAt = new Date();
       verification.reviewedBy = new mongoose.Types.ObjectId(adminId);
       await verification.save();
+
+      // Notify user that verification is rejected
+      await createNotification(
+        verification.userId,
+        "system",
+        "Verification Rejected",
+        `Your identity verification was rejected. Reason: ${reason}`,
+        "/verify-identity"
+      );
 
       return res.json({
         success: true,
@@ -232,6 +251,15 @@ export default class AdminController {
         role: "seller",
       });
 
+      // Notify seller that shop is approved
+      await createNotification(
+        shop.owner,
+        "system",
+        "Shop Approved",
+        "Your shop has been approved! You can now start selling items.",
+        "/shop"
+      );
+
       return res.json({
         success: true,
         message: "Shop approved successfully",
@@ -268,6 +296,15 @@ export default class AdminController {
       shop.shopStatus = "rejected";
       shop.shopRejectionReason = reason;
       await shop.save();
+
+      // Notify seller that shop is rejected
+      await createNotification(
+        shop.owner,
+        "system",
+        "Shop Rejected",
+        `Your shop request was rejected. Reason: ${reason}`,
+        "/shop"
+      );
 
       return res.json({
         success: true,
@@ -642,6 +679,15 @@ export default class AdminController {
       item.approvalStatus = "approved";
       await item.save();
 
+      // Notify seller that item is approved
+      await createNotification(
+        item.owner,
+        "item",
+        "Item Approved",
+        `Your item "${item.title}" has been approved and is now visible in the marketplace!`,
+        `/marketplace/${item._id}`
+      );
+
       return res.json({
         success: true,
         message: "Item approved successfully",
@@ -690,6 +736,17 @@ export default class AdminController {
       }
       await item.save();
 
+      // Notify seller that item is rejected
+      await createNotification(
+        item.owner,
+        "item",
+        "Item Rejected",
+        reason
+          ? `Your item "${item.title}" was rejected. Reason: ${reason}`
+          : `Your item "${item.title}" was rejected by an admin.`,
+        `/marketplace/${item._id}`
+      );
+
       return res.json({
         success: true,
         message: "Item rejected successfully",
@@ -736,6 +793,7 @@ export default class AdminController {
       if (price !== undefined && typeof price === "number" && price >= 0) {
         item.price = price;
       }
+      const previousStatus = item.status;
       if (status !== undefined && typeof status === "string" && ["available", "reserved", "sold"].includes(status)) {
         item.status = status as "available" | "reserved" | "sold";
       }
@@ -744,6 +802,17 @@ export default class AdminController {
       }
 
       await item.save();
+
+      // Notify seller if item status changed to sold
+      if (item.status === "sold" && previousStatus !== "sold") {
+        await createNotification(
+          item.owner,
+          "item",
+          "Item Sold",
+          `Congratulations! Your item "${item.title}" has been marked as sold!`,
+          `/marketplace/${item._id}`
+        );
+      }
 
       return res.json({
         success: true,

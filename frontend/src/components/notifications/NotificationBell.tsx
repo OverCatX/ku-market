@@ -1,7 +1,14 @@
 "use client";
 
 import { Bell, X, CheckCheck, Package, MessageCircle, ShoppingBag, AlertCircle } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { 
+  getNotifications, 
+  markNotificationAsRead, 
+  markAllNotificationsAsRead, 
+  deleteNotification, 
+  clearAllNotifications 
+} from "@/config/notifications";
 
 export interface Notification {
   id: string;
@@ -20,7 +27,42 @@ interface NotificationBellProps {
 export function NotificationBell({ initialNotifications = [] }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fetch notifications from backend (only recent ones for dropdown)
+  const fetchNotifications = useCallback(async () => {
+    const token = localStorage.getItem("authentication");
+    if (!token) {
+      setNotifications([]);
+      return;
+    }
+
+    try {
+      // Only fetch first 20 notifications for dropdown (recent ones)
+      const data = await getNotifications(1, 20);
+      setNotifications(data.notifications);
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+      // Keep existing notifications on error
+    }
+  }, []);
+
+  // Fetch on mount and when dropdown opens
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  // Auto-refresh notifications every 30 seconds when dropdown is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [isOpen, fetchNotifications]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -41,26 +83,54 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAsRead = (notificationId: string) => {
+  const markAsRead = async (notificationId: string) => {
+    // Update UI optimistically (immediately)
     setNotifications((prev) =>
       prev.map((n) =>
         n.id === notificationId ? { ...n, read: true } : n
       )
     );
+    // Call API in background
+    try {
+      await markNotificationAsRead(notificationId);
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+      // Revert on error
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notificationId ? { ...n, read: false } : n
+        )
+      );
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((n) => ({ ...n, read: true }))
-    );
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, read: true }))
+      );
+    } catch (err) {
+      console.error("Failed to mark all as read:", err);
+    }
   };
 
-  const deleteNotification = (notificationId: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+  const handleDeleteNotification = async (notificationId: string) => {
+    try {
+      await deleteNotification(notificationId);
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
+    }
   };
 
-  const clearAll = () => {
-    setNotifications([]);
+  const handleClearAll = async () => {
+    try {
+      await clearAllNotifications();
+      setNotifications([]);
+    } catch (err) {
+      console.error("Failed to clear all notifications:", err);
+    }
   };
 
   const getNotificationIcon = (type: Notification["type"]) => {
@@ -93,7 +163,11 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    markAsRead(notification.id);
+    // Mark as read optimistically (update UI immediately)
+    if (!notification.read) {
+      markAsRead(notification.id);
+    }
+    // Navigate immediately without waiting
     if (notification.link) {
       window.location.href = notification.link;
     }
@@ -103,7 +177,13 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
     <div className="relative" ref={dropdownRef}>
       {/* Bell Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          // Refresh notifications when opening dropdown
+          if (!isOpen) {
+            fetchNotifications();
+          }
+        }}
         className="relative flex items-center justify-center w-full h-full transition-all duration-300 group"
         aria-label="Notifications"
       >
@@ -124,7 +204,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <button
-                  onClick={markAllAsRead}
+                  onClick={handleMarkAllAsRead}
                   className="text-xs text-blue-600 hover:text-blue-700 font-medium"
                   title="Mark all as read"
                 >
@@ -133,7 +213,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
               )}
               {notifications.length > 0 && (
                 <button
-                  onClick={clearAll}
+                  onClick={handleClearAll}
                   className="text-xs text-red-600 hover:text-red-700 font-medium"
                   title="Clear all"
                 >
@@ -164,7 +244,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        deleteNotification(notification.id);
+                        handleDeleteNotification(notification.id);
                       }}
                       className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition"
                       title="Delete notification"
