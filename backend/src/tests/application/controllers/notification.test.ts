@@ -7,7 +7,9 @@ import mongoose from "mongoose";
 jest.mock("../../../data/models/Notification");
 
 interface AuthenticatedRequest extends Request {
-  userId: string;
+  user?: {
+    id: string;
+  };
 }
 
 interface ResponseObject {
@@ -48,7 +50,8 @@ describe("NotificationController", () => {
   describe("getNotifications", () => {
     it("should return notifications with unread count", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
+      mockRequest.query = { page: "1", limit: "20" };
 
       const mockNotifications = [
         {
@@ -75,11 +78,15 @@ describe("NotificationController", () => {
 
       (Notification.find as jest.Mock).mockReturnValue({
         sort: jest.fn().mockReturnValue({
-          lean: jest.fn().mockResolvedValue(mockNotifications),
+          skip: jest.fn().mockReturnValue({
+            limit: jest.fn().mockReturnValue({
+              lean: jest.fn().mockResolvedValue(mockNotifications),
+            }),
+          }),
         }),
       });
 
-      (Notification.countDocuments as jest.Mock).mockResolvedValue(1);
+      (Notification.countDocuments as jest.Mock).mockResolvedValueOnce(2).mockResolvedValueOnce(1);
 
       await notificationController.getNotifications(
         mockRequest as Request,
@@ -100,16 +107,28 @@ describe("NotificationController", () => {
           }),
         ]),
         unreadCount: 1,
+        pagination: expect.objectContaining({
+          page: 1,
+          limit: 20,
+          totalCount: 2,
+          totalPages: 1,
+          hasMore: false,
+        }),
       });
     });
 
     it("should handle errors gracefully", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
+      mockRequest.query = { page: "1", limit: "20" };
 
       (Notification.find as jest.Mock).mockReturnValue({
         sort: jest.fn().mockReturnValue({
-          lean: jest.fn().mockRejectedValue(new Error("Database error")),
+          skip: jest.fn().mockReturnValue({
+            limit: jest.fn().mockReturnValue({
+              lean: jest.fn().mockRejectedValue(new Error("Database error")),
+            }),
+          }),
         }),
       });
 
@@ -121,7 +140,7 @@ describe("NotificationController", () => {
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
-        error: "Server error",
+        error: "Database error",
       });
     });
   });
@@ -130,7 +149,7 @@ describe("NotificationController", () => {
     it("should mark notification as read successfully", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
       const notificationId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.params = { id: notificationId };
 
       const mockNotification = {
@@ -163,7 +182,7 @@ describe("NotificationController", () => {
     it("should return 404 when notification not found", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
       const notificationId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.params = { id: notificationId };
 
       (Notification.findOneAndUpdate as jest.Mock).mockResolvedValue(null);
@@ -182,7 +201,7 @@ describe("NotificationController", () => {
 
     it("should return 400 for invalid notification ID", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.params = { id: "invalid-id" };
 
       await notificationController.markAsRead(
@@ -201,7 +220,7 @@ describe("NotificationController", () => {
   describe("markAllAsRead", () => {
     it("should mark all notifications as read", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
 
       (Notification.updateMany as jest.Mock).mockResolvedValue({
         modifiedCount: 5,
@@ -231,7 +250,7 @@ describe("NotificationController", () => {
     it("should delete notification successfully", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
       const notificationId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.params = { id: notificationId };
 
       const mockNotification = {
@@ -259,7 +278,7 @@ describe("NotificationController", () => {
     it("should return 404 when notification not found", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
       const notificationId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
       mockRequest.params = { id: notificationId };
 
       (Notification.findOneAndDelete as jest.Mock).mockResolvedValue(null);
@@ -280,7 +299,7 @@ describe("NotificationController", () => {
   describe("clearAll", () => {
     it("should clear all notifications for user", async () => {
       const userId = new mongoose.Types.ObjectId().toString();
-      mockRequest.userId = userId;
+      mockRequest.user = { id: userId };
 
       (Notification.deleteMany as jest.Mock).mockResolvedValue({
         deletedCount: 10,
