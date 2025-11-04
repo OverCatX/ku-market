@@ -4,14 +4,16 @@ import Item, { IItem } from "../../data/models/Item"
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
 
 interface AuthenticatedRequest extends Request {
-    userId: string;
+    user?: {
+        id: string;
+    };
 }
 
 export default class ItemController {
     userUpload = async(req: Request, res: Response) => {
         try {
             // Get authenticated user ID
-            const userId = (req as AuthenticatedRequest).userId;
+            const userId = (req as AuthenticatedRequest).user?.id;
             
             if (!userId) {
                 return res.status(401).json({ error: "User not authenticated" });
@@ -54,6 +56,7 @@ export default class ItemController {
                 category: req.body.category,
                 price: Number(req.body.price),
                 status: req.body.status || "available",
+                approvalStatus: "pending", // New items need admin approval
                 photo: imageUrls,
             };
     
@@ -182,6 +185,9 @@ export default class ItemController {
             const skip = (page - 1) * limit;
             
             const filters: FilterQuery<IItem> = {};
+            
+            // Only show approved items in marketplace
+            filters.approvalStatus = "approved";
             
             if (req.query.status && ["available", "reserved", "sold"].includes(req.query.status as string)) {
                 filters.status = req.query.status;

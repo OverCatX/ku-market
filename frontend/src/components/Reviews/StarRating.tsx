@@ -6,6 +6,7 @@ interface StarRatingProps {
   size?: "sm" | "md" | "lg";
   interactive?: boolean;
   onChange?: (rating: number) => void;
+  disabled?: boolean;
 }
 
 export default function StarRating({
@@ -14,6 +15,7 @@ export default function StarRating({
   size = "md",
   interactive = false,
   onChange,
+  disabled = false,
 }: StarRatingProps) {
   const sizeClasses = {
     sm: "w-4 h-4",
@@ -22,7 +24,7 @@ export default function StarRating({
   };
 
   const handleClick = (value: number) => {
-    if (interactive && onChange) {
+    if (interactive && onChange && !disabled) {
       onChange(value);
     }
   };
@@ -39,11 +41,11 @@ export default function StarRating({
             key={index}
             type="button"
             onClick={() => handleClick(starValue)}
-            disabled={!interactive}
+            disabled={!interactive || disabled}
             className={`${
-              interactive
+              interactive && !disabled
                 ? "cursor-pointer hover:scale-110 transition-transform"
-                : "cursor-default"
+                : "cursor-default opacity-50"
             } focus:outline-none`}
             aria-label={`${starValue} star${starValue > 1 ? "s" : ""}`}
           >

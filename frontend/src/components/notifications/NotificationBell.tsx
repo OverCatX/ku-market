@@ -104,12 +104,12 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-full hover:bg-gray-100 transition transform hover:scale-105"
+        className="relative flex items-center justify-center w-full h-full transition-all duration-300 group"
         aria-label="Notifications"
       >
-        <Bell className="w-5 h-5 text-gray-700" />
+        <Bell className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] transition-all duration-300" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-yellow-400 text-black text-xs rounded-full flex items-center justify-center font-medium">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-gradient-to-br from-yellow-400 to-yellow-500 text-black text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}

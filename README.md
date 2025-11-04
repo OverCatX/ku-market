@@ -1,87 +1,86 @@
-# KU Market 🛒
+# KU Market
 
-A full-stack marketplace platform for Kasetsart University students to buy and sell items within the campus community.
+An online marketplace platform for Kasetsart University students to buy and sell items within the campus community.
 
-## ✨ Features
+![Backend Tests](https://img.shields.io/badge/backend%20tests-passing-brightgreen)
+![Frontend Lint](https://img.shields.io/badge/frontend%20lint-passing-brightgreen)[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20+-green)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Latest-green)](https://www.mongodb.com/)
 
-- **Authentication**: Secure login/signup with KU email validation
-- **Marketplace**: Browse, search, and filter items with pagination
-- **Item Management**: Create, update, and delete listings with multiple image support
-- **User Profiles**: Personal information management and order history
-- **Role-based Access**: Buyer and Seller roles with store request functionality
-- **Responsive Design**: Mobile-first with modern UI and smooth animations
-- **Type Safety**: Full TypeScript implementation across frontend and backend
+## 🎯 Features
 
-## 🏗️ Tech Stack
-
-**Frontend:** Next.js 14, Tailwind CSS, TypeScript, Framer Motion  
-**Backend:** Node.js, Express, MongoDB, JWT, Cloudinary  
-**DevOps:** Docker, GitHub Actions
+- **Authentication** - KU email required (@ku.ac.th)
+- **Identity Verification** - Student ID or national ID verification
+- **Marketplace** - Buy and sell items within campus
+- **Seller Shops** - Create and manage your own shop
+- **User Profiles** - Manage personal information and orders
+- **Admin Panel** - Approve verifications and shops
 
 ## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 20+
-- MongoDB
-- Docker (optional)
-
-### Installation
 
 ```bash
 # Clone repository
 git clone https://github.com/OverCatX/ku-market.git
 cd ku-market
 
-# Backend setup
-cd backend
-npm install
-cp .env.example .env
-npm run dev
+# Backend
+cd backend && npm install && npm run dev
 
-# Frontend setup (in new terminal)
-cd frontend
-npm install
-npm run dev
-
-# Or use Docker (Recommended)
-docker-compose up -d
+# Frontend (in new terminal)
+cd frontend && npm install && npm run dev
 ```
 
-### Environment Variables
-
-**Backend (.env)**
-```env
-JWT_SECRET=your-secret-key
-MONGO_URI=mongodb://localhost:27017/ku-market
-PORT=5000
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
-```
-
-**Frontend (.env.local)**
-```env
-NEXT_PUBLIC_API_BASE=http://localhost:5000/api
-```
-
-## 🧪 Testing
-
-```bash
-# Backend tests
-cd backend
-npm test
-
-# Frontend tests
-cd frontend
-npm test
-```
+**Frontend:** http://localhost:3000  
+**Backend:** http://localhost:8080
 
 ## 📚 Documentation
 
-For detailed documentation, please visit our [Wiki](https://github.com/OverCatX/ku-market/wiki):
+- **[Installation Guide](docs/INSTALLATION.md)** - Setup instructions
+- **[User Guide](docs/USER_GUIDE.md)** - How to use the platfor
+- **[API Documentation](docs/API.md)** - API reference
+- **[Project Wiki](https://github.com/OverCatX/ku-market/wiki)** - Project overview
 
-## 📝 License
+## 🛠️ Tech Stack
 
-MIT License - see the [LICENSE](LICENSE) file for details.
+- **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS  
+- **Backend:** Node.js, Express, TypeScript, MongoDB  
+- **Auth:** JWT, bcrypt  
+- **Storage:** Cloudinary
+
+## Project Structure
+
+```
+ku-market/
+├── frontend/          # Next.js frontend
+├── backend/           # Express backend
+├── docs/              # Documentation
+└── README.md          # This file
+```
+
+## Important Notes
+
+- Email must be `@ku.ac.th`
+- Identity verification required before checkout
+- Admin account creation: `npm run bootstrap-admin`
+
+## Testing
+
+```bash
+# Backend tests
+cd backend && npm test
+
+# Frontend lint
+cd frontend && npm run lint
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
+
+**Built with ❤️**
+
+For more information, visit our [Wiki](https://github.com/OverCatX/ku-market/wiki)

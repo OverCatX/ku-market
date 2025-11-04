@@ -12,6 +12,7 @@ jest.mock("../../../lib/cloudinary", () => ({
 
 import app from "../../../app";
 import { uploadToCloudinary } from "../../../lib/cloudinary";
+import Item from "../../../data/models/Item";
 
 let token : string;
 let mongo: MongoMemoryServer;
@@ -343,8 +344,9 @@ describe("Items API", () => {
                 { title: "Tablet", description: "iPad Air", category: "Electronics", price: 500, status: "available" }
             ];
 
+            const itemIds: string[] = [];
             for (const item of items) {
-                await request(app)
+                const res = await request(app)
                     .post("/api/items/create")
                     .set("Authorization", `Bearer ${token}`)
                     .field("title", item.title)
@@ -353,6 +355,13 @@ describe("Items API", () => {
                     .field("price", item.price.toString())
                     .field("status", item.status)
                     .attach("photos", fakeFile.buffer, fakeFile.originalname);
+                if (res.body.item?._id) {
+                    itemIds.push(res.body.item._id);
+                }
+            }
+            // Approve all items so they show up in the list
+            for (const itemId of itemIds) {
+                await Item.findByIdAndUpdate(itemId, { approvalStatus: "approved" });
             }
         });
 

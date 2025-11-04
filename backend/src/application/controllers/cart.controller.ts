@@ -4,7 +4,9 @@ import Item from "../../data/models/Item";
 import mongoose from "mongoose";
 
 interface AuthenticatedRequest extends Request {
-  userId: string;
+  user?: {
+    id: string;
+  };
 }
 
 interface PopulatedCartItem {
@@ -36,7 +38,10 @@ export default class CartController {
   // GET /api/cart
   getCart = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
 
       const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) })
         .populate({
@@ -74,7 +79,10 @@ export default class CartController {
   // POST /api/cart/add
   addToCart = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
       const { itemId } = req.body;
 
       const item = await Item.findById(itemId);
@@ -109,7 +117,10 @@ export default class CartController {
   // PUT /api/cart/update
   updateQuantity = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
       const { itemId, quantity } = req.body;
 
       const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
@@ -137,7 +148,10 @@ export default class CartController {
   // DELETE /api/cart/remove/:itemId
   removeFromCart = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
       const { itemId } = req.params;
 
       const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
@@ -158,7 +172,10 @@ export default class CartController {
   // DELETE /api/cart/clear
   clearCart = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
 
       await Cart.findOneAndUpdate(
         { userId: new mongoose.Types.ObjectId(userId) },

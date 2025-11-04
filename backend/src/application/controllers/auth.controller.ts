@@ -49,7 +49,15 @@ export default class AuthController {
                 return res.status(400).json({ error : "Invalid credentials"})
             }
 
-            const token = jwt.sign({id : user._id}, process.env.JWT_SECRET || "secret", {expiresIn: "1h"} )
+            // Include important user data in JWT payload
+            const tokenPayload = {
+                id: user._id,
+                email: user.kuEmail,
+                role: user.role,
+                isVerified: user.isVerified || false
+            };
+            
+            const token = jwt.sign(tokenPayload, process.env.JWT_SECRET || "secret", {expiresIn: "1h"});
             
             const userData = {
                 id: user._id,

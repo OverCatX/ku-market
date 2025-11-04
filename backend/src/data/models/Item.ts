@@ -7,6 +7,8 @@ export interface IItem extends Document{
     category: string,
     price: number,
     status : "available" | "reserved" | "sold",
+    approvalStatus: "pending" | "approved" | "rejected",
+    rejectionReason?: string,
     photo: string[],
     createAt: Date,
     updateAt: Date
@@ -24,6 +26,16 @@ const itemSchema: Schema<IItem> = new Schema(
             enum: ["available", "reserved", "sold"],
             default: "available",
             index : true
+        },
+        approvalStatus: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending",
+            index: true,
+        },
+        rejectionReason: {
+            type: String,
+            maxlength: 500,
         },
         photo: {type: [String], default: []},
     },
