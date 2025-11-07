@@ -4,6 +4,7 @@ import Shop from "../../data/models/Shop";
 import Order from "../../data/models/Order";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../middlewares/authentication";
+import { createNotification } from "../../lib/notifications";
 
 export default class SellerController {
   /**
@@ -146,8 +147,8 @@ export default class SellerController {
         return res.status(400).json({ error: "Invalid order ID" });
       }
 
-      // Find order
-      const order = await Order.findById(orderId);
+      // Find order and populate buyer
+      const order = await Order.findById(orderId).populate("buyer", "name");
       if (!order) {
         return res.status(404).json({ error: "Order not found" });
       }
@@ -175,6 +176,15 @@ export default class SellerController {
           status: "reserved",
         });
       }
+
+      // Notify buyer that order is confirmed
+      await createNotification(
+        order.buyer,
+        "order",
+        "Order Confirmed",
+        `Your order has been confirmed by the seller!`,
+        `/order/${order._id}`
+      );
 
       return res.json({
         message: "Order confirmed successfully",
@@ -214,8 +224,8 @@ export default class SellerController {
 
       const { reason } = req.body;
 
-      // Find order
-      const order = await Order.findById(orderId);
+      // Find order and populate buyer
+      const order = await Order.findById(orderId).populate("buyer", "name");
       if (!order) {
         return res.status(404).json({ error: "Order not found" });
       }
@@ -239,6 +249,17 @@ export default class SellerController {
         order.rejectionReason = reason;
       }
       await order.save();
+
+      // Notify buyer that order is rejected
+      await createNotification(
+        order.buyer,
+        "order",
+        "Order Rejected",
+        reason 
+          ? `Your order has been rejected. Reason: ${reason}`
+          : "Your order has been rejected by the seller.",
+        `/order/${order._id}`
+      );
 
       return res.json({
         message: "Order rejected successfully",

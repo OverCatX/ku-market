@@ -3,6 +3,7 @@ import Order from "../../data/models/Order";
 import Cart from "../../data/models/Cart";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../middlewares/authentication";
+import { createNotification } from "../../lib/notifications";
 
 interface PopulatedItem {
   _id: mongoose.Types.ObjectId;
@@ -145,6 +146,15 @@ export default class OrderController {
 
         const order = await Order.create(orderData);
         orders.push(order);
+
+        // Notify seller about new order
+        await createNotification(
+          sellerId,
+          "order",
+          "New Order Received",
+          `You have a new order for ${items.length} item(s). Total: ${totalPrice} THB`,
+          `/seller/orders/${order._id}`
+        );
       }
 
       // Clear cart after successful order creation
