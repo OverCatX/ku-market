@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { aboutColors } from "@/components/aboutus/SectionColors";
 import ReportItemSuccessModal from "@/components/report-item/ReportItemSuccessModal";
 
@@ -42,6 +43,29 @@ export default function ReportItemForm() {
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
 
   const [previews, setPreviews] = useState<string[]>([]);
+  const searchParams = useSearchParams();
+  const itemIdParam = searchParams?.get("itemId") ?? "";
+  const titleParam = searchParams?.get("title") ?? "";
+  const [didPrefill, setDidPrefill] = useState(false);
+
+  useEffect(() => {
+    if (didPrefill) return;
+    if (!itemIdParam && !titleParam) return;
+    setForm((prev) => {
+      if (prev.itemUrlOrId) {
+        setDidPrefill(true);
+        return prev;
+      }
+      const labelParts: string[] = [];
+      if (titleParam) labelParts.push(titleParam);
+      if (itemIdParam) labelParts.push(`ID: ${itemIdParam}`);
+      setDidPrefill(true);
+      return {
+        ...prev,
+        itemUrlOrId: labelParts.join(" • ") || prev.itemUrlOrId,
+      };
+    });
+  }, [didPrefill, itemIdParam, titleParam]);
 
   useEffect(() => {
     if (!form.images?.length) {

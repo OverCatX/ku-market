@@ -14,6 +14,7 @@ interface ItemCardProps {
 }
 
 export default function ItemCard({
+  id,
   title,
   description,
   price,
