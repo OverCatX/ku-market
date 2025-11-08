@@ -1,7 +1,7 @@
 "use client";
 
 import { aboutColors } from "@/components/aboutus/SectionColors";
-import { MotionFadeIn } from "@/components/aboutus/MotionFadeIn"; // ถ้ามี
+import { MotionFadeIn } from "@/components/aboutus/MotionFadeIn";
 import ReportItemForm from "@/components/report-item/ReportItemForm";
 
 export default function ReportItemPage() {
