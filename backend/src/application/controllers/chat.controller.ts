@@ -9,6 +9,25 @@ interface AuthenticatedRequest extends Request {
   userId: string;
 }
 
+// Types for populated documents
+interface PopulatedUser {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  kuEmail: string;
+}
+
+interface PopulatedItem {
+  _id: mongoose.Types.ObjectId;
+  title: string;
+  photo: string[];
+}
+
+interface ThreadQuery {
+  buyer: string;
+  seller: string;
+  item?: string;
+}
+
 export default class ChatController {
   // Get all threads for the authenticated user
   getThreads = async (req: Request, res: Response) => {
@@ -24,10 +43,11 @@ export default class ChatController {
         .sort({ lastMessageAt: -1, updatedAt: -1 });
 
       const formattedThreads = threads.map((thread) => {
-        const populatedBuyer = thread.buyer as any;
-        const populatedSeller = thread.seller as any;
+        const populatedBuyer = thread.buyer as unknown as PopulatedUser;
+        const populatedSeller = thread.seller as unknown as PopulatedUser;
         const isBuyer = populatedBuyer._id.toString() === userId;
         const otherUser = isBuyer ? populatedSeller : populatedBuyer;
+        const populatedItem = (thread.item as unknown as PopulatedItem) || null;
 
         return {
           id: (thread._id as mongoose.Types.ObjectId).toString(),
@@ -38,11 +58,11 @@ export default class ChatController {
           lastMessage: thread.lastMessage,
           lastMessageAt: thread.lastMessageAt,
           unread: isBuyer ? thread.buyerUnreadCount : thread.sellerUnreadCount,
-          item: thread.item
+          item: populatedItem
             ? {
-                id: (thread.item as any)._id.toString(),
-                title: (thread.item as any).title,
-                photo: (thread.item as any).photo?.[0] || null,
+                id: populatedItem._id.toString(),
+                title: populatedItem.title,
+                photo: populatedItem.photo?.[0] || null,
               }
             : null,
         };
@@ -89,7 +109,7 @@ export default class ChatController {
       }
 
       // Try to find existing thread
-      const query: any = {
+      const query: ThreadQuery = {
         buyer: userId,
         seller: sellerId,
       };
@@ -119,18 +139,19 @@ export default class ChatController {
         }
       }
 
-      const populatedBuyer = thread.buyer as any;
-      const populatedSeller = thread.seller as any;
+      const populatedBuyer = thread.buyer as unknown as PopulatedUser;
+      const populatedSeller = thread.seller as unknown as PopulatedUser;
+      const populatedItem = (thread.item as unknown as PopulatedItem) || null;
       const formattedThread = {
         id: (thread._id as mongoose.Types.ObjectId).toString(),
         title: thread.title,
         sellerName: populatedSeller.name,
         buyerName: populatedBuyer.name,
-        item: thread.item
+        item: populatedItem
           ? {
-              id: (thread.item as any)._id.toString(),
-              title: (thread.item as any).title,
-              photo: (thread.item as any).photo?.[0] || null,
+              id: populatedItem._id.toString(),
+              title: populatedItem.title,
+              photo: populatedItem.photo?.[0] || null,
             }
           : null,
       };
@@ -166,7 +187,7 @@ export default class ChatController {
         .sort({ createdAt: 1 });
 
       const formattedMessages = messages.map((msg) => {
-        const populatedSender = msg.sender as any;
+        const populatedSender = msg.sender as unknown as PopulatedUser;
         const isMe = populatedSender._id.toString() === userId;
         return {
           id: (msg._id as mongoose.Types.ObjectId).toString(),
@@ -180,12 +201,13 @@ export default class ChatController {
         };
       });
 
-      const populatedSeller = thread.seller as any;
+      const populatedSeller = thread.seller as unknown as PopulatedUser;
+      const populatedItem = (thread.item as unknown as PopulatedItem) || null;
       res.json({
         messages: formattedMessages,
         title: thread.title,
         seller_name: populatedSeller.name,
-        item: thread.item ? { title: (thread.item as any).title } : null,
+        item: populatedItem ? { title: populatedItem.title } : null,
       });
     } catch (error) {
       console.error("Error fetching messages:", error);
