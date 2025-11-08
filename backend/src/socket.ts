@@ -4,15 +4,16 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import ChatThread from "./data/models/ChatThread";
 import ChatMessage from "./data/models/ChatMessage";
-import User from "./data/models/User";
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
 }
 
-interface SocketUser {
-  userId: string;
-  socketId: string;
+// Types for populated documents
+interface PopulatedUser {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  kuEmail: string;
 }
 
 // Store active users: userId -> socketId
@@ -30,7 +31,7 @@ const authenticateSocket = (socket: AuthenticatedSocket, next: (err?: Error) => 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret") as { id: string };
     socket.userId = decoded.id;
     next();
-  } catch (error) {
+  } catch {
     next(new Error("Authentication error: Invalid token"));
   }
 };
@@ -129,7 +130,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
         await thread.save();
 
         // Prepare message response
-        const populatedSender = message.sender as any;
+        const populatedSender = message.sender as unknown as PopulatedUser;
         const messageData = {
           id: (message._id as mongoose.Types.ObjectId).toString(),
           threadId: threadId,
