@@ -12,25 +12,29 @@ const features = [
   {
     icon: ShoppingBag,
     title: "Easy Trading",
-    description: "Buy and sell items with just a few clicks. Simple, fast, and secure.",
+    description:
+      "Buy and sell items with just a few clicks. Simple, fast, and secure.",
     color: "from-green-500 to-emerald-500",
   },
   {
     icon: Users,
     title: "Campus Community",
-    description: "Connect with fellow KU students. Build trust within your campus network.",
+    description:
+      "Connect with fellow KU students. Build trust within your campus network.",
     color: "from-blue-500 to-cyan-500",
   },
   {
     icon: Shield,
     title: "Secure Platform",
-    description: "Verified student accounts and secure transactions. Your safety is our priority.",
+    description:
+      "Verified student accounts and secure transactions. Your safety is our priority.",
     color: "from-purple-500 to-pink-500",
   },
   {
     icon: TrendingUp,
     title: "Great Deals",
-    description: "Discover amazing deals from your peers. Save money while supporting your community.",
+    description:
+      "Discover amazing deals from your peers. Save money while supporting your community.",
     color: "from-orange-500 to-red-500",
   },
 ];
@@ -67,15 +71,15 @@ export default function AboutSection() {
               whileHover={{ y: -5, scale: 1.02 }}
               className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300"
             >
-              <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4`}>
+              <div
+                className={`w-12 h-12 rounded-lg bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4`}
+              >
                 <feature.icon className="w-6 h-6 text-white" />
               </div>
               <h3 className="font-semibold text-lg text-gray-900 mb-2">
                 {feature.title}
               </h3>
-              <p className="text-gray-600 text-sm">
-                {feature.description}
-              </p>
+              <p className="text-gray-600 text-sm">{feature.description}</p>
             </motion.div>
           ))}
         </div>
