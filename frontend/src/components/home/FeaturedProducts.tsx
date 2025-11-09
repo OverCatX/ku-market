@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { listItems, Item } from "@/config/items";
 import { getReviewSummary } from "@/config/reviews";
-import Image from "next/image";
-import { ShoppingBag, Star } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
+import ItemCard from "../Marketplace/ItemCard";
 
 const fadeInVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -132,62 +132,22 @@ export default function FeaturedProducts() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1, duration: 0.5 }}
                 whileHover={{ y: -4 }}
-                className="bg-white rounded-xl overflow-hidden shadow-md border-2 border-gray-200 hover:border-[#69773D] hover:shadow-xl transition-all duration-300 group cursor-pointer"
+                className="h-full"
               >
-                <Link href={`/marketplace/${item._id}`} className="block">
-                  <div className="relative h-48 bg-gray-100 overflow-hidden">
-                    {item.photo && item.photo.length > 0 ? (
-                      <Image
-                        src={item.photo[0]}
-                        alt={item.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-                        <ShoppingBag className="w-16 h-16 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-2 text-gray-900 line-clamp-2 group-hover:text-[#69773D] transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                      {item.description}
-                    </p>
-
-                    {/* Rating section */}
-                    {item.rating !== undefined && item.rating > 0 && (
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <div className="flex items-center gap-0.5">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-semibold text-gray-900">
-                            {item.rating.toFixed(1)}
-                          </span>
-                        </div>
-                        {item.totalReviews !== undefined &&
-                          item.totalReviews > 0 && (
-                            <span className="text-xs text-gray-500">
-                              ({item.totalReviews})
-                            </span>
-                          )}
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <div className="text-xl font-bold text-[#69773D]">
-                        ฿{item.price.toLocaleString()}
-                      </div>
-                      {item.category && (
-                        <span className="px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-lg border border-green-200">
-                          {item.category}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                <Link
+                  href={`/marketplace/${item._id}`}
+                  className="block h-full"
+                >
+                  <ItemCard
+                    id={item._id}
+                    title={item.title}
+                    description={item.description}
+                    price={item.price}
+                    photo={item.photo[0] || ""}
+                    status={item.status}
+                    rating={item.rating}
+                    totalReviews={item.totalReviews}
+                  />
                 </Link>
               </motion.div>
             ))}
