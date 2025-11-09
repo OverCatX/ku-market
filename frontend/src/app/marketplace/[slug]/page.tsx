@@ -232,6 +232,13 @@ export default function Page() {
     "https://picsum.photos/seed/fallback/800/600";
   const isSoldOrReserved = item.status === "sold" || item.status === "reserved";
 
+  const handleReportItem = () => {
+    const params = new URLSearchParams();
+    if (item._id) params.set("itemId", String(item._id));
+    if (item.title) params.set("title", item.title);
+    router.push(`/report-item${params.toString() ? `?${params.toString()}` : ""}`);
+  };
+
   return (
     <div className="min-h-screen" style={{ background: LIGHT }}>
       <div className="w-full" style={{ background: GREEN }}>
@@ -403,57 +410,57 @@ export default function Page() {
               )}
             </div>
 
-            {/* Qty */}
-            {isSoldOrReserved ? (
-              <div className="mt-8 p-4 bg-gray-100 rounded-xl border border-gray-300 text-center">
-                <p className="text-gray-600 font-medium">
-                  This item is currently{" "}
-                  <span className="font-bold uppercase">{item.status}</span>
-                </p>
-              </div>
-            ) : (
-              <div className="mt-8 flex items-center gap-4">
-                <label className="text-sm text-gray-600">Qty</label>
-
-                <div
-                  className="inline-flex items-stretch rounded-xl overflow-hidden border shadow-sm select-none"
-                  style={{ borderColor: BORDER }}
-                  role="group"
-                  aria-label="Quantity"
-                >
-                  <button
-                    type="button"
-                    className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
-                    onClick={() => setQty((q) => Math.max(1, q - 1))}
-                    aria-label="Decrease quantity"
+            <div className="mt-8 flex flex-col gap-3">
+              {!isSoldOrReserved && (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div
+                    className="flex items-center gap-2 rounded-xl border bg-white shadow-sm"
+                    style={{ borderColor: BORDER }}
+                    role="group"
+                    aria-label="Quantity"
                   >
-                    —
-                  </button>
+                    <button
+                      type="button"
+                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
+                      onClick={() => setQty((q) => Math.max(1, q - 1))}
+                      aria-label="Decrease quantity"
+                    >
+                      —
+                    </button>
 
-                  <div className="min-w-[3.5rem] px-4 py-2 flex items-center justify-center font-semibold text-gray-800 bg-white">
-                    {qty}
+                    <div className="min-w-[3.5rem] px-4 py-2 flex items-center justify-center font-semibold text-gray-800 bg-white">
+                      {qty}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
+                      onClick={() => setQty((q) => q + 1)}
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
                   </div>
 
                   <button
                     type="button"
-                    className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
-                    onClick={() => setQty((q) => q + 1)}
-                    aria-label="Increase quantity"
+                    className="rounded-xl px-6 py-3 font-semibold text-white shadow hover:opacity-90 transition"
+                    style={{ background: GREEN }}
+                    onClick={handleAddToCart}
                   >
-                    +
+                    Add to Cart
                   </button>
                 </div>
+              )}
 
-                <button
-                  type="button"
-                  className="rounded-xl px-6 py-3 font-semibold text-white shadow hover:opacity-90 transition"
-                  style={{ background: GREEN }}
-                  onClick={handleAddToCart}
-                >
-                  Add to Cart
-                </button>
-              </div>
-            )}
+              <button
+                type="button"
+                onClick={handleReportItem}
+                className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold text-white bg-gradient-to-r from-red-500 via-red-500 to-red-600 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+              >
+                Report this item
+              </button>
+            </div>
           </section>
         </div>
 

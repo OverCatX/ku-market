@@ -73,7 +73,10 @@ export default function FeaturedProducts() {
   }, []);
 
   return (
-    <section id="featured-products" className="py-20 px-6 md:px-20 bg-white border-t border-gray-200">
+    <section
+      id="featured-products"
+      className="py-20 px-6 md:px-20 bg-white border-t border-gray-200"
+    >
       <motion.div
         initial="hidden"
         whileInView="visible"
@@ -107,7 +110,9 @@ export default function FeaturedProducts() {
         ) : items.length === 0 ? (
           <div className="text-center py-12">
             <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">No featured products available yet.</p>
+            <p className="text-gray-500 text-lg">
+              No featured products available yet.
+            </p>
             <Link
               href="/marketplace"
               className="inline-block mt-4 px-8 py-4 rounded-xl font-semibold text-white 
@@ -145,7 +150,7 @@ export default function FeaturedProducts() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="p-4">
                     <h3 className="font-semibold text-lg mb-2 text-gray-900 line-clamp-2 group-hover:text-[#69773D] transition-colors">
                       {item.title}
@@ -153,7 +158,7 @@ export default function FeaturedProducts() {
                     <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                       {item.description}
                     </p>
-                    
+
                     {/* Rating section */}
                     {item.rating !== undefined && item.rating > 0 && (
                       <div className="flex items-center gap-1.5 mb-3">
@@ -163,14 +168,15 @@ export default function FeaturedProducts() {
                             {item.rating.toFixed(1)}
                           </span>
                         </div>
-                        {item.totalReviews !== undefined && item.totalReviews > 0 && (
-                          <span className="text-xs text-gray-500">
-                            ({item.totalReviews})
-                          </span>
-                        )}
+                        {item.totalReviews !== undefined &&
+                          item.totalReviews > 0 && (
+                            <span className="text-xs text-gray-500">
+                              ({item.totalReviews})
+                            </span>
+                          )}
                       </div>
                     )}
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="text-xl font-bold text-[#69773D]">
                         ฿{item.price.toLocaleString()}

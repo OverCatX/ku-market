@@ -31,6 +31,7 @@ export function Header() {
     { href: "/marketplace", label: "marketplace" },
     { href: "/chats", label: "chats" },
     { href: "/aboutus", label: "about us" },
+    { href: "/report", label: "report" },
   ];
 
   return (
