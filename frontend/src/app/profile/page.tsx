@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getProfile, updateProfile } from "@/config/profile";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import { Store, ShieldCheck, AlertCircle } from "lucide-react";
+import { Store, ShieldCheck, AlertCircle, Flag } from "lucide-react";
 import { API_BASE } from "@/config/constants";
 
 import ProfileHeader from "@/components/Profile/ProfileHeader";
@@ -360,6 +360,29 @@ export default function ProfilePage() {
       </div>
 
       <OrderHistory />
+
+      <div className="mt-8 p-6 bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="rounded-full bg-red-100 text-red-600 p-2 mt-0.5">
+            <Flag className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Report history
+            </h3>
+            <p className="text-sm text-gray-600">
+              Review the status of any reports you have submitted to the admins.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => router.push("/profile/reports")}
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-500 via-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 shadow-md hover:shadow-lg transition-all duration-300 whitespace-nowrap"
+        >
+          <Flag className="w-4 h-4" />
+          View my reports
+        </button>
+      </div>
 
       <LogoutButton />
     </motion.div>
