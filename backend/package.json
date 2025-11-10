@@ -29,7 +29,8 @@
     "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.0",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "stripe": "^19.3.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -56,4 +57,3 @@
     "typescript": "^5.9.2"
   }
 }
-
