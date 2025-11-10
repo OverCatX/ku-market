@@ -2,6 +2,7 @@ import { Response } from "express";
 import Item from "../../data/models/Item";
 import Shop from "../../data/models/Shop";
 import Order from "../../data/models/Order";
+import User from "../../data/models/User";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../middlewares/authentication";
 import { createNotification } from "../../lib/notifications";
@@ -121,6 +122,86 @@ export default class SellerController {
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to get orders";
+      return res.status(500).json({ error: message });
+    }
+  };
+
+  /**
+   * Get a single order detail for the seller
+   */
+  getOrderDetail = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+    try {
+      const userId = req.user?.id;
+      const { orderId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const shop = await Shop.findOne({ owner: userId, shopStatus: "approved" });
+      if (!shop) {
+        return res.status(404).json({ error: "No approved shop found" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return res.status(400).json({ error: "Invalid order ID" });
+      }
+
+      const order = await Order.findById(orderId)
+        .populate("buyer", "name kuEmail contact")
+        .populate("seller", "name kuEmail contact");
+
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+
+      if (order.seller.toString() !== userId) {
+        return res.status(403).json({ error: "Access denied. This order does not belong to you." });
+      }
+
+      const sellerUser = await User.findById(userId).select("name kuEmail contact").lean();
+
+      const buyer = order.buyer as unknown as {
+        _id: mongoose.Types.ObjectId;
+        name?: string;
+        kuEmail?: string;
+        contact?: string;
+      };
+
+      return res.json({
+        order: {
+          id: order._id,
+          items: order.items,
+          totalPrice: order.totalPrice,
+          status: order.status,
+          deliveryMethod: order.deliveryMethod,
+          shippingAddress: order.shippingAddress,
+          paymentMethod: order.paymentMethod,
+          buyerContact: order.buyerContact,
+          confirmedAt: order.confirmedAt,
+          rejectedAt: order.rejectedAt,
+          rejectionReason: order.rejectionReason,
+          completedAt: order.completedAt,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt,
+        },
+        buyer: {
+          id: buyer?._id,
+          name: buyer?.name,
+          email: buyer?.kuEmail,
+          phone: order.buyerContact.phone,
+        },
+        seller: {
+          id: order.seller,
+          name: sellerUser?.name,
+          email: sellerUser?.kuEmail,
+          phone: sellerUser?.contact,
+          shopName: shop.shopName,
+          shopType: shop.shopType,
+        },
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to get order detail";
       return res.status(500).json({ error: message });
     }
   };
