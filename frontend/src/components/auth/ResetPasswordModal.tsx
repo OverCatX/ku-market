@@ -152,14 +152,6 @@ export default function ResetPasswordModal({ open, onClose, token }: Props) {
                 {submitting ? "Saving…" : "Update password"}
               </button>
 
-              {/* <button
-                type="button"
-                onClick={onClose}
-                className="text-sm underline"
-                style={{ color: aboutColors.oliveDark }}
-              >
-                Cancel
-              </button> */}
             </div>
           </form>
         )}
