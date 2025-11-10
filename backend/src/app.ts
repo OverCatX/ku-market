@@ -15,6 +15,7 @@ import categoryRoutes from "./application/routes/category";
 import reviewRoutes from "./application/routes/review";
 import reportRoutes from "./application/routes/report";
 import healthRoutes from "./application/routes/health";
+import checkoutRoutes from "./application/routes/checkout";
 
 const app: Application = express();
 app.use(cors());
@@ -35,5 +36,6 @@ app.use("/api/seller", sellerRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/checkout", checkoutRoutes);
 
 export default app;
