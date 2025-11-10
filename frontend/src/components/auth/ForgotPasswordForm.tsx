@@ -31,8 +31,9 @@ export default function ForgotPasswordForm() {
       if (!res.ok) throw new Error("Failed to send reset link.");
       setSuccessMsg("We’ve sent a password reset link to your email.");
       setEmail("");
-    } catch (err: any) {
-      setErrorMsg(err?.message || "Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setErrorMsg(message);
     } finally {
       setSubmitting(false);
     }
