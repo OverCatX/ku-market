@@ -1,10 +1,6 @@
 import { Stripe } from 'stripe';
 import { Request, Response } from 'express';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY is not defined in .env");
-}
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 interface Item {
