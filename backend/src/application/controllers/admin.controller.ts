@@ -744,7 +744,7 @@ export default class AdminController {
         reason
           ? `Your item "${item.title}" was rejected. Reason: ${reason}`
           : `Your item "${item.title}" was rejected by an admin.`,
-        `/marketplace/${item._id}`
+        "/seller/items"
       );
 
       return res.json({
