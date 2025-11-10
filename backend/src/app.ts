@@ -13,6 +13,7 @@ import sellerRoutes from "./application/routes/seller";
 import orderRoutes from "./application/routes/order";
 import categoryRoutes from "./application/routes/category";
 import reviewRoutes from "./application/routes/review";
+import reportRoutes from "./application/routes/report";
 import healthRoutes from "./application/routes/health";
 
 const app: Application = express();
@@ -33,5 +34,6 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/reports", reportRoutes);
 
 export default app;

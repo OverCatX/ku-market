@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
 import { aboutColors } from "@/components/aboutus/SectionColors";
 import ReportItemSuccessModal from "@/components/report-item/ReportItemSuccessModal";
+import { submitItemReport } from "@/config/reports";
 
 type ReasonKey =
   | "scam"
@@ -42,6 +45,45 @@ export default function ReportItemForm() {
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
 
   const [previews, setPreviews] = useState<string[]>([]);
+  const searchParams = useSearchParams();
+  const itemIdParam = searchParams?.get("itemId") ?? "";
+  const titleParam = searchParams?.get("title") ?? "";
+  const [didPrefill, setDidPrefill] = useState(false);
+  const [detectedItemId, setDetectedItemId] = useState<string>("");
+  const [prefilledTitle, setPrefilledTitle] = useState<string>("");
+
+  const extractItemId = useMemo(
+    () => (value: string): string | null => {
+      const match = value.match(/[0-9a-fA-F]{24}/);
+      return match ? match[0] : null;
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (didPrefill) return;
+    if (!itemIdParam && !titleParam) return;
+    setForm((prev) => {
+      if (prev.itemUrlOrId) {
+        setDidPrefill(true);
+        return prev;
+      }
+      const labelParts: string[] = [];
+      if (titleParam) labelParts.push(titleParam);
+      if (itemIdParam) labelParts.push(`ID: ${itemIdParam}`);
+      setDidPrefill(true);
+      if (itemIdParam) {
+        setDetectedItemId(itemIdParam);
+      }
+      if (titleParam) {
+        setPrefilledTitle(titleParam);
+      }
+      return {
+        ...prev,
+        itemUrlOrId: labelParts.join(" • ") || prev.itemUrlOrId,
+      };
+    });
+  }, [didPrefill, itemIdParam, titleParam]);
 
   useEffect(() => {
     if (!form.images?.length) {
@@ -66,8 +108,15 @@ export default function ReportItemForm() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  function onChange<K extends keyof ReportItemPayload>(key: K, value: ReportItemPayload[K]) {
-    setForm(prev => ({ ...prev, [key]: value }));
+  function onChange<K extends keyof ReportItemPayload>(
+    key: K,
+    value: ReportItemPayload[K]
+  ) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (key === "itemUrlOrId" && typeof value === "string") {
+      const itemId = extractItemId(value);
+      setDetectedItemId(itemId || "");
+    }
   }
 
   function onFilesChange(files: FileList | null) {
@@ -78,29 +127,34 @@ export default function ReportItemForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (!form.itemUrlOrId.trim() || !form.details.trim()) {
-      alert("Please provide the Item URL/ID and details.");
+    if (!form.itemUrlOrId.trim()) {
+      toast.error("Please provide the item URL or ID");
+      return;
+    }
+
+    if (!form.details.trim()) {
+      toast.error("Please provide report details");
+      return;
+    }
+
+    const effectiveItemId =
+      detectedItemId || extractItemId(form.itemUrlOrId) || itemIdParam;
+
+    if (!effectiveItemId || effectiveItemId.length !== 24) {
+      toast.error("Please provide a valid item URL or ID (24-character code)");
       return;
     }
 
     setSubmitting(true);
     try {
-      const fd = new FormData();
-      fd.append("item_ref", form.itemUrlOrId);
-      fd.append("reason", form.reason);
-      fd.append("details", form.details);
-      if (form.contact) fd.append("contact", form.contact);
-      if (form.images && form.images.length) {
-        form.images.forEach((f, i) => fd.append(`images[${i}]`, f, f.name));
-      }
-
-      const res = await fetch("/api/report/item", {
-        method: "POST",
-        body: fd,
-        credentials: "include",
+      await submitItemReport({
+        itemId: effectiveItemId,
+        reason: form.reason,
+        details: form.details,
+        contact: form.contact,
+        title: prefilledTitle || titleParam || undefined,
+        images: form.images,
       });
-
-      if (!res.ok) throw new Error("submit failed");
 
       setForm({
         itemUrlOrId: "",
@@ -109,10 +163,14 @@ export default function ReportItemForm() {
         contact: "",
         images: [],
       });
+      setDetectedItemId("");
+      setPrefilledTitle("");
       setShowSuccess(true);
+      toast.success("Report submitted. Thank you for keeping KU Market safe.");
     } catch (err) {
-      console.error(err);
-      alert("Failed to submit. Please try again.");
+      const message =
+        err instanceof Error ? err.message : "Failed to submit report";
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -121,6 +179,30 @@ export default function ReportItemForm() {
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-6">
+
+        {/* Item reference */}
+        <div>
+          <label
+            className="block text-sm font-medium mb-1"
+            style={{ color: aboutColors.oliveDark }}
+          >
+            Item URL or ID <span className="text-red-600">*</span>
+          </label>
+          <input
+            type="text"
+            value={form.itemUrlOrId}
+            onChange={(e) => onChange("itemUrlOrId", e.target.value)}
+            className="w-full rounded-md border px-3 py-2 text-sm outline-none"
+            style={{ borderColor: aboutColors.borderSoft }}
+            placeholder="Paste the marketplace item URL or 24-character item ID"
+            required
+          />
+          <div className="mt-1 text-xs text-gray-500">
+            {detectedItemId
+              ? `Detected item ID: ${detectedItemId}`
+              : "For example: https://ku-market/marketplace/<itemId>"}
+          </div>
+        </div>
 
         {/* Reason */}
         <div>

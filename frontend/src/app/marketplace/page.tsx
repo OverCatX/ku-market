@@ -79,7 +79,7 @@ export default function MarketPage() {
         setItems(res.data.items);
         setTotalPages(res.data.pagination.totalPages);
         setCurrentPage(res.data.pagination.currentPage);
-        
+
         // Fetch review summaries for all items
         const fetchRatings = async () => {
           try {
@@ -100,15 +100,21 @@ export default function MarketPage() {
                 };
               }
             });
-            
+
             const itemsWithRatings = await Promise.all(ratingsPromises);
             setItemsWithRating(itemsWithRatings);
           } catch {
             // If fetching ratings fails, just use items without ratings
-            setItemsWithRating(res.data.items.map(item => ({ ...item, rating: 0, totalReviews: 0 })));
+            setItemsWithRating(
+              res.data.items.map((item) => ({
+                ...item,
+                rating: 0,
+                totalReviews: 0,
+              }))
+            );
           }
         };
-        
+
         fetchRatings();
       } else {
         setItems([]);
@@ -125,7 +131,9 @@ export default function MarketPage() {
       if (err instanceof Error) {
         console.warn("Fetch items error:", err.message);
       }
-      setError("Failed to load items. Please check your connection and try again.");
+      setError(
+        "Failed to load items. Please check your connection and try again."
+      );
       setItems([]);
       setItemsWithRating([]);
       setTotalPages(1);
@@ -371,36 +379,38 @@ export default function MarketPage() {
             <p className="text-sm">Try adjusting your search or filters</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-4 lg:gap-5 justify-items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-4 lg:gap-5">
             <AnimatePresence>
-              {(itemsWithRating.length > 0 ? itemsWithRating : items).map((item) => (
-                <motion.div
-                  key={item._id}
-                  layout
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 12 }}
-                  whileHover={{ y: -4, scale: 1.01 }}
-                  transition={{ duration: 0.15, ease: "easeOut" }}
-                  className="transition-shadow"
-                >
-                  <Link
-                    href={`/marketplace/${item._id}`}
-                    className="block rounded-xl hover:shadow-lg"
+              {(itemsWithRating.length > 0 ? itemsWithRating : items).map(
+                (item) => (
+                  <motion.div
+                    key={item._id}
+                    layout
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 12 }}
+                    whileHover={{ y: -4, scale: 1.01 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                    className="h-full transition-shadow"
                   >
-                    <ItemCard
-                      id={item._id}
-                      title={item.title}
-                      description={item.description}
-                      price={item.price}
-                      photo={item.photo[0] || ""}
-                      status={item.status}
-                      rating={(item as ItemWithRating).rating}
-                      totalReviews={(item as ItemWithRating).totalReviews}
-                    />
-                  </Link>
-                </motion.div>
-              ))}
+                    <Link
+                      href={`/marketplace/${item._id}`}
+                      className="block h-full"
+                    >
+                      <ItemCard
+                        id={item._id}
+                        title={item.title}
+                        description={item.description}
+                        price={item.price}
+                        photo={item.photo[0] || ""}
+                        status={item.status}
+                        rating={(item as ItemWithRating).rating}
+                        totalReviews={(item as ItemWithRating).totalReviews}
+                      />
+                    </Link>
+                  </motion.div>
+                )
+              )}
             </AnimatePresence>
           </div>
         )}

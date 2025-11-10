@@ -3,7 +3,9 @@
 import { aboutColors } from "@/components/aboutus/SectionColors";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 import ReportSuccessModal from "./ReportSuccessModal";
+import { submitGeneralReport } from "@/config/reports";
 
 type ReportPayload = {
   category: string;
@@ -31,15 +33,31 @@ export default function ReportForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitting(true);
 
+    if (!form.category.trim()) {
+      toast.error("Please select a category");
+      return;
+    }
+
+    if (!form.details.trim()) {
+      toast.error("Please provide report details");
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      await new Promise((r) => setTimeout(r, 800)); // simulate network
+      await submitGeneralReport({
+        category: form.category,
+        details: form.details,
+        contact: form.contact,
+      });
 
       setShowSuccess(true);
       setForm({ category: "", details: "", contact: "" });
+      toast.success("Report submitted. Our admins will review it shortly.");
     } catch (err) {
-      console.error("submit failed", err);
+      const message = err instanceof Error ? err.message : "Failed to submit report";
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
