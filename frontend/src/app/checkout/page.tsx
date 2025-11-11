@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart } from "@/contexts/CartContext";
+import { getVerificationStatus } from "@/config/verification";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -78,8 +79,32 @@ export default function CheckoutPage() {
           setShippingInfo((prev) => ({ ...prev, fullName: user.name }));
         }
       } else {
-        // Not verified - show verification required page
-        setIsVerified(false);
+        // Not verified - attempt to refresh verification status from server
+        (async () => {
+          try {
+            const statusRes = await getVerificationStatus();
+            const approved =
+              statusRes.success &&
+              statusRes.verification &&
+              (statusRes.verification as { status?: string }).status === "approved";
+            if (approved) {
+              setIsVerified(true);
+              // Update localStorage user to reflect verified status so other pages update immediately
+              try {
+                const latestUserStr = localStorage.getItem("user");
+                const latestUser = latestUserStr ? JSON.parse(latestUserStr) : user;
+                const updatedUser = { ...latestUser, isVerified: true };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+              } catch {
+                // ignore storage errors
+              }
+            } else {
+              setIsVerified(false);
+            }
+          } catch {
+            setIsVerified(false);
+          }
+        })();
       }
     } catch {
       // Invalid user data

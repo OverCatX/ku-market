@@ -75,7 +75,7 @@ export default class OrderController {
       const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) })
         .populate({
           path: "items.itemId",
-          populate: { path: "owner", select: "name" },
+          populate: { path: "owner", select: "_id name" },
         });
 
       if (!cart || cart.items.length === 0) {
@@ -83,6 +83,17 @@ export default class OrderController {
           success: false,
           error: "Cart is empty",
         });
+      }
+
+      // Prevent purchasing own items
+      for (const cartItem of cart.items) {
+        const item = cartItem.itemId as unknown as PopulatedItem;
+        if (item?.owner?._id?.toString() === String(userId)) {
+          return res.status(400).json({
+            success: false,
+            error: "You cannot purchase your own item",
+          });
+        }
       }
 
       // Group items by seller
