@@ -176,6 +176,7 @@ export function LoginForm() {
         <Link
           href="/signup"
           className="mt-2 w-full border border-[aboutColors.oliveDark] text-[aboutColors.oliveDark] bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-green-50 transition-all duration-150"
+          style={{ color: aboutColors.oliveDark, border: `1px solid ${aboutColors.oliveDark}` }}
         >
           Sign up
         </Link>
