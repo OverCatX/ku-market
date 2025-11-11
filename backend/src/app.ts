@@ -18,7 +18,17 @@ import healthRoutes from "./application/routes/health";
 import checkoutRoutes from "./application/routes/checkout";
 
 const app: Application = express();
-app.use(cors());
+
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim());
+
+const corsOptions = {
+  origin: allowedOrigins,
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(express.json());
 

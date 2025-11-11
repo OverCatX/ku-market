@@ -155,7 +155,11 @@ export default class SellerController {
         return res.status(404).json({ error: "Order not found" });
       }
 
-      if (order.seller.toString() !== userId) {
+      const sellerId = order.seller instanceof mongoose.Types.ObjectId
+        ? order.seller.toString()
+        : ((order.seller as unknown as { _id: mongoose.Types.ObjectId })._id.toString());
+
+      if (sellerId !== userId) {
         return res.status(403).json({ error: "Access denied. This order does not belong to you." });
       }
 
@@ -192,7 +196,7 @@ export default class SellerController {
           phone: order.buyerContact.phone,
         },
         seller: {
-          id: order.seller,
+          id: sellerId,
           name: sellerUser?.name,
           email: sellerUser?.kuEmail,
           phone: sellerUser?.contact,
