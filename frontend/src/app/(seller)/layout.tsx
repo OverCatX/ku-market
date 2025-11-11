@@ -112,7 +112,7 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden print:block print:h-auto print:bg-white print:overflow-visible">
       {/* Mobile Overlay */}
       {isMobile && sidebarOpen && (
         <div
@@ -133,7 +133,7 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
             : "w-20"
         } ${
           isMobile ? "w-64" : ""
-        } bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white transition-transform duration-300 ease-in-out md:transition-all flex flex-col fixed md:relative z-50 h-full shadow-2xl md:shadow-lg`}
+        } bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white transition-transform duration-300 ease-in-out md:transition-all flex flex-col fixed md:relative z-50 h-full shadow-2xl md:shadow-lg print:hidden`}
       >
         {/* Header */}
         <div className="p-5 flex items-center justify-between border-b border-emerald-500/30 min-h-[70px] bg-emerald-700/50 backdrop-blur-sm">
@@ -209,7 +209,7 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto w-full bg-gradient-to-br from-gray-50 to-gray-100">
+      <main className="flex-1 overflow-auto w-full bg-gradient-to-br from-gray-50 to-gray-100 print:overflow-visible print:bg-white print:w-full print:p-0 print:m-0">
         {/* Mobile Header Bar */}
         {isMobile && (
           <div className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm px-4 py-3 flex items-center justify-between md:hidden backdrop-blur-sm bg-white/95">
@@ -227,7 +227,7 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
           </div>
         )}
 
-        <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">{children}</div>
+        <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 print:max-w-none print:m-0 print:p-0">{children}</div>
       </main>
     </div>
   );
