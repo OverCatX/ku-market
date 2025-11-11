@@ -27,7 +27,6 @@ interface NotificationBellProps {
 export function NotificationBell({ initialNotifications = [] }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
-  const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fetch notifications from backend (only recent ones for dropdown)

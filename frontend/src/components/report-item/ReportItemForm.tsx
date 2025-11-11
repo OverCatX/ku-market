@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { aboutColors } from "@/components/aboutus/SectionColors";
@@ -284,9 +285,12 @@ export default function ReportItemForm() {
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                 {previews.map((src, idx) => (
                     <div key={idx} className="relative group">
-                        <img
+                        <Image
                         src={src}
                         alt={`evidence-${idx}`}
+                        width={96}
+                        height={96}
+                        unoptimized
                         className="h-24 w-24 object-cover rounded-md border"
                         style={{ borderColor: aboutColors.borderSoft }}
                         />
