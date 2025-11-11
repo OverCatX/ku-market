@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { signup } from "@/config/auth";
 import toast from "react-hot-toast";
+import { aboutColors } from "@/components/aboutus/SectionColors";
+
 
 type FormDataType = {
   name: string;
@@ -130,7 +132,7 @@ export function SignUpForm() {
 
   return (
     <div className="w-full max-w-md bg-white shadow-lg rounded-2xl border border-gray-200 sm:p-8 p-6">
-      <h2 className="text-2xl font-semibold text-center text-gray-700 mb-6">
+      <h2 className="text-2xl font-semibold text-center text-gray-700 mb-6" style={{ color: aboutColors.oliveDark }}>
         Create Your Account
       </h2>
       <form onSubmit={handleSignUp} className="space-y-5">
@@ -175,7 +177,7 @@ export function SignUpForm() {
           className={`w-full ${
             loading
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-[#69773D] hover:bg-[#5a632d]"
+              : "bg-[#69773D] hover:bg-[aboutColors.oliveDark]"
           } text-white py-3 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-150`}
         >
           {loading ? "Signing up..." : "Sign up"}
@@ -194,7 +196,7 @@ export function SignUpForm() {
 
         <Link
           href="/login"
-          className="mt-4 w-full border border-[#69773D] text-[#69773D] bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-green-50 transition-all duration-150"
+          className="mt-4 w-full border border-[aboutColors.oliveDark] text-[aboutColors.oliveDark] bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-green-50 transition-all duration-150"
         >
           Already have an account? Login
         </Link>
