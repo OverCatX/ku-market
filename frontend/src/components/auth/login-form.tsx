@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { login } from "@/config/auth";
 import toast from "react-hot-toast";
+import { aboutColors } from "@/components/aboutus/SectionColors";
+
 
 export function LoginForm() {
   const searchParams = useSearchParams();
@@ -98,13 +100,13 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-md bg-white shadow-lg rounded-2xl border border-gray-200 sm:p-8 p-6">
-      <h2 className="text-2xl font-semibold text-center text-gray-700 mb-6">
+      <h2 className="text-2xl font-semibold text-center text-gray-700 mb-6" style={{ color: aboutColors.oliveDark }}>
         Login to Your Account
       </h2>
 
       {redirectTo !== "/" && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800 text-center">
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg" style={{ backgroundColor: aboutColors.creamSoft }}>
+          <p className="text-sm text-blue-800 text-center" style={{ color: aboutColors.oliveDark }}>
             Please login to continue to checkout
           </p>
         </div>
@@ -113,7 +115,7 @@ export function LoginForm() {
       <form onSubmit={handleLogin} className="space-y-5">
         {/* Email */}
         <div className="space-y-1">
-          <label className="block text-gray-600 font-medium text-sm">
+          <label className="block text-gray-600 font-medium text-sm" style={{ color: aboutColors.oliveDark }}>
             KU Email
           </label>
           <input
@@ -131,7 +133,7 @@ export function LoginForm() {
 
         {/* Password */}
         <div className="space-y-1">
-          <label className="block text-gray-600 font-medium text-sm">
+          <label className="block text-gray-600 font-medium text-sm" style={{ color: aboutColors.oliveDark }}>
             Password
           </label>
           <input
@@ -147,6 +149,13 @@ export function LoginForm() {
           )}
         </div>
 
+        {/* Forgot password link */}
+        <div className="flex justify-end">
+          <Link href="/forgot-password" className="text-sm underline" style={{ color: aboutColors.oliveDark }}>
+            Forgot password?
+          </Link>
+        </div>
+
         {apiError && (
           <p className="text-red-500 text-center text-sm mt-1">{apiError}</p>
         )}
@@ -159,13 +168,15 @@ export function LoginForm() {
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-[#69773D] hover:bg-[#5a632d]"
           } text-white py-3 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-150`}
+          style={{color: aboutColors.creamSoft }}
         >
           {loading ? "Logging in..." : "Login"}
         </button>
 
         <Link
           href="/signup"
-          className="mt-4 w-full border border-[#69773D] text-[#69773D] bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-green-50 transition-all duration-150"
+          className="mt-2 w-full border border-[aboutColors.oliveDark] text-[aboutColors.oliveDark] bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-green-50 transition-all duration-150"
+          style={{ color: aboutColors.oliveDark, border: `1px solid ${aboutColors.oliveDark}` }}
         >
           Sign up
         </Link>
