@@ -138,7 +138,7 @@ export function SignUpForm() {
       <form onSubmit={handleSignUp} className="space-y-5">
         {fields.map((field) => (
           <div key={field} className="space-y-1">
-            <label className="block text-gray-600 font-medium text-sm capitalize">
+            <label className="block text-gray-600 font-medium text-sm capitalize" style={{ color: aboutColors.oliveDark }}>
               {field === "kuEmail"
                 ? "KU Email"
                 : field === "confirmPassword"
@@ -196,7 +196,8 @@ export function SignUpForm() {
 
         <Link
           href="/login"
-          className="mt-4 w-full border border-[aboutColors.oliveDark] text-[aboutColors.oliveDark] bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-green-50 transition-all duration-150"
+          className="mt-4 w-full bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-green-50 transition-all duration-150"
+          style={{ color: aboutColors.oliveDark, border: `1px solid ${aboutColors.oliveDark}` }}
         >
           Already have an account? Login
         </Link>
