@@ -15,9 +15,20 @@ import categoryRoutes from "./application/routes/category";
 import reviewRoutes from "./application/routes/review";
 import reportRoutes from "./application/routes/report";
 import healthRoutes from "./application/routes/health";
+import checkoutRoutes from "./application/routes/checkout";
 
 const app: Application = express();
-app.use(cors());
+
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim());
+
+const corsOptions = {
+  origin: allowedOrigins,
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(express.json());
 
@@ -35,5 +46,6 @@ app.use("/api/seller", sellerRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/checkout", checkoutRoutes);
 
 export default app;

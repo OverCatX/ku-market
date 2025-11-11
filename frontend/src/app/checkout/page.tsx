@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import type { UserData } from "@/config/auth";
+import { API_BASE } from "@/config/constants";
 
 type PaymentMethod = "cash" | "promptpay";
 type DeliveryMethod = "pickup" | "delivery";
@@ -107,39 +108,63 @@ export default function CheckoutPage() {
     setIsProcessing(true);
 
     try {
-      // Simulate sending order to sellers
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const token = localStorage.getItem("authentication");
+      if (!token) {
+        router.push("/login?redirect=/checkout");
+        return;
+      }
 
-      // Generate order ID
-      const orderId = `ORD-${Date.now()}`;
+      const payload: {
+        deliveryMethod: DeliveryMethod;
+        paymentMethod: PaymentMethod;
+        buyerContact: { fullName: string; phone: string };
+        shippingAddress?: { address: string; city: string; postalCode: string };
+      } = {
+        deliveryMethod,
+        paymentMethod,
+        buyerContact: {
+          fullName: shippingInfo.fullName,
+          phone: shippingInfo.phone,
+        },
+      };
 
-      // TODO: Send order to backend API
-      // const orderData = {
-      //   items,
-      //   contactInfo: {
-      //     fullName: shippingInfo.fullName,
-      //     phone: shippingInfo.phone,
-      //   },
-      //   deliveryMethod,
-      //   shippingAddress: deliveryMethod === "delivery" ? {
-      //     address: shippingInfo.address,
-      //     city: shippingInfo.city,
-      //     postalCode: shippingInfo.postalCode,
-      //   } : null,
-      //   paymentMethod,
-      //   total: getTotalPrice(),
-      //   status: "pending_seller_confirmation",
-      // };
-      // await createOrder(orderData);
+      if (deliveryMethod === "delivery") {
+        payload.shippingAddress = {
+          address: shippingInfo.address,
+          city: shippingInfo.city,
+          postalCode: shippingInfo.postalCode,
+        };
+      }
 
-      // Clear cart
+      const response = await fetch(`${API_BASE}/api/orders/checkout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const message = errorData.error || errorData.message || "Failed to place order";
+        throw new Error(message);
+      }
+
+      const data = await response.json();
+      const orderId = data?.orders?.[0]?.id;
+
       await clearCart();
 
-      // Redirect to order confirmation page
-      router.push(`/order/${orderId}`);
+      if (orderId) {
+        router.push(`/order/${orderId}`);
+      } else {
+        router.push("/orders");
+      }
     } catch (error) {
       console.error("Order failed:", error);
-      alert("Failed to place order. Please try again.");
+      alert(error instanceof Error ? error.message : "Failed to place order. Please try again.");
       setIsProcessing(false);
     }
   };
