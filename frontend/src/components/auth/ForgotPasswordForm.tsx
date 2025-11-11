@@ -76,9 +76,8 @@ export default function ForgotPasswordForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@ku.th"
-              className="w-full rounded-md border px-3 py-2 text-sm outline-none"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#69773D] focus:border-transparent"
               style={{
-                borderColor: aboutColors.borderSoft,
                 backgroundColor: aboutColors.creamBg,
               }}
             />
@@ -92,7 +91,7 @@ export default function ForgotPasswordForm() {
               type="submit"
               disabled={submitting}
               className="rounded-full px-5 py-2 text-sm font-semibold shadow-sm hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
-              style={{ backgroundColor: aboutColors.brown, color: aboutColors.creamSoft }}
+              style={{ backgroundColor: "#69773D", color: aboutColors.creamSoft }}
             >
               {submitting ? "Sending..." : "Send reset link"}
             </button>
