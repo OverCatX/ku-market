@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { API_BASE } from "@/config/constants";
+import { useRouter } from "next/navigation";
 import { clearAuthTokens, getAuthToken, isAuthenticated } from "@/lib/auth";
 
 interface OrderItem {
@@ -176,8 +177,9 @@ const paymentStatusBadge = (status?: OrderDetail["paymentStatus"]) => {
 };
 
 const formatPaymentMethod = (method: OrderDetail["paymentMethod"]) => {
-  if (method === "promptpay") return "PromptPay";
-  if (method === "transfer") return "Bank transfer";
+  const normalized = normalizePaymentMethod(method);
+  if (normalized === "promptpay") return "PromptPay";
+  if (normalized === "transfer") return "Bank transfer";
   return "Cash";
 };
 
@@ -187,6 +189,47 @@ const formatDateTime = (value?: string) => {
     dateStyle: "medium",
     timeStyle: "short",
   });
+};
+
+const normalizeStatus = (
+  status?: OrderDetail["status"]
+): OrderDetail["status"] | null => {
+  if (!status) return null;
+  const lowered = status.trim().toLowerCase();
+  const map: Record<string, OrderDetail["status"]> = {
+    pending_seller_confirmation: "pending_seller_confirmation",
+    confirmed: "confirmed",
+    rejected: "rejected",
+    completed: "completed",
+    cancelled: "cancelled",
+  };
+  return map[lowered] ?? null;
+};
+
+const normalizePaymentStatus = (
+  status?: OrderDetail["paymentStatus"]
+): OrderDetail["paymentStatus"] | null => {
+  if (!status) return null;
+  const lowered = status.trim().toLowerCase();
+  const map: Record<string, OrderDetail["paymentStatus"]> = {
+    pending: "pending",
+    awaiting_payment: "awaiting_payment",
+    payment_submitted: "payment_submitted",
+    paid: "paid",
+    not_required: "not_required",
+  };
+  return map[lowered] ?? null;
+};
+
+const normalizePaymentMethod = (
+  method?: OrderDetail["paymentMethod"]
+): "cash" | "promptpay" | "transfer" | null => {
+  if (!method) return null;
+  const lowered = method.trim().toLowerCase();
+  if (lowered === "cash" || lowered === "promptpay" || lowered === "transfer") {
+    return lowered as "cash" | "promptpay" | "transfer";
+  }
+  return null;
 };
 
 const resolveMessage = (
@@ -206,11 +249,13 @@ export default function OrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id: orderId } = use(params);
+  const router = useRouter();
 
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submittingPayment, setSubmittingPayment] = useState(false);
+  const [contactingSeller, setContactingSeller] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     setLoading(true);
@@ -328,9 +373,83 @@ export default function OrderDetailPage({
     }
   }, [fetchOrder, order]);
 
+  const handleContactSeller = useCallback(async () => {
+    if (!order?.seller?.id) {
+      toast.error("Seller information unavailable");
+      return;
+    }
+
+    if (!isAuthenticated()) {
+      toast.error("Please login to contact the seller");
+      router.push(`/login?redirect=/order/${order.id}`);
+      return;
+    }
+
+    const token = getAuthToken();
+    if (!token) {
+      clearAuthTokens();
+      toast.error("Please login to contact the seller");
+      router.push(`/login?redirect=/order/${order.id}`);
+      return;
+    }
+
+    setContactingSeller(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/chats/threads`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          sellerId: order.seller.id,
+        }),
+      });
+
+      if (response.status === 401) {
+        clearAuthTokens();
+        toast.error("Session expired. Please login again");
+        router.push(`/login?redirect=/order/${order.id}`);
+        return;
+      }
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as {
+          error?: string;
+          message?: string;
+        } | null;
+        const message =
+          payload?.error || payload?.message || "Failed to contact seller";
+        throw new Error(message);
+      }
+
+      const data = (await response.json().catch(() => null)) as {
+        id?: string;
+        threadId?: string;
+        _id?: string;
+      } | null;
+      const threadId = data?.id || data?.threadId || data?._id;
+
+      if (!threadId) {
+        throw new Error("Chat thread not available");
+      }
+
+      router.push(`/chats?threadId=${encodeURIComponent(threadId)}`);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to contact seller";
+      toast.error(message);
+    } finally {
+      setContactingSeller(false);
+    }
+  }, [order, router]);
+
   const statusBlock = useMemo(() => {
     if (!order) return null;
-    const meta = statusStyles[order.status];
+    const normalizedStatus =
+      normalizeStatus(order.status) ?? "pending_seller_confirmation";
+    const meta = statusStyles[normalizedStatus];
     const Icon = meta.icon;
     return (
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -351,6 +470,41 @@ export default function OrderDetailPage({
       </div>
     );
   }, [order]);
+
+  const paymentState = useMemo(() => {
+    if (!order) {
+      return {
+        requiresPayment: false,
+        awaitingBuyerPayment: false,
+        paymentComplete: false,
+      };
+    }
+
+    const normalizedMethod = normalizePaymentMethod(order.paymentMethod);
+    const rawMethod = order.paymentMethod
+      ? order.paymentMethod.trim().toLowerCase()
+      : null;
+    const normalizedStatus = normalizeStatus(order.status);
+    const normalizedPaymentStatus = normalizePaymentStatus(order.paymentStatus);
+
+    const requiresPayment =
+      normalizedMethod === "promptpay" ||
+      normalizedMethod === "transfer" ||
+      (rawMethod !== null && rawMethod !== "cash");
+    const awaitingBuyerPayment =
+      requiresPayment &&
+      normalizedStatus === "confirmed" &&
+      (normalizedPaymentStatus === "awaiting_payment" ||
+        normalizedPaymentStatus === "pending" ||
+        normalizedPaymentStatus === null);
+    const paymentComplete =
+      normalizedPaymentStatus === "payment_submitted" ||
+      normalizedPaymentStatus === "paid";
+
+    return { requiresPayment, awaitingBuyerPayment, paymentComplete };
+  }, [order]);
+
+  const { awaitingBuyerPayment, paymentComplete } = paymentState;
 
   if (loading) {
     return (
@@ -407,7 +561,9 @@ export default function OrderDetailPage({
     );
   }
 
-  const meta = statusStyles[order.status];
+  const normalizedStatus =
+    normalizeStatus(order.status) ?? "pending_seller_confirmation";
+  const meta = statusStyles[normalizedStatus];
   const StatusIcon = meta.icon;
 
   return (
@@ -440,7 +596,7 @@ export default function OrderDetailPage({
 
             <div className="rounded-2xl bg-[#f3f8ed] border border-[#dfe7cf] p-4">
               <p className="text-sm text-gray-600">
-                {statusTips[order.status]}
+                {statusTips[normalizedStatus]}
               </p>
               {order.rejectionReason && (
                 <p className="mt-2 text-sm font-semibold text-red-600">
@@ -497,19 +653,22 @@ export default function OrderDetailPage({
                 <h3 className="text-sm font-semibold text-[#3d4a29]">
                   Delivery & payment
                 </h3>
-                <div className="mt-2 text-sm text-gray-600">
+                <div className="mt-2 space-y-2 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <Truck size={16} className="text-[#69773D]" />
                     <span className="capitalize">{order.deliveryMethod}</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Package size={16} className="text-[#69773D]" />
-                    <span className="capitalize">{order.paymentMethod}</span>
+                    <span>{formatPaymentMethod(order.paymentMethod)}</span>
+                    {paymentStatusBadge(
+                      normalizePaymentStatus(order.paymentStatus) ?? undefined
+                    )}
                   </div>
                   {order.deliveryMethod === "delivery" &&
                     order.shippingAddress && (
-                      <div className="mt-3 text-sm text-gray-600">
-                        <p className="font-semibold text-[#3d4a29]">
+                      <div className="mt-2 space-y-1 rounded border border-[#d6e4c3] bg-[#f8fbef] p-3 text-xs text-[#3f4e24]">
+                        <p className="font-semibold text-[#2f3b11]">
                           Shipping address
                         </p>
                         <p>{order.shippingAddress.address}</p>
@@ -519,6 +678,32 @@ export default function OrderDetailPage({
                         </p>
                       </div>
                     )}
+                  {order.deliveryMethod === "pickup" && order.pickupDetails && (
+                    <div className="mt-2 space-y-1 rounded border border-[#d6e4c3] bg-[#f8fbef] p-3 text-xs text-[#3f4e24]">
+                      <p className="font-semibold text-[#2f3b11]">
+                        Meetup point
+                      </p>
+                      <p className="flex items-center gap-1 font-medium text-[#2f3b11]">
+                        <MapPin size={12} className="text-[#84B067]" />
+                        {order.pickupDetails.locationName}
+                      </p>
+                      {order.pickupDetails.address && (
+                        <p>{order.pickupDetails.address}</p>
+                      )}
+                      {order.pickupDetails.coordinates && (
+                        <p className="text-[11px] text-gray-500">
+                          Coordinates:{" "}
+                          {order.pickupDetails.coordinates.lat.toFixed(5)},{" "}
+                          {order.pickupDetails.coordinates.lng.toFixed(5)}
+                        </p>
+                      )}
+                      {order.pickupDetails.note && (
+                        <p className="text-[11px] text-gray-500">
+                          Buyer note: {order.pickupDetails.note}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="rounded-2xl border border-[#e4ecd7] bg-white p-4">
@@ -534,20 +719,37 @@ export default function OrderDetailPage({
                 <div className="mt-4">
                   <button
                     type="button"
-                    onClick={() =>
-                      toast("Direct chat with seller coming soon!", {
-                        icon: "💬",
-                      })
-                    }
-                    className="inline-flex items-center gap-2 rounded-lg border border-[#d6e4c3] px-3 py-2 text-sm font-semibold text-[#4c5c2f] hover:bg-[#f3f8ed]"
+                    onClick={handleContactSeller}
+                    disabled={contactingSeller}
+                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                      contactingSeller
+                        ? "border-[#d6e4c3] bg-[#f3f8ed] text-gray-400 cursor-not-allowed"
+                        : "border-[#d6e4c3] text-[#4c5c2f] hover:bg-[#f3f8ed]"
+                    }`}
                   >
-                    <MessageCircle size={16} /> Contact seller
+                    <MessageCircle size={16} />
+                    {contactingSeller ? "Opening chat..." : "Contact seller"}
                   </button>
                 </div>
               </div>
             </section>
 
             <div className="mt-6 flex flex-wrap gap-3">
+              {awaitingBuyerPayment && !paymentComplete && (
+                <button
+                  type="button"
+                  onClick={handleMakePayment}
+                  disabled={submittingPayment}
+                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                    submittingPayment
+                      ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
+                      : "bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
+                  }`}
+                >
+                  <CreditCard size={16} />
+                  {submittingPayment ? "Submitting..." : "Make payment"}
+                </button>
+              )}
               <Link
                 href="/orders"
                 className="inline-flex items-center gap-2 rounded-xl bg-[#69773D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#55602f] transition"

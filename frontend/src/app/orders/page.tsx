@@ -58,6 +58,47 @@ interface OrderData {
   createdAt?: string;
 }
 
+const normalizePaymentMethod = (
+  value?: OrderData["paymentMethod"]
+): "cash" | "promptpay" | "transfer" | null => {
+  if (!value) return null;
+  const lowered = value.trim().toLowerCase();
+  if (lowered === "cash" || lowered === "promptpay" || lowered === "transfer") {
+    return lowered as "cash" | "promptpay" | "transfer";
+  }
+  return null;
+};
+
+const normalizeStatus = (
+  status?: OrderData["status"]
+): OrderData["status"] | null => {
+  if (!status) return null;
+  const lowered = status.trim().toLowerCase();
+  const map: Record<string, OrderData["status"]> = {
+    pending_seller_confirmation: "pending_seller_confirmation",
+    confirmed: "confirmed",
+    rejected: "rejected",
+    completed: "completed",
+    cancelled: "cancelled",
+  };
+  return map[lowered] ?? null;
+};
+
+const normalizePaymentStatus = (
+  status?: OrderData["paymentStatus"]
+): OrderData["paymentStatus"] | null => {
+  if (!status) return null;
+  const lowered = status.trim().toLowerCase();
+  const map: Record<string, OrderData["paymentStatus"]> = {
+    pending: "pending",
+    awaiting_payment: "awaiting_payment",
+    payment_submitted: "payment_submitted",
+    paid: "paid",
+    not_required: "not_required",
+  };
+  return map[lowered] ?? null;
+};
+
 export default function OrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -242,7 +283,10 @@ export default function OrdersPage() {
     };
 
     orders.forEach((order) => {
-      counts[order.status] += 1;
+      const normalized = normalizeStatus(order.status);
+      if (normalized) {
+        counts[normalized] += 1;
+      }
     });
 
     return counts;
@@ -252,7 +296,7 @@ export default function OrdersPage() {
 
   const filteredOrders = useMemo(() => {
     if (filter === "all") return orders;
-    return orders.filter((order) => order.status === filter);
+    return orders.filter((order) => normalizeStatus(order.status) === filter);
   }, [orders, filter]);
 
   const sortedOrders = useMemo(
@@ -393,8 +437,9 @@ export default function OrdersPage() {
   };
 
   const formatPaymentMethod = (value: OrderData["paymentMethod"]) => {
-    if (value === "promptpay") return "PromptPay";
-    if (value === "transfer") return "Bank transfer";
+    const normalized = normalizePaymentMethod(value);
+    if (normalized === "promptpay") return "PromptPay";
+    if (normalized === "transfer") return "Bank transfer";
     return "Cash";
   };
 
@@ -511,18 +556,32 @@ export default function OrdersPage() {
         ) : (
           <div className="space-y-5">
             {sortedOrders.map((order) => {
+              const normalizedMethod = normalizePaymentMethod(
+                order.paymentMethod
+              );
+              const normalizedStatus = normalizeStatus(order.status);
+              const normalizedPaymentStatus = normalizePaymentStatus(
+                order.paymentStatus
+              );
+
+              const rawMethod = order.paymentMethod
+                ? order.paymentMethod.trim().toLowerCase()
+                : null;
               const requiresPayment =
-                order.paymentMethod === "promptpay" ||
-                order.paymentMethod === "transfer";
+                normalizedMethod === "promptpay" ||
+                normalizedMethod === "transfer" ||
+                (rawMethod !== null && rawMethod !== "cash");
               const awaitingBuyerPayment =
                 requiresPayment &&
-                order.status === "confirmed" &&
-                (order.paymentStatus === "awaiting_payment" ||
-                  order.paymentStatus === "pending" ||
-                  order.paymentStatus === undefined);
+                normalizedStatus === "confirmed" &&
+                (normalizedPaymentStatus === "awaiting_payment" ||
+                  normalizedPaymentStatus === "pending" ||
+                  normalizedPaymentStatus === null);
               const paymentComplete =
-                order.paymentStatus === "payment_submitted" ||
-                order.paymentStatus === "paid";
+                normalizedPaymentStatus === "payment_submitted" ||
+                normalizedPaymentStatus === "paid";
+              const displayStatus =
+                normalizedStatus ?? "pending_seller_confirmation";
 
               return (
                 <div
@@ -532,7 +591,7 @@ export default function OrdersPage() {
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
                       <div className="flex items-center gap-3">
-                        {statusBadge(order.status)}
+                        {statusBadge(displayStatus)}
                         <div className="text-sm text-gray-600">
                           Seller:{" "}
                           <span className="font-semibold text-gray-900">
@@ -567,7 +626,7 @@ export default function OrdersPage() {
                       </div>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {paymentStatusBadge(order.paymentStatus)}
+                      {paymentStatusBadge(normalizedPaymentStatus ?? undefined)}
                       {order.deliveryMethod === "pickup" &&
                         order.pickupDetails && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-[#eef4e6] px-2.5 py-1 text-[11px] font-medium text-[#4c5c2f]">
