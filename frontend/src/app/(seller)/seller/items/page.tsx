@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, Edit, Trash2, RefreshCw, Clock, CheckCircle, XCircle } from "lucide-react";
+import {
+  Package,
+  Edit,
+  Trash2,
+  RefreshCw,
+  Clock,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { API_BASE } from "@/config/constants";
@@ -24,6 +32,7 @@ interface ItemData {
 export default function SellerItems() {
   const [items, setItems] = useState<ItemData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   useEffect(() => {
     loadItems();
@@ -39,7 +48,7 @@ export default function SellerItems() {
       }
 
       const response = await fetch(`${API_BASE}/api/seller/items`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) {
@@ -54,6 +63,54 @@ export default function SellerItems() {
       setItems([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (
+    itemId: string,
+    newStatus: ItemData["status"]
+  ) => {
+    setUpdatingStatusId(itemId);
+    try {
+      const token = localStorage.getItem("authentication");
+      if (!token) {
+        toast.error("Please login first");
+        return;
+      }
+
+      const response = await fetch(
+        `${API_BASE}/api/seller/items/${itemId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        const message =
+          (payload as { error?: string }).error ||
+          "Failed to update item status";
+        throw new Error(message);
+      }
+
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId ? { ...item, status: newStatus } : item
+        )
+      );
+      toast.success("Item status updated");
+    } catch (error) {
+      console.error("Failed to update item status:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update item status"
+      );
+    } finally {
+      setUpdatingStatusId(null);
     }
   };
 
@@ -122,7 +179,9 @@ export default function SellerItems() {
               </div>
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-gray-900 flex-1 text-sm md:text-base">{item.title}</h3>
+                  <h3 className="font-bold text-gray-900 flex-1 text-sm md:text-base">
+                    {item.title}
+                  </h3>
                   <span
                     className={`text-xs px-2 py-1 rounded-full ml-2 flex items-center gap-1 whitespace-nowrap ${
                       item.approvalStatus === "approved"
@@ -140,13 +199,18 @@ export default function SellerItems() {
                     }
                   >
                     {item.approvalStatus === "pending" && <Clock size={12} />}
-                    {item.approvalStatus === "approved" && <CheckCircle size={12} />}
-                    {item.approvalStatus === "rejected" && <XCircle size={12} />}
+                    {item.approvalStatus === "approved" && (
+                      <CheckCircle size={12} />
+                    )}
+                    {item.approvalStatus === "rejected" && (
+                      <XCircle size={12} />
+                    )}
                     {item.approvalStatus}
                   </span>
                 </div>
                 <div className="text-xs text-gray-500 mb-2">
-                  Added: {(() => {
+                  Added:{" "}
+                  {(() => {
                     if (!item.createdAt) return "N/A";
                     try {
                       const date = new Date(item.createdAt);
@@ -162,7 +226,11 @@ export default function SellerItems() {
                         minute: "2-digit",
                       }).format(date);
                     } catch (error) {
-                      console.error("Date formatting error:", error, item.createdAt);
+                      console.error(
+                        "Date formatting error:",
+                        error,
+                        item.createdAt
+                      );
                       return "Invalid date";
                     }
                   })()}
@@ -176,21 +244,30 @@ export default function SellerItems() {
                 <p className="text-sm text-gray-600 mb-2 line-clamp-2">
                   {item.description}
                 </p>
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-wrap justify-between items-center mb-4 gap-3">
                   <span className="text-lg font-bold text-green-600">
                     ฿{item.price.toLocaleString()}
                   </span>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      item.status === "available"
-                        ? "bg-blue-100 text-blue-800"
-                        : item.status === "reserved"
-                        ? "bg-orange-100 text-orange-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {item.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-gray-500 hidden sm:block">
+                      Status:
+                    </label>
+                    <select
+                      value={item.status}
+                      onChange={(e) =>
+                        handleStatusChange(
+                          item.id,
+                          e.target.value as ItemData["status"]
+                        )
+                      }
+                      disabled={updatingStatusId === item.id}
+                      className="text-xs px-2 py-1 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#84B067]"
+                    >
+                      <option value="available">available</option>
+                      <option value="reserved">reserved</option>
+                      <option value="sold">sold</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Link
@@ -212,7 +289,11 @@ export default function SellerItems() {
                   </Link>
                   <button
                     onClick={async () => {
-                      if (!confirm(`Are you sure you want to delete "${item.title}"?`)) {
+                      if (
+                        !confirm(
+                          `Are you sure you want to delete "${item.title}"?`
+                        )
+                      ) {
                         return;
                       }
                       try {

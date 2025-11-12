@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, use } from "react";
+import { useCallback, useEffect, useMemo, useState, use } from "react";
 import type { ComponentType } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -14,9 +14,12 @@ import {
   MessageCircle,
   Home,
   ShoppingBag,
+  CreditCard,
+  MapPin,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { API_BASE } from "@/config/constants";
+import { clearAuthTokens, getAuthToken, isAuthenticated } from "@/lib/auth";
 
 interface OrderItem {
   itemId: string;
@@ -54,8 +57,24 @@ interface OrderDetail {
     | "completed"
     | "cancelled";
   deliveryMethod: "pickup" | "delivery";
-  paymentMethod: "cash" | "transfer";
+  paymentMethod: "cash" | "transfer" | "promptpay";
+  paymentStatus?:
+    | "pending"
+    | "awaiting_payment"
+    | "payment_submitted"
+    | "paid"
+    | "not_required";
+  paymentSubmittedAt?: string;
   shippingAddress?: ShippingAddress;
+  pickupDetails?: {
+    locationName: string;
+    address?: string;
+    note?: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  };
   buyerContact: BuyerContact;
   confirmedAt?: string;
   rejectedAt?: string;
@@ -104,13 +123,62 @@ const statusTips: Record<OrderDetail["status"], string> = {
   pending_seller_confirmation:
     "The seller is reviewing your order. You will be notified once they confirm.",
   confirmed:
-    "Seller has confirmed the order. Please coordinate delivery or pickup.",
+    "Seller has confirmed the order. Coordinate the meetup or delivery, and submit payment if PromtPay/transfer is required.",
   completed:
     "Order marked as completed. Thank you for shopping with KU Market!",
   rejected:
     "Seller rejected the order. Review the reason below and contact the seller if needed.",
   cancelled:
     "Order was cancelled. If this is unexpected, contact the seller for support.",
+};
+
+const paymentStatusBadge = (status?: OrderDetail["paymentStatus"]) => {
+  if (!status || status === "not_required") {
+    return null;
+  }
+
+  const map: Record<
+    Exclude<OrderDetail["paymentStatus"], undefined>,
+    { label: string; className: string }
+  > = {
+    pending: {
+      label: "Pending seller review",
+      className: "bg-gray-100 text-gray-700",
+    },
+    awaiting_payment: {
+      label: "Awaiting your payment",
+      className: "bg-orange-100 text-orange-800",
+    },
+    payment_submitted: {
+      label: "Payment submitted",
+      className: "bg-blue-100 text-blue-700",
+    },
+    paid: {
+      label: "Payment completed",
+      className: "bg-green-100 text-green-700",
+    },
+    not_required: {
+      label: "Payment not required",
+      className: "bg-gray-100 text-gray-600",
+    },
+  };
+
+  const badge = map[status] ?? map.pending;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium ${badge.className}`}
+    >
+      <CreditCard size={12} />
+      {badge.label}
+    </span>
+  );
+};
+
+const formatPaymentMethod = (method: OrderDetail["paymentMethod"]) => {
+  if (method === "promptpay") return "PromptPay";
+  if (method === "transfer") return "Bank transfer";
+  return "Cash";
 };
 
 const formatDateTime = (value?: string) => {
@@ -142,70 +210,123 @@ export default function OrderDetailPage({
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [submittingPayment, setSubmittingPayment] = useState(false);
+
+  const fetchOrder = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem("authentication");
+      if (!token) {
+        setError("Please login to view this order.");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/api/orders/${orderId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const payloadText = await response.text();
+      let payload: Record<string, unknown> = {};
+      if (payloadText) {
+        try {
+          payload = JSON.parse(payloadText);
+        } catch {
+          payload = {};
+        }
+      }
+
+      if (response.status === 401) {
+        setError("Your session expired. Please login again.");
+        return;
+      }
+
+      if (response.status === 403) {
+        setError(
+          resolveMessage(payload, "You do not have access to this order.")
+        );
+        return;
+      }
+
+      if (response.status === 404) {
+        setError(resolveMessage(payload, "This order could not be found."));
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(resolveMessage(payload, "Failed to load order"));
+      }
+
+      if (!payload.order) {
+        throw new Error("Order details are unavailable.");
+      }
+
+      setOrder(payload.order as OrderDetail);
+    } catch (err) {
+      console.error("Order detail failed: ", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to load order details"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [orderId]);
 
   useEffect(() => {
-    const fetchOrder = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const token = localStorage.getItem("authentication");
-        if (!token) {
-          setError("Please login to view this order.");
-          return;
-        }
-
-        const response = await fetch(`${API_BASE}/api/orders/${orderId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const payloadText = await response.text();
-        let payload: Record<string, unknown> = {};
-        if (payloadText) {
-          try {
-            payload = JSON.parse(payloadText);
-          } catch {
-            payload = {};
-          }
-        }
-
-        if (response.status === 401) {
-          setError("Your session expired. Please login again.");
-          return;
-        }
-
-        if (response.status === 403) {
-          setError(
-            resolveMessage(payload, "You do not have access to this order.")
-          );
-          return;
-        }
-
-        if (response.status === 404) {
-          setError(resolveMessage(payload, "This order could not be found."));
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error(resolveMessage(payload, "Failed to load order"));
-        }
-
-        if (!payload.order) {
-          throw new Error("Order details are unavailable.");
-        }
-
-        setOrder(payload.order as OrderDetail);
-      } catch (err) {
-        console.error("Order detail failed: ", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to load order details"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrder();
-  }, [orderId]);
+  }, [fetchOrder]);
+
+  const handleMakePayment = useCallback(async () => {
+    if (!order) {
+      return;
+    }
+
+    if (!isAuthenticated()) {
+      toast.error("Please login to submit payment");
+      return;
+    }
+
+    const token = getAuthToken();
+    if (!token) {
+      clearAuthTokens();
+      toast.error("Please login to submit payment");
+      return;
+    }
+
+    setSubmittingPayment(true);
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/orders/${order.id}/payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        const message =
+          (payload as { error?: string }).error ||
+          (payload as { message?: string }).message ||
+          "Failed to submit payment";
+        throw new Error(message);
+      }
+
+      toast.success("Payment submitted! The seller will verify shortly.");
+      await fetchOrder();
+    } catch (err) {
+      console.error("Submit payment error:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to submit payment"
+      );
+    } finally {
+      setSubmittingPayment(false);
+    }
+  }, [fetchOrder, order]);
 
   const statusBlock = useMemo(() => {
     if (!order) return null;

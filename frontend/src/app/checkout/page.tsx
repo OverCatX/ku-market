@@ -2,7 +2,7 @@
 
 import { useCart } from "@/contexts/CartContext";
 import { getVerificationStatus } from "@/config/verification";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Wallet,
@@ -19,6 +19,7 @@ import Image from "next/image";
 import type { UserData } from "@/config/auth";
 import { API_BASE } from "@/config/constants";
 import toast from "react-hot-toast";
+import type { Dispatch, MouseEvent, SetStateAction } from "react";
 
 type PaymentMethod = "cash" | "promptpay";
 type DeliveryMethod = "pickup" | "delivery";
@@ -29,6 +30,20 @@ interface ShippingInfo {
   address: string;
   city: string;
   postalCode: string;
+}
+
+interface PickupDetailsState {
+  locationName: string;
+  address: string;
+  note: string;
+  marker?: {
+    percentX: number;
+    percentY: number;
+  };
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export default function CheckoutPage() {
@@ -51,11 +66,34 @@ export default function CheckoutPage() {
     city: "",
     postalCode: "",
   });
+  const [pickupDetails, setPickupDetails] = useState<PickupDetailsState>({
+    locationName: "",
+    address: "",
+    note: "",
+  });
 
   // Wait for client-side mount
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (deliveryMethod !== "pickup") {
+      return;
+    }
+    setPickupDetails((prev) => {
+      if (prev.marker && prev.coordinates && prev.locationName) {
+        return prev;
+      }
+      return {
+        ...prev,
+        marker: prev.marker ?? { percentX: 0.5, percentY: 0.5 },
+        coordinates: prev.coordinates ?? { lat: 13.736717, lng: 100.523186 },
+        locationName:
+          prev.locationName || "Kasetsart University front entrance",
+      };
+    });
+  }, [deliveryMethod]);
 
   // Check authentication and verification status
   useEffect(() => {
@@ -170,6 +208,13 @@ export default function CheckoutPage() {
       }
     }
 
+    if (deliveryMethod === "pickup") {
+      if (!pickupDetails.locationName.trim()) {
+        toast.error("Please enter a pickup location name");
+        return;
+      }
+    }
+
     // Inform buyer and show confirmation dialog before sending to seller
     toast("Please confirm your order details before sending to seller", {
       icon: "🧾",
@@ -201,6 +246,12 @@ export default function CheckoutPage() {
         paymentMethod: PaymentMethod;
         buyerContact: { fullName: string; phone: string };
         shippingAddress?: { address: string; city: string; postalCode: string };
+        pickupDetails?: {
+          locationName: string;
+          address?: string;
+          note?: string;
+          coordinates?: { lat: number; lng: number };
+        };
       } = {
         deliveryMethod,
         paymentMethod,
@@ -215,6 +266,13 @@ export default function CheckoutPage() {
           address: normalizedInfo.address,
           city: normalizedInfo.city,
           postalCode: normalizedInfo.postalCode,
+        };
+      } else {
+        payload.pickupDetails = {
+          locationName: pickupDetails.locationName.trim(),
+          address: pickupDetails.address.trim() || undefined,
+          note: pickupDetails.note.trim() || undefined,
+          coordinates: pickupDetails.coordinates,
         };
       }
 
@@ -285,6 +343,88 @@ export default function CheckoutPage() {
                 <div className="bg-white rounded-lg shadow-sm p-6 h-96"></div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  type FakeMapProps = {
+    pickupDetails: PickupDetailsState;
+    onChange: Dispatch<SetStateAction<PickupDetailsState>>;
+  };
+
+  function FakeMap({ pickupDetails, onChange }: FakeMapProps) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+
+    const handleClick = (event: MouseEvent<HTMLDivElement>) => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) {
+        return;
+      }
+      const relativeX = event.clientX - rect.left;
+      const relativeY = event.clientY - rect.top;
+      const percentX = Math.min(Math.max(relativeX / rect.width, 0), 1);
+      const percentY = Math.min(Math.max(relativeY / rect.height, 0), 1);
+
+      const latBase = 13.736717;
+      const lngBase = 100.523186;
+      const lat = latBase + 0.02 * (0.5 - percentY);
+      const lng = lngBase + 0.02 * (percentX - 0.5);
+
+      onChange((prev) => ({
+        ...prev,
+        marker: { percentX, percentY },
+        coordinates: {
+          lat: Number(lat.toFixed(6)),
+          lng: Number(lng.toFixed(6)),
+        },
+        locationName: prev.locationName.trim() || "Custom pick-up spot",
+      }));
+    };
+
+    return (
+      <div className="space-y-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-700">
+              Tap on the map to drop a pin
+            </p>
+            <p className="text-xs text-gray-500">
+              This lightweight mock map helps you communicate the meetup point
+              to the seller.
+            </p>
+          </div>
+          <span className="rounded-full bg-[#eef5df] px-3 py-1 text-xs font-semibold text-[#4c5c2f]">
+            Demo map
+          </span>
+        </div>
+        <div
+          ref={containerRef}
+          onClick={handleClick}
+          className="group relative h-64 cursor-crosshair overflow-hidden rounded-2xl border-2 border-dashed border-[#cbd9b5] focus:outline-none focus:ring-2 focus:ring-[#84B067]"
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg, rgba(132,176,103,0.08) 1px, transparent 1px), linear-gradient(180deg, rgba(132,176,103,0.08) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+            backgroundColor: "#f5f9ef",
+          }}
+        >
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#f4f9ed] via-[#fbfff5] to-[#e2f0d1]" />
+          {pickupDetails.marker && (
+            <span
+              className="absolute -translate-x-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-[#84B067] text-xs font-semibold text-white shadow-lg ring-2 ring-white"
+              style={{
+                left: `${pickupDetails.marker.percentX * 100}%`,
+                top: `${pickupDetails.marker.percentY * 100}%`,
+              }}
+            >
+              ●
+            </span>
+          )}
+          <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="absolute left-1/2 top-0 h-full w-px bg-[#84B067]/40" />
+            <div className="absolute left-0 top-1/2 h-px w-full bg-[#84B067]/40" />
           </div>
         </div>
       </div>
@@ -426,6 +566,82 @@ export default function CheckoutPage() {
                   </label>
                 </div>
               </div>
+              {deliveryMethod === "pickup" && (
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <MapPin className="w-5 h-5 text-[#84B067]" />
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Pickup spot preview
+                    </h2>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Location name *
+                        </label>
+                        <input
+                          type="text"
+                          value={pickupDetails.locationName}
+                          onChange={(e) =>
+                            setPickupDetails((prev) => ({
+                              ...prev,
+                              locationName: e.target.value,
+                            }))
+                          }
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
+                          placeholder="Building A - Gate 3"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Address / landmark (optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={pickupDetails.address}
+                          onChange={(e) =>
+                            setPickupDetails((prev) => ({
+                              ...prev,
+                              address: e.target.value,
+                            }))
+                          }
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
+                          placeholder="Near KU Library"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Note for seller (optional)
+                      </label>
+                      <textarea
+                        value={pickupDetails.note}
+                        onChange={(e) =>
+                          setPickupDetails((prev) => ({
+                            ...prev,
+                            note: e.target.value,
+                          }))
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
+                        rows={2}
+                        placeholder="I'm wearing a green jacket, will arrive about 10 minutes early."
+                      />
+                    </div>
+                    <FakeMap
+                      pickupDetails={pickupDetails}
+                      onChange={setPickupDetails}
+                    />
+                    {pickupDetails.coordinates && (
+                      <p className="text-xs text-gray-500">
+                        Selected coordinates:{" "}
+                        {pickupDetails.coordinates.lat.toFixed(5)},{" "}
+                        {pickupDetails.coordinates.lng.toFixed(5)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Contact Information */}
               <div className="bg-white rounded-lg shadow-sm p-6">
@@ -735,10 +951,29 @@ export default function CheckoutPage() {
                       <p className="font-medium mb-1">Order Details:</p>
                       <p className="mb-1">
                         <span className="font-medium">Delivery:</span>{" "}
-                        {deliveryMethod === "pickup"
-                          ? "Self Pick-up (Meetup point will be arranged)"
-                          : "Delivery to your address"}
+                        {deliveryMethod === "pickup" ? (
+                          <>
+                            Self Pick-up{" "}
+                            {pickupDetails.locationName
+                              ? `– ${pickupDetails.locationName}`
+                              : "(Set meetup point before confirming)"}
+                          </>
+                        ) : (
+                          "Delivery to your address"
+                        )}
                       </p>
+                      {deliveryMethod === "pickup" && pickupDetails.address && (
+                        <p className="mb-1">
+                          <span className="font-medium">Meetup landmark:</span>{" "}
+                          {pickupDetails.address}
+                        </p>
+                      )}
+                      {deliveryMethod === "pickup" && pickupDetails.note && (
+                        <p className="mb-1">
+                          <span className="font-medium">Your note:</span>{" "}
+                          {pickupDetails.note}
+                        </p>
+                      )}
                       <p>
                         <span className="font-medium">Payment:</span>{" "}
                         {paymentMethod === "cash"
@@ -832,12 +1067,29 @@ export default function CheckoutPage() {
                       </>
                     )}
                     {deliveryMethod === "pickup" && (
-                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-                        <p className="text-xs text-blue-800">
-                          <Store className="w-4 h-4 inline mr-1" />
-                          Meetup location will be arranged with seller after
-                          confirmation
+                      <div className="mt-2 space-y-1 rounded border border-[#d6e4c3] bg-[#f8fbef] p-3 text-xs text-[#3f4e24]">
+                        <p className="font-semibold text-[#2f3b11]">
+                          <Store className="mr-1 inline h-4 w-4 text-[#84B067]" />
+                          Pickup location
                         </p>
+                        <p className="font-medium">
+                          {pickupDetails.locationName || "Not specified yet"}
+                        </p>
+                        {pickupDetails.address && (
+                          <p>{pickupDetails.address}</p>
+                        )}
+                        {pickupDetails.coordinates && (
+                          <p className="text-[11px] text-gray-500">
+                            Coordinates:{" "}
+                            {pickupDetails.coordinates.lat.toFixed(5)},{" "}
+                            {pickupDetails.coordinates.lng.toFixed(5)}
+                          </p>
+                        )}
+                        {pickupDetails.note && (
+                          <p className="text-[11px] text-gray-500">
+                            Your note: {pickupDetails.note}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -877,7 +1129,8 @@ export default function CheckoutPage() {
                       </li>
                       {deliveryMethod === "pickup" && (
                         <li className="text-orange-700 font-medium">
-                          Meetup point will be arranged after seller confirms
+                          You can adjust the meetup point anytime until the
+                          seller confirms
                         </li>
                       )}
                       {paymentMethod === "promptpay" && (

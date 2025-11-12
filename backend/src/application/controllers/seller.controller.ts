@@ -109,7 +109,9 @@ export default class SellerController {
             status: order.status,
             deliveryMethod: order.deliveryMethod,
             shippingAddress: order.shippingAddress,
+            pickupDetails: order.pickupDetails,
             paymentMethod: order.paymentMethod,
+            paymentStatus: order.paymentStatus,
             buyerContact: order.buyerContact,
             confirmedAt: order.confirmedAt,
             rejectedAt: order.rejectedAt,
@@ -180,7 +182,9 @@ export default class SellerController {
           status: order.status,
           deliveryMethod: order.deliveryMethod,
           shippingAddress: order.shippingAddress,
+          pickupDetails: order.pickupDetails,
           paymentMethod: order.paymentMethod,
+          paymentStatus: order.paymentStatus,
           buyerContact: order.buyerContact,
           confirmedAt: order.confirmedAt,
           rejectedAt: order.rejectedAt,
@@ -253,14 +257,12 @@ export default class SellerController {
       // Update order status
       order.status = "confirmed";
       order.confirmedAt = new Date();
-      await order.save();
-
-      // Update item statuses to reserved
-      for (const orderItem of order.items) {
-        await Item.findByIdAndUpdate(orderItem.itemId, {
-          status: "reserved",
-        });
+      if (order.paymentMethod === "transfer" || order.paymentMethod === "promptpay") {
+        order.paymentStatus = "awaiting_payment";
+      } else {
+        order.paymentStatus = "not_required";
       }
+      await order.save();
 
       // Notify buyer that order is confirmed
       await createNotification(
@@ -399,6 +401,58 @@ export default class SellerController {
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to get items";
+      return res.status(500).json({ error: message });
+    }
+  };
+
+  /**
+   * Update item availability status
+   */
+  updateItemStatus = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+    try {
+      const userId = req.user?.id;
+      const { itemId } = req.params;
+      const { status } = req.body as { status?: string };
+
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      if (!itemId || !mongoose.Types.ObjectId.isValid(itemId)) {
+        return res.status(400).json({ error: "Invalid item ID" });
+      }
+
+      const allowedStatuses = ["available", "reserved", "sold"] as const;
+      if (!status || !allowedStatuses.includes(status as typeof allowedStatuses[number])) {
+        return res.status(400).json({ error: "Invalid status value" });
+      }
+
+      const shop = await Shop.findOne({ owner: userId, shopStatus: "approved" });
+      if (!shop) {
+        return res.status(404).json({ error: "No approved shop found" });
+      }
+
+      const item = await Item.findOne({ _id: itemId, owner: userId });
+      if (!item) {
+        return res.status(404).json({ error: "Item not found" });
+      }
+
+      item.status = status as typeof allowedStatuses[number];
+      await item.save();
+
+      return res.json({
+        message: "Item status updated successfully",
+        item: {
+          id: item._id,
+          status: item.status,
+          updatedAt:
+            (item as unknown as { updatedAt?: Date }).updatedAt ||
+            item.updateAt ||
+            new Date(),
+        },
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to update item status";
       return res.status(500).json({ error: message });
     }
   };

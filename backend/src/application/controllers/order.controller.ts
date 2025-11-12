@@ -54,7 +54,13 @@ export default class OrderController {
         return res.status(401).json({ success: false, error: "Unauthorized" });
       }
 
-      const { deliveryMethod, paymentMethod, shippingAddress, buyerContact } = req.body;
+      const {
+        deliveryMethod,
+        paymentMethod,
+        shippingAddress,
+        buyerContact,
+        pickupDetails,
+      } = req.body;
 
       // Validate required fields
       if (!deliveryMethod || !paymentMethod || !buyerContact) {
@@ -69,6 +75,19 @@ export default class OrderController {
           success: false,
           error: "Shipping address is required for delivery",
         });
+      }
+
+      if (deliveryMethod === "pickup") {
+        if (
+          !pickupDetails ||
+          typeof pickupDetails.locationName !== "string" ||
+          pickupDetails.locationName.trim().length === 0
+        ) {
+          return res.status(400).json({
+            success: false,
+            error: "Pickup location is required for self pick-up orders",
+          });
+        }
       }
 
       // Get cart
@@ -162,6 +181,61 @@ export default class OrderController {
       for (const [sellerId, items] of itemsBySeller.entries()) {
         const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+        let normalizedPickupDetails:
+          | {
+              locationName: string;
+              address?: string;
+              note?: string;
+              coordinates?: { lat: number; lng: number };
+            }
+          | undefined;
+
+        if (deliveryMethod === "pickup" && pickupDetails) {
+          const locationName = String(pickupDetails.locationName || "").trim();
+          const locationAddress =
+            typeof pickupDetails.address === "string"
+              ? pickupDetails.address.trim()
+              : undefined;
+          const note =
+            typeof pickupDetails.note === "string"
+              ? pickupDetails.note.trim()
+              : undefined;
+          if (!locationName) {
+            return res.status(400).json({
+              success: false,
+              error: "Pickup location name is required",
+            });
+          }
+
+          let coordinates:
+            | {
+                lat: number;
+                lng: number;
+              }
+            | undefined;
+
+          if (pickupDetails.coordinates) {
+            const lat = Number(pickupDetails.coordinates.lat);
+            const lng = Number(pickupDetails.coordinates.lng);
+
+            if (Number.isNaN(lat) || Number.isNaN(lng)) {
+              return res.status(400).json({
+                success: false,
+                error: "Pickup coordinates must be valid numbers",
+              });
+            }
+
+            coordinates = { lat, lng };
+          }
+
+          normalizedPickupDetails = {
+            locationName,
+            address: locationAddress || undefined,
+            note: note || undefined,
+            coordinates,
+          };
+        }
+
         const orderData = {
           buyer: new mongoose.Types.ObjectId(userId),
           seller: new mongoose.Types.ObjectId(sellerId),
@@ -170,7 +244,12 @@ export default class OrderController {
           status: "pending_seller_confirmation" as const,
           deliveryMethod,
           paymentMethod,
+          paymentStatus:
+            paymentMethod === "transfer" || paymentMethod === "promptpay"
+              ? "pending"
+              : "not_required",
           shippingAddress: deliveryMethod === "delivery" ? shippingAddress : undefined,
+          pickupDetails: deliveryMethod === "pickup" ? normalizedPickupDetails : undefined,
           buyerContact,
         };
 
@@ -202,6 +281,8 @@ export default class OrderController {
           items: order.items,
           totalPrice: order.totalPrice,
           status: order.status,
+          paymentStatus: order.paymentStatus,
+          pickupDetails: order.pickupDetails,
         })),
       });
     } catch (error) {
@@ -247,7 +328,9 @@ export default class OrderController {
           status: order.status,
           deliveryMethod: order.deliveryMethod,
           shippingAddress: order.shippingAddress,
+          pickupDetails: order.pickupDetails,
           paymentMethod: order.paymentMethod,
+          paymentStatus: order.paymentStatus,
           buyerContact: order.buyerContact,
           confirmedAt: order.confirmedAt,
           rejectedAt: order.rejectedAt,
@@ -320,12 +403,15 @@ export default class OrderController {
           status: order.status,
           deliveryMethod: order.deliveryMethod,
           shippingAddress: order.shippingAddress,
+          pickupDetails: order.pickupDetails,
           paymentMethod: order.paymentMethod,
+          paymentStatus: order.paymentStatus,
           buyerContact: order.buyerContact,
           confirmedAt: order.confirmedAt,
           rejectedAt: order.rejectedAt,
           rejectionReason: order.rejectionReason,
           completedAt: order.completedAt,
+          paymentSubmittedAt: order.paymentSubmittedAt,
           createdAt: order.createdAt,
           updatedAt: order.updatedAt,
         },
@@ -335,6 +421,80 @@ export default class OrderController {
       return res.status(500).json({
         success: false,
         error: "Server error",
+      });
+    }
+  };
+
+  /**
+   * POST /api/orders/:id/payment - Buyer submits payment notification
+   */
+  submitPaymentNotification = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+    try {
+      const userId = req.user?.id;
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid order ID" });
+      }
+
+      const order = await Order.findById(id);
+
+      if (!order) {
+        return res.status(404).json({ success: false, error: "Order not found" });
+      }
+
+      if (order.buyer.toString() !== userId) {
+        return res.status(403).json({ success: false, error: "Access denied" });
+      }
+
+      if (order.paymentMethod !== "transfer" && order.paymentMethod !== "promptpay") {
+        return res.status(400).json({ success: false, error: "Payment confirmation not required for this order" });
+      }
+
+      if (order.status !== "confirmed") {
+        return res.status(400).json({
+          success: false,
+          error: `Cannot submit payment for order in status: ${order.status}`,
+        });
+      }
+
+      if (order.paymentStatus === "payment_submitted" || order.paymentStatus === "paid") {
+        return res.status(400).json({
+          success: false,
+          error: "Payment has already been submitted for this order",
+        });
+      }
+
+      order.paymentStatus = "payment_submitted";
+      order.paymentSubmittedAt = new Date();
+      await order.save();
+
+      await createNotification(
+        order.seller,
+        "order",
+        "Buyer submitted payment",
+        "The buyer has submitted payment for an order. Please verify and update the status.",
+        `/seller/orders/${order._id}`
+      );
+
+      return res.json({
+        success: true,
+        message: "Payment submitted notification sent to the seller",
+        order: {
+          id: order._id,
+          paymentStatus: order.paymentStatus,
+          paymentSubmittedAt: order.paymentSubmittedAt,
+        },
+      });
+    } catch (error) {
+      console.error("Submit payment notification error:", error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Server error",
       });
     }
   };

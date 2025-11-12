@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import ChatThread from "../../data/models/ChatThread";
 import ChatMessage from "../../data/models/ChatMessage";
 import User from "../../data/models/User";
-import Item from "../../data/models/Item";
 import mongoose from "mongoose";
 
 interface AuthenticatedRequest extends Request {
@@ -16,57 +15,77 @@ interface PopulatedUser {
   kuEmail: string;
 }
 
-interface PopulatedItem {
-  _id: mongoose.Types.ObjectId;
-  title: string;
-  photo: string[];
-}
-
-interface ThreadQuery {
-  buyer: string;
-  seller: string;
-  item?: string;
-}
-
 export default class ChatController {
   // Get all threads for the authenticated user
   getThreads = async (req: Request, res: Response) => {
     try {
       const userId = (req as AuthenticatedRequest).userId;
 
-      const threads = await ChatThread.find({
+      const rawThreads = await ChatThread.find({
         $or: [{ buyer: userId }, { seller: userId }],
       })
         .populate("buyer", "name kuEmail")
         .populate("seller", "name kuEmail")
-        .populate("item", "title photo")
         .sort({ lastMessageAt: -1, updatedAt: -1 });
 
-      const formattedThreads = threads.map((thread) => {
+      interface ThreadWithActivity {
+        thread: typeof rawThreads[number];
+        lastActivity: Date;
+      }
+
+      const dedupedThreads = new Map<string, ThreadWithActivity>();
+
+      rawThreads.forEach((thread) => {
         const populatedBuyer = thread.buyer as unknown as PopulatedUser;
         const populatedSeller = thread.seller as unknown as PopulatedUser;
-        const isBuyer = populatedBuyer._id.toString() === userId;
-        const otherUser = isBuyer ? populatedSeller : populatedBuyer;
-        const populatedItem = (thread.item as unknown as PopulatedItem) || null;
+        const buyerId = populatedBuyer._id.toString();
+        const sellerId = populatedSeller._id.toString();
+        const key = `${buyerId}::${sellerId}`;
+        const activity =
+          thread.lastMessageAt ||
+          thread.updatedAt ||
+          thread.createdAt ||
+          new Date(0);
 
-        return {
-          id: (thread._id as mongoose.Types.ObjectId).toString(),
-          title: thread.title,
-          sellerName: populatedSeller.name,
-          buyerName: populatedBuyer.name,
-          otherUserName: otherUser.name,
-          lastMessage: thread.lastMessage,
-          lastMessageAt: thread.lastMessageAt,
-          unread: isBuyer ? thread.buyerUnreadCount : thread.sellerUnreadCount,
-          item: populatedItem
-            ? {
-                id: populatedItem._id.toString(),
-                title: populatedItem.title,
-                photo: populatedItem.photo?.[0] || null,
-              }
-            : null,
-        };
+        const existing = dedupedThreads.get(key);
+
+        if (!existing || activity > existing.lastActivity) {
+          dedupedThreads.set(key, {
+            thread,
+            lastActivity: activity,
+          });
+        }
       });
+
+      const formattedThreads = Array.from(dedupedThreads.values()).map(
+        ({ thread }) => {
+          const populatedBuyer = thread.buyer as unknown as PopulatedUser;
+          const populatedSeller = thread.seller as unknown as PopulatedUser;
+          const buyerId = populatedBuyer._id.toString();
+          const sellerId = populatedSeller._id.toString();
+          const isBuyer = buyerId === userId;
+          const partner = isBuyer ? populatedSeller : populatedBuyer;
+          const partnerId = partner._id.toString();
+
+          const computedTitle =
+            thread.title && thread.title.trim().length > 0
+              ? thread.title
+              : `Chat with ${partner.name}`;
+
+          return {
+            id: (thread._id as mongoose.Types.ObjectId).toString(),
+            title: computedTitle,
+            partnerId,
+            partnerName: partner.name,
+            lastMessage: thread.lastMessage,
+            lastMessageAt: thread.lastMessageAt,
+            unread: isBuyer
+              ? thread.buyerUnreadCount
+              : thread.sellerUnreadCount,
+            viewerRole: isBuyer ? "buyer" : "seller",
+          };
+        }
+      );
 
       res.json(formattedThreads);
     } catch (error) {
@@ -79,7 +98,7 @@ export default class ChatController {
   getOrCreateThread = async (req: Request, res: Response) => {
     try {
       const userId = (req as AuthenticatedRequest).userId;
-      const { sellerId, itemId } = req.body;
+      const { sellerId } = req.body;
 
       if (!sellerId) {
         return res.status(400).json({ error: "sellerId is required" });
@@ -95,65 +114,46 @@ export default class ChatController {
         return res.status(404).json({ error: "Seller not found" });
       }
 
-      // Check if item exists (if provided)
-      let item = null;
-      if (itemId) {
-        item = await Item.findById(itemId);
-        if (!item) {
-          return res.status(404).json({ error: "Item not found" });
-        }
-        // Verify item belongs to seller
-        if (item.owner.toString() !== sellerId) {
-          return res.status(403).json({ error: "Item does not belong to this seller" });
-        }
-      }
-
-      // Try to find existing thread
-      const query: ThreadQuery = {
+      let thread = await ChatThread.findOne({
         buyer: userId,
         seller: sellerId,
-      };
-      if (itemId) {
-        query.item = itemId;
-      }
-
-      let thread = await ChatThread.findOne(query)
+      })
+        .sort({ lastMessageAt: -1, updatedAt: -1 })
         .populate("buyer", "name kuEmail")
-        .populate("seller", "name kuEmail")
-        .populate("item", "title photo");
+        .populate("seller", "name kuEmail");
 
       // Create thread if it doesn't exist
       if (!thread) {
-        const title = item ? item.title : `Chat with ${seller.name}`;
+        const title = `Chat with ${seller.name}`;
         thread = new ChatThread({
           buyer: userId,
           seller: sellerId,
-          item: itemId || undefined,
           title,
         });
         await thread.save();
         await thread.populate("buyer", "name kuEmail");
         await thread.populate("seller", "name kuEmail");
-        if (itemId) {
-          await thread.populate("item", "title photo");
+      } else {
+        const desiredTitle = `Chat with ${seller.name}`;
+        if (!thread.title || thread.title !== desiredTitle) {
+          thread.title = desiredTitle;
+          await thread.save();
         }
       }
 
       const populatedBuyer = thread.buyer as unknown as PopulatedUser;
       const populatedSeller = thread.seller as unknown as PopulatedUser;
-      const populatedItem = (thread.item as unknown as PopulatedItem) || null;
       const formattedThread = {
         id: (thread._id as mongoose.Types.ObjectId).toString(),
         title: thread.title,
-        sellerName: populatedSeller.name,
-        buyerName: populatedBuyer.name,
-        item: populatedItem
-          ? {
-              id: populatedItem._id.toString(),
-              title: populatedItem.title,
-              photo: populatedItem.photo?.[0] || null,
-            }
-          : null,
+        partnerId:
+          populatedBuyer._id.toString() === userId
+            ? populatedSeller._id.toString()
+            : populatedBuyer._id.toString(),
+        partnerName:
+          populatedBuyer._id.toString() === userId
+            ? populatedSeller.name
+            : populatedBuyer.name,
       };
 
       res.json(formattedThread);
@@ -174,7 +174,6 @@ export default class ChatController {
         _id: threadId,
         $or: [{ buyer: userId }, { seller: userId }],
       })
-        .populate("item", "title")
         .populate("seller", "name");
 
       if (!thread) {
@@ -201,13 +200,20 @@ export default class ChatController {
         };
       });
 
+      const populatedBuyer = thread.buyer as unknown as PopulatedUser;
       const populatedSeller = thread.seller as unknown as PopulatedUser;
-      const populatedItem = (thread.item as unknown as PopulatedItem) || null;
+      const isBuyer = populatedBuyer._id.toString() === userId;
+      const partner = isBuyer ? populatedSeller : populatedBuyer;
+
       res.json({
         messages: formattedMessages,
-        title: thread.title,
-        seller_name: populatedSeller.name,
-        item: populatedItem ? { title: populatedItem.title } : null,
+        title:
+          thread.title && thread.title.trim().length > 0
+            ? thread.title
+            : `Chat with ${partner.name}`,
+        partner_name: partner.name,
+        partner_id: partner._id,
+        viewer_role: isBuyer ? "buyer" : "seller",
       });
     } catch (error) {
       console.error("Error fetching messages:", error);

@@ -16,10 +16,13 @@ export default function ChatListItem({
   active: boolean;
   onClick: () => void;
 }) {
-  const thumbnail = item.item?.photo;
   const lastMessageTime = item.lastMessageAt
     ? getRelativeTimeString(new Date(item.lastMessageAt))
     : null;
+  const initial =
+    item.partnerName?.trim().charAt(0).toUpperCase() ??
+    item.title.trim().charAt(0).toUpperCase() ??
+    "?";
 
   return (
     <button
@@ -30,18 +33,9 @@ export default function ChatListItem({
       style={{ background: colors.cream }}
     >
       <div className="flex items-center gap-3">
-        {/* item image */}
-        <div className="h-14 w-14 rounded-xl overflow-hidden bg-white shadow-inner flex items-center justify-center">
-          {thumbnail ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={thumbnail}
-              alt={item.item?.title || "Item thumbnail"}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <span className="text-xs text-slate-400">No image</span>
-          )}
+        {/* partner avatar */}
+        <div className="h-14 w-14 rounded-xl bg-white shadow-inner flex items-center justify-center text-lg font-semibold text-[#4A5130]">
+          {initial}
         </div>
 
         {/* message */}
@@ -49,7 +43,7 @@ export default function ChatListItem({
           <div
             className="text-sm font-semibold leading-tight break-words text-[#4A5130]"
           >
-            {item.item?.title || item.title}
+            {item.partnerName || item.title}
           </div>
           <div className="text-xs text-slate-500 truncate">
             {item.lastMessage ? item.lastMessage : "No messages yet"}

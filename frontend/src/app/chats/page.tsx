@@ -28,16 +28,11 @@ interface RawThread {
   _id?: string;
   title?: string;
   unread?: number | string;
-  sellerName?: string;
-  otherUserName?: string;
+  partnerId?: string;
+  partnerName?: string;
   lastMessage?: string;
   lastMessageAt?: string;
-  item?: {
-    id?: string;
-    _id?: string;
-    title?: string;
-    photo?: string | null;
-  } | null;
+  viewerRole?: "buyer" | "seller";
 }
 
 type RawMessage = {
@@ -51,35 +46,30 @@ type RawMessage = {
 type RawMessagesResponse = {
   messages?: RawMessage[];
   title?: string;
-  seller_name?: string;
-  item?: {
-    id?: string;
-    _id?: string;
-    title?: string;
-    photo?: string | null;
-  } | null;
+  partner_name?: string;
+  partner_id?: string;
+  viewer_role?: "buyer" | "seller";
 };
 
 const normalizeThread = (thread: RawThread): Thread => {
-  const item = thread.item;
-  const itemId = item?.id ?? item?._id ?? null;
+  const rawPartnerId =
+    typeof thread.partnerId === "string"
+      ? thread.partnerId
+      : typeof thread.partnerId === "number"
+      ? String(thread.partnerId)
+      : "";
+  const resolvedPartnerId =
+    rawPartnerId || String(thread._id ?? thread.id ?? crypto.randomUUID());
 
   return {
     id: thread.id ?? thread._id ?? crypto.randomUUID(),
     title: thread.title ?? "Chat",
     unread: Number(thread.unread ?? 0),
-    sellerName: thread.sellerName ?? "Seller",
-    otherUserName: thread.otherUserName,
+    partnerId: resolvedPartnerId,
+    partnerName: thread.partnerName ?? thread.title ?? "Chat partner",
     lastMessage: thread.lastMessage,
     lastMessageAt: thread.lastMessageAt,
-    item:
-      itemId && item
-        ? {
-            id: itemId,
-            title: item.title ?? thread.title ?? "Item",
-            photo: item.photo ?? null,
-          }
-        : null,
+    viewerRole: thread.viewerRole,
   };
 };
 
@@ -161,6 +151,10 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const selectedIdRef = useRef<string | null>(null);
   const preferredThreadRef = useRef<string | null>(initialThreadId ?? null);
+  const socketMessageHandlerRef = useRef<
+    (payload: SocketMessagePayload) => void
+  >(() => {});
+  const scheduleThreadsRefreshRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     selectedIdRef.current = selectedId ? String(selectedId) : null;
@@ -295,6 +289,10 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
   }, [fetchThreads]);
 
   useEffect(() => {
+    scheduleThreadsRefreshRef.current = scheduleThreadsRefresh;
+  }, [scheduleThreadsRefresh]);
+
+  useEffect(() => {
     return () => {
       if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
     };
@@ -361,26 +359,11 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
             ? {
                 ...prev,
                 title: data.title ?? prev.title,
-                sellerName: data.seller_name ?? prev.sellerName,
-                otherUserName: data.seller_name ?? prev.otherUserName,
-                item: (() => {
-                  if (!data.item) {
-                    return prev.item ?? null;
-                  }
-
-                  const candidateId =
-                    data.item.id ?? data.item._id ?? prev.item?.id ?? null;
-
-                  if (!candidateId) {
-                    return prev.item ?? null;
-                  }
-
-                  return {
-                    id: candidateId,
-                    title: data.item.title ?? prev.item?.title ?? prev.title,
-                    photo: data.item.photo ?? prev.item?.photo ?? null,
-                  };
-                })(),
+                partnerName: data.partner_name ?? prev.partnerName,
+                partnerId: data.partner_id
+                  ? String(data.partner_id)
+                  : prev.partnerId,
+                viewerRole: data.viewer_role ?? prev.viewerRole,
               }
             : prev
         );
@@ -491,14 +474,18 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
           markThreadReadLocally(threadKey);
           markThreadReadOnServer(threadKey);
         } else {
-          scheduleThreadsRefresh();
+          scheduleThreadsRefreshRef.current();
         }
       } else {
-        scheduleThreadsRefresh();
+        scheduleThreadsRefreshRef.current();
       }
     },
-    [markThreadReadLocally, markThreadReadOnServer, scheduleThreadsRefresh]
+    [markThreadReadLocally, markThreadReadOnServer, scheduleThreadsRefreshRef]
   );
+
+  useEffect(() => {
+    socketMessageHandlerRef.current = socketMessageHandler;
+  }, [socketMessageHandler]);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -512,11 +499,11 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
 
     socketRef.current = socket;
 
-    socket.on("connect", () => {
-      scheduleThreadsRefresh();
-    });
+    const handleConnect = () => {
+      scheduleThreadsRefreshRef.current();
+    };
 
-    socket.on("connect_error", (err) => {
+    const handleConnectError = (err: { message: string }) => {
       console.error("Chat socket error:", err.message);
       if (err.message.toLowerCase().includes("authentication")) {
         clearAuthTokens();
@@ -524,25 +511,38 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
       } else {
         toast.error("Unable to connect to chat right now.");
       }
-    });
+    };
 
-    socket.on("new_message", socketMessageHandler);
-    socket.on("thread_updated", () => {
-      scheduleThreadsRefresh();
-    });
+    const handleThreadUpdated = () => {
+      scheduleThreadsRefreshRef.current();
+    };
 
-    socket.on("error", (err: { message?: string }) => {
+    const handleNewMessage = (payload: SocketMessagePayload) => {
+      socketMessageHandlerRef.current(payload);
+    };
+
+    const handleError = (err: { message?: string }) => {
       if (err?.message) {
         toast.error(err.message);
       }
-    });
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("connect_error", handleConnectError);
+    socket.on("new_message", handleNewMessage);
+    socket.on("thread_updated", handleThreadUpdated);
+    socket.on("error", handleError);
 
     return () => {
-      socket.off("new_message", socketMessageHandler);
+      socket.off("connect", handleConnect);
+      socket.off("connect_error", handleConnectError);
+      socket.off("new_message", handleNewMessage);
+      socket.off("thread_updated", handleThreadUpdated);
+      socket.off("error", handleError);
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [socketMessageHandler, scheduleThreadsRefresh]);
+  }, []);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -684,12 +684,14 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
           {selectedId && selectedThread ? (
             <ChatWindow
               partnerName={
-                selectedThread.otherUserName ??
-                selectedThread.sellerName ??
-                "Chat"
+                selectedThread.partnerName || selectedThread.title || "Chat"
               }
-              subtitle={selectedThread.item?.title ?? selectedThread.title}
-              itemInfo={selectedThread.item}
+              subtitle={
+                selectedThread.partnerName &&
+                selectedThread.partnerName !== selectedThread.title
+                  ? selectedThread.title
+                  : undefined
+              }
               messages={messagesByThread[String(selectedId)] || []}
               onSendMessage={handleSendMessage}
               onBack={handleOpenList}

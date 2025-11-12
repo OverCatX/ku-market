@@ -221,7 +221,6 @@ export default function Page() {
         credentials: "include",
         body: JSON.stringify({
           sellerId: ownerInfo.id,
-          itemId: item._id,
         }),
       });
 

@@ -14,6 +14,25 @@ export interface IShippingAddress {
   postalCode: string;
 }
 
+export interface IPickupCoordinates {
+  lat: number;
+  lng: number;
+}
+
+export interface IPickupDetails {
+  locationName: string;
+  address?: string;
+  note?: string;
+  coordinates?: IPickupCoordinates;
+}
+
+export type PaymentStatus =
+  | "pending"
+  | "awaiting_payment"
+  | "payment_submitted"
+  | "paid"
+  | "not_required";
+
 export interface IOrder extends Document {
   buyer: Types.ObjectId;
   seller: Types.ObjectId;
@@ -22,7 +41,9 @@ export interface IOrder extends Document {
   status: "pending_seller_confirmation" | "confirmed" | "rejected" | "completed" | "cancelled";
   deliveryMethod: "pickup" | "delivery";
   shippingAddress?: IShippingAddress;
-  paymentMethod: "cash" | "transfer";
+  pickupDetails?: IPickupDetails;
+  paymentMethod: "cash" | "transfer" | "promptpay";
+  paymentStatus: PaymentStatus;
   buyerContact: {
     fullName: string;
     phone: string;
@@ -31,6 +52,7 @@ export interface IOrder extends Document {
   rejectedAt?: Date;
   rejectionReason?: string;
   completedAt?: Date;
+  paymentSubmittedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,6 +90,19 @@ const ShippingAddressSchema = new Schema<IShippingAddress>(
     address: { type: String, required: true },
     city: { type: String, required: true },
     postalCode: { type: String, required: true },
+  },
+  { _id: false }
+);
+
+const PickupDetailsSchema = new Schema<IPickupDetails>(
+  {
+    locationName: { type: String, required: true, trim: true, maxlength: 150 },
+    address: { type: String, trim: true, maxlength: 400 },
+    note: { type: String, trim: true, maxlength: 400 },
+    coordinates: {
+      lat: { type: Number },
+      lng: { type: Number },
+    },
   },
   { _id: false }
 );
@@ -110,17 +145,26 @@ const OrderSchema = new Schema<IOrder>(
       enum: ["pickup", "delivery"],
       required: true,
     },
+    pickupDetails: {
+      type: PickupDetailsSchema,
+    },
     shippingAddress: {
       type: ShippingAddressSchema,
     },
     paymentMethod: {
       type: String,
-      enum: ["cash", "transfer"],
+      enum: ["cash", "transfer", "promptpay"],
       required: true,
     },
     buyerContact: {
       fullName: { type: String, required: true },
       phone: { type: String, required: true },
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "awaiting_payment", "payment_submitted", "paid", "not_required"],
+      default: "pending",
+      index: true,
     },
     confirmedAt: {
       type: Date,
@@ -132,6 +176,9 @@ const OrderSchema = new Schema<IOrder>(
       type: String,
     },
     completedAt: {
+      type: Date,
+    },
+    paymentSubmittedAt: {
       type: Date,
     },
   },

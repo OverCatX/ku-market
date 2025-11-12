@@ -6,15 +6,11 @@ export type Thread = {
   id: string | number;
   title: string;
   unread: number;
-  sellerName: string;
+  partnerId: string;
+  partnerName: string;
   lastMessage?: string;
   lastMessageAt?: string;
-  otherUserName?: string;
-  item?: {
-    id: string;
-    title: string;
-    photo?: string | null;
-  } | null;
+  viewerRole?: "buyer" | "seller";
 };
 
 export default function ChatList({
