@@ -29,9 +29,7 @@ mongoose.connect(process.env.MONGO_URL as string)
     httpServer.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`WebSocket server initialized`);
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      
+
       // Start wake-up service after server is ready
       startWakeUpService();
     });
