@@ -11,12 +11,12 @@ An online marketplace platform for Kasetsart University students to buy and sell
 
 ## 🎯 Features
 
-- 🔐 **Authentication** - KU email required (@ku.ac.th)
-- ✅ **Identity Verification** - Student ID or national ID verification
-- 🛒 **Marketplace** - Buy and sell items within campus
-- 🏪 **Seller Shops** - Create and manage your own shop
-- 👤 **User Profiles** - Manage personal information and orders
-- 🔒 **Admin Panel** - Approve verifications and shops
+- **Authentication** - KU email required (@ku.ac.th)
+- **Identity Verification** - Student ID or national ID verification
+- **Marketplace** - Buy and sell items within campus
+- **Seller Shops** - Create and manage your own shop
+- **User Profiles** - Manage personal information and orders
+- **Admin Panel** - Approve verifications and shops
 
 ## 🚀 Quick Start
 
@@ -38,18 +38,18 @@ cd frontend && npm install && npm run dev
 ## 📚 Documentation
 
 - **[Installation Guide](docs/INSTALLATION.md)** - Setup instructions
-- **[User Guide](docs/USER_GUIDE.md)** - How to use the platform
+- **[User Guide](docs/USER_GUIDE.md)** - How to use the platfor
 - **[API Documentation](docs/API.md)** - API reference
 - **[Project Wiki](https://github.com/OverCatX/ku-market/wiki)** - Project overview
 
 ## 🛠️ Tech Stack
 
-**Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS  
-**Backend:** Node.js, Express, TypeScript, MongoDB  
-**Auth:** JWT, bcrypt  
-**Storage:** Cloudinary
+- **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS  
+- **Backend:** Node.js, Express, TypeScript, MongoDB  
+- **Auth:** JWT, bcrypt  
+- **Storage:** Cloudinary
 
-## 📦 Project Structure
+## Project Structure
 
 ```
 ku-market/
@@ -59,13 +59,13 @@ ku-market/
 └── README.md          # This file
 ```
 
-## ⚠️ Important Notes
+## Important Notes
 
 - Email must be `@ku.ac.th`
 - Identity verification required before checkout
 - Admin account creation: `npm run bootstrap-admin`
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Backend tests
@@ -75,7 +75,7 @@ cd backend && npm test
 cd frontend && npm run lint
 ```
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 

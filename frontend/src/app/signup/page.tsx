@@ -3,6 +3,8 @@
 import { SignUpForm } from "@/components/auth/signup-form";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { aboutColors } from "@/components/aboutus/SectionColors";
+
 
 export default function SignupPage() {
   const router = useRouter();
@@ -13,7 +15,7 @@ export default function SignupPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center">
+    <div className="min-h-screen bg-gray-50 flex items-center" style={{ backgroundColor: aboutColors.creamBg }}>
       <main className="container mx-auto px-4 sm:px-6 lg:px-16 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[600px]">
           {/* Left side - Heading */}
@@ -21,7 +23,7 @@ export default function SignupPage() {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#69773D] leading-snug">
               Join KU Market Today
             </h1>
-            <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
+            <p className="text-gray-600 text-sm sm:text-base lg:text-lg" style={{ color: aboutColors.oliveDark }}>
               Create your account to access the KU Market platform. List
               products, manage orders, and connect with buyers all in one place.
             </p>

@@ -1,4 +1,5 @@
 import { API_BASE } from "./constants";
+import { getAuthToken, clearAuthTokens } from "../lib/auth";
 
 export type DocumentType = "student_id" | "citizen_id";
 export type VerificationStatus = "pending" | "approved" | "rejected";
@@ -20,11 +21,13 @@ export interface VerificationResponse {
 }
 
 export async function submitVerification(
-  token: string,
   documentType: DocumentType,
   file: File
 ): Promise<VerificationResponse> {
   try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Please login to submit verification");
+    
     const formData = new FormData();
     formData.append("documentType", documentType);
     formData.append("document", file);
@@ -40,6 +43,10 @@ export async function submitVerification(
     const json = await res.json();
 
     if (!res.ok) {
+      if (res.status === 401) {
+        clearAuthTokens();
+        throw new Error("Please login to submit verification");
+      }
       throw new Error(json.error || "Verification submission failed");
     }
 
@@ -53,10 +60,11 @@ export async function submitVerification(
   }
 }
 
-export async function getVerificationStatus(
-  token: string
-): Promise<VerificationResponse> {
+export async function getVerificationStatus(): Promise<VerificationResponse> {
   try {
+    const token = getAuthToken();
+    if (!token) throw new Error("Please login to view verification status");
+    
     const res = await fetch(`${API_BASE}/api/verification/status`, {
       method: "GET",
       headers: {
@@ -67,6 +75,10 @@ export async function getVerificationStatus(
     const json = await res.json();
 
     if (!res.ok && res.status !== 404) {
+      if (res.status === 401) {
+        clearAuthTokens();
+        throw new Error("Please login to view verification status");
+      }
       throw new Error(json.error || "Failed to get verification status");
     }
 

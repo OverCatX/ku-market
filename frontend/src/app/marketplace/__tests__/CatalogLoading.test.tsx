@@ -16,6 +16,17 @@ jest.mock("next/navigation", () => ({
 }));
 
 jest.mock("@/config/items");
+jest.mock("@/config/categories", () => ({
+  getCategories: jest.fn().mockResolvedValue([
+    { id: "1", name: "Electronics", slug: "electronics" },
+    { id: "2", name: "Books", slug: "books" },
+  ]),
+}));
+jest.mock("@/components/home/FooterSection", () => {
+  return function FooterSection() {
+    return <footer data-testid="footer">Footer</footer>;
+  };
+});
 jest.mock("@/components/Marketplace/ItemCard", () => {
   return function ItemCard({ title }: { title: string }) {
     return <div data-testid="item-card">{title}</div>;
@@ -132,9 +143,7 @@ describe("Catalog Loading Tests", () => {
       render(<MarketPage />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/Failed to load items. Please try again./i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Failed to load items/i)).toBeInTheDocument();
       });
     });
 

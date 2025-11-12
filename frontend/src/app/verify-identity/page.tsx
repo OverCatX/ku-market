@@ -44,7 +44,7 @@ export default function VerifyIdentityPage() {
     const fetchData = async () => {
       try {
         // Check if user is already verified
-        const userData = await getProfile(token);
+        const userData = await getProfile();
         if (userData.isVerified) {
           setIsVerified(true);
           toast.error("You are already verified");
@@ -56,7 +56,7 @@ export default function VerifyIdentityPage() {
 
         // Get verification status
         try {
-          const statusResponse = await getVerificationStatus(token);
+          const statusResponse = await getVerificationStatus();
           if (statusResponse.verification) {
             setVerificationStatus(statusResponse.verification);
           }
@@ -122,7 +122,6 @@ export default function VerifyIdentityPage() {
     setSubmitting(true);
     try {
       const response = await submitVerification(
-        token,
         documentType,
         selectedFile
       );

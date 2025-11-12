@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { API_BASE } from "@/config/constants";
 import { getUserFromToken } from "@/lib/jwt";
+import { getVerificationStatus } from "@/config/verification";
 
 interface SellerApplicationForm {
   fullName: string;
@@ -99,11 +100,36 @@ export default function BecomeASeller() {
 
       console.log("✅ Token data:", tokenData);
 
-      // Check if user is verified (from JWT - no API call!)
+      // Check if user is verified; if not, refresh from server once
       if (!tokenData.isVerified) {
-        console.log("⚠️ User not verified");
-        router.replace("/verify-identity");
-        return;
+        try {
+          const statusRes = await getVerificationStatus();
+          const approved =
+            statusRes.success &&
+            statusRes.verification &&
+            (statusRes.verification as { status?: string }).status === "approved";
+          if (approved) {
+            // Update local user cache and continue
+            try {
+              const userStr = localStorage.getItem("user");
+              const latestUser = userStr ? JSON.parse(userStr) : {};
+              localStorage.setItem(
+                "user",
+                JSON.stringify({ ...latestUser, isVerified: true })
+              );
+            } catch {
+              // ignore storage errors
+            }
+          } else {
+            console.log("⚠️ User not verified");
+            router.replace("/verify-identity");
+            return;
+          }
+        } catch {
+          console.log("⚠️ Could not refresh verification status");
+          router.replace("/verify-identity");
+          return;
+        }
       }
 
       // Get full user data from localStorage for auto-fill
@@ -1255,7 +1281,7 @@ export default function BecomeASeller() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowImageModal(null)}
-            className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4 cursor-zoom-out"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md backdrop-saturate-150 z-50 flex items-center justify-center p-4 cursor-zoom-out"
           >
             <motion.div
               initial={{ scale: 0.8 }}

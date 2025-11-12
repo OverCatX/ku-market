@@ -1,15 +1,28 @@
 import { API_BASE } from "./constants";
 import type { Notification } from "@/components/notifications";
+import { getAuthToken, clearAuthTokens } from "../lib/auth";
 
 export type NotificationsResponse = {
   notifications: Notification[];
   unreadCount: number;
+  pagination?: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
 };
 
-export async function getNotifications(): Promise<NotificationsResponse> {
+export async function getNotifications(page: number = 1, limit: number = 20): Promise<NotificationsResponse> {
   try {
-    const token = localStorage.getItem("authentication");
-    const res = await fetch(`${API_BASE}/api/notifications`, {
+    const token = getAuthToken();
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    
+    const res = await fetch(`${API_BASE}/api/notifications?${params}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -17,7 +30,13 @@ export async function getNotifications(): Promise<NotificationsResponse> {
       },
     });
 
-    if (!res.ok) throw new Error("Failed to fetch notifications");
+    if (!res.ok) {
+      if (res.status === 401) {
+        clearAuthTokens();
+        throw new Error("Please login to view notifications");
+      }
+      throw new Error("Failed to fetch notifications");
+    }
 
     const data: NotificationsResponse = await res.json();
     
@@ -30,6 +49,7 @@ export async function getNotifications(): Promise<NotificationsResponse> {
     return {
       notifications,
       unreadCount: data.unreadCount,
+      pagination: data.pagination,
     };
   } catch (err) {
     if (err instanceof Error) {
@@ -42,16 +62,24 @@ export async function getNotifications(): Promise<NotificationsResponse> {
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
   try {
-    const token = localStorage.getItem("authentication");
+    const token = getAuthToken();
+    if (!token) throw new Error("Please login to mark notification as read");
+    
     const res = await fetch(`${API_BASE}/api/notifications/${notificationId}/read`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
+        Authorization: `Bearer ${token}`,
       },
     });
 
-    if (!res.ok) throw new Error("Failed to mark notification as read");
+    if (!res.ok) {
+      if (res.status === 401) {
+        clearAuthTokens();
+        throw new Error("Please login to mark notification as read");
+      }
+      throw new Error("Failed to mark notification as read");
+    }
   } catch (err) {
     if (err instanceof Error) {
       throw err;
@@ -63,16 +91,24 @@ export async function markNotificationAsRead(notificationId: string): Promise<vo
 
 export async function markAllNotificationsAsRead(): Promise<void> {
   try {
-    const token = localStorage.getItem("authentication");
+    const token = getAuthToken();
+    if (!token) throw new Error("Please login to mark notifications as read");
+    
     const res = await fetch(`${API_BASE}/api/notifications/read-all`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
+        Authorization: `Bearer ${token}`,
       },
     });
 
-    if (!res.ok) throw new Error("Failed to mark all notifications as read");
+    if (!res.ok) {
+      if (res.status === 401) {
+        clearAuthTokens();
+        throw new Error("Please login to mark notifications as read");
+      }
+      throw new Error("Failed to mark all notifications as read");
+    }
   } catch (err) {
     if (err instanceof Error) {
       throw err;
@@ -84,16 +120,24 @@ export async function markAllNotificationsAsRead(): Promise<void> {
 
 export async function deleteNotification(notificationId: string): Promise<void> {
   try {
-    const token = localStorage.getItem("authentication");
+    const token = getAuthToken();
+    if (!token) throw new Error("Please login to delete notification");
+    
     const res = await fetch(`${API_BASE}/api/notifications/${notificationId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
+        Authorization: `Bearer ${token}`,
       },
     });
 
-    if (!res.ok) throw new Error("Failed to delete notification");
+    if (!res.ok) {
+      if (res.status === 401) {
+        clearAuthTokens();
+        throw new Error("Please login to delete notification");
+      }
+      throw new Error("Failed to delete notification");
+    }
   } catch (err) {
     if (err instanceof Error) {
       throw err;
@@ -105,16 +149,24 @@ export async function deleteNotification(notificationId: string): Promise<void> 
 
 export async function clearAllNotifications(): Promise<void> {
   try {
-    const token = localStorage.getItem("authentication");
+    const token = getAuthToken();
+    if (!token) throw new Error("Please login to clear notifications");
+    
     const res = await fetch(`${API_BASE}/api/notifications/clear-all`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
+        Authorization: `Bearer ${token}`,
       },
     });
 
-    if (!res.ok) throw new Error("Failed to clear all notifications");
+    if (!res.ok) {
+      if (res.status === 401) {
+        clearAuthTokens();
+        throw new Error("Please login to clear notifications");
+      }
+      throw new Error("Failed to clear all notifications");
+    }
   } catch (err) {
     if (err instanceof Error) {
       throw err;
