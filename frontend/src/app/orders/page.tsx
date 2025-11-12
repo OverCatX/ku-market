@@ -14,6 +14,11 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { ComponentType } from "react";
+import {
+  clearAuthTokens,
+  getAuthToken,
+  isAuthenticated,
+} from "@/lib/auth";
 
 interface OrderItem {
   itemId: string;
@@ -51,6 +56,7 @@ export default function OrdersPage() {
     | "rejected"
     | "cancelled"
   >("all");
+  const [contactingOrderId, setContactingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     loadOrders();
@@ -79,6 +85,83 @@ export default function OrdersPage() {
       setOrders([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleContactSeller = async (order: OrderData) => {
+    if (!order?.seller?.id) {
+      toast.error("Seller information unavailable");
+      return;
+    }
+
+    if (!isAuthenticated()) {
+      toast.error("Please login to contact the seller");
+      router.push("/login?redirect=/orders");
+      return;
+    }
+
+    const token = getAuthToken();
+    if (!token) {
+      clearAuthTokens();
+      toast.error("Please login to contact the seller");
+      router.push("/login?redirect=/orders");
+      return;
+    }
+
+    const primaryItem = order.items[0];
+
+    setContactingOrderId(order.id);
+    try {
+      const response = await fetch(`${API_BASE}/api/chats/threads`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          sellerId: order.seller.id,
+          itemId: primaryItem?.itemId,
+        }),
+      });
+
+      if (response.status === 401) {
+        clearAuthTokens();
+        toast.error("Session expired. Please login again");
+        router.push("/login?redirect=/orders");
+        return;
+      }
+
+      if (!response.ok) {
+        const errorPayload = (await response.json().catch(() => null)) as {
+          error?: string;
+          message?: string;
+        } | null;
+        const message =
+          errorPayload?.error ||
+          errorPayload?.message ||
+          "Failed to start chat with seller";
+        throw new Error(message);
+      }
+
+      const data = (await response.json().catch(() => null)) as {
+        id?: string;
+        threadId?: string;
+        _id?: string;
+      } | null;
+      const threadId = data?.id || data?.threadId || data?._id;
+
+      if (!threadId) {
+        throw new Error("Chat thread not available");
+      }
+
+      router.push(`/chats?threadId=${encodeURIComponent(threadId)}`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to contact seller";
+      toast.error(message);
+    } finally {
+      setContactingOrderId(null);
     }
   };
 
@@ -394,15 +477,18 @@ export default function OrdersPage() {
                     </Link>
                     <button
                       type="button"
-                      onClick={() =>
-                        toast("Direct chat with seller coming soon!", {
-                          icon: "💬",
-                        })
-                      }
-                      className="px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-[#d6e4c3] text-gray-700 hover:bg-[#f3f8ed] flex items-center gap-2 transition"
+                      onClick={() => handleContactSeller(order)}
+                      disabled={contactingOrderId === order.id}
+                      className={`px-4 py-2 text-sm font-semibold rounded-lg border flex items-center gap-2 transition ${
+                        contactingOrderId === order.id
+                          ? "bg-[#f3f8ed] border-[#d6e4c3] text-gray-400 cursor-not-allowed"
+                          : "bg-white border-[#d6e4c3] text-gray-700 hover:bg-[#f3f8ed]"
+                      }`}
                     >
                       <MessageCircle size={16} />
-                      Contact seller
+                      {contactingOrderId === order.id
+                        ? "Opening chat..."
+                        : "Contact seller"}
                     </button>
                   </div>
                 </div>
