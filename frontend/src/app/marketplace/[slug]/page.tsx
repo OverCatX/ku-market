@@ -8,6 +8,7 @@ import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
 import { ReviewList } from "@/components/Reviews";
 import { Review, ReviewSummary } from "@/types/review";
+import { getAuthUser } from "@/lib/auth";
 
 const GREEN = "#69773D";
 const LIGHT = "#f7f4f1";
@@ -30,6 +31,7 @@ export default function Page() {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
+  const [isOwnItem, setIsOwnItem] = useState(false);
 
   // Reviews data (will be fetched from API when backend is ready)
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -55,10 +57,33 @@ export default function Page() {
     (async () => {
       try {
         const res = await getItem(String(slug));
-        if (ok) setItem(res.item);
-        
+        if (ok) {
+          setItem(res.item);
+          // Determine if the current user is the owner
+          try {
+            const user = getAuthUser?.();
+            const ownerId = (res.item?.owner as unknown as string) || "";
+            const currentUserId =
+              (user && (user as { id?: string }).id) ||
+              (user && (user as { _id?: string })._id) ||
+              (user && (user as { sub?: string }).sub) ||
+              "";
+            setIsOwnItem(
+              Boolean(
+                currentUserId &&
+                  ownerId &&
+                  String(currentUserId) === String(ownerId)
+              )
+            );
+          } catch {
+            setIsOwnItem(false);
+          }
+        }
+
         // Load reviews and summary
-        const { getItemReviews, getReviewSummary } = await import("@/config/reviews");
+        const { getItemReviews, getReviewSummary } = await import(
+          "@/config/reviews"
+        );
         const [reviewsData, summaryData] = await Promise.all([
           getItemReviews(String(slug)).catch(() => []),
           getReviewSummary(String(slug)).catch(() => ({
@@ -67,7 +92,7 @@ export default function Page() {
             ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
           })),
         ]);
-        
+
         if (ok) {
           setReviews(reviewsData);
           setReviewSummary(summaryData);
@@ -85,6 +110,10 @@ export default function Page() {
 
   const handleAddToCart = async () => {
     if (!isMounted || !item) return;
+    if (isOwnItem) {
+      toast.error("You cannot add your own item");
+      return;
+    }
 
     try {
       // Add item to cart
@@ -105,6 +134,11 @@ export default function Page() {
       toast.success(`Added ${qty} item(s) to cart!`, { icon: "🛒" });
       setQty(1); // Reset quantity to 1
     } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (message.toLowerCase().includes("own item")) {
+        toast.error("You cannot add your own item");
+        return;
+      }
       console.error("Add to cart error:", error);
       toast.error("Failed to add item");
     }
@@ -119,8 +153,10 @@ export default function Page() {
     // It will automatically handle expired tokens
 
     try {
-      const { createReview: createReviewAPI, getReviewSummary } = await import("@/config/reviews");
-      
+      const { createReview: createReviewAPI, getReviewSummary } = await import(
+        "@/config/reviews"
+      );
+
       // Validate before submitting
       if (!data.rating || data.rating < 1 || data.rating > 5) {
         toast.error("Rating must be between 1 and 5");
@@ -139,20 +175,24 @@ export default function Page() {
 
       // Create review via API
       const newReview = await createReviewAPI(String(slug), data);
-      
+
       // Add to reviews list
       setReviews((prev) => [newReview, ...prev]);
 
       // Fetch updated summary
       const updatedSummary = await getReviewSummary(String(slug));
       setReviewSummary(updatedSummary);
-      
+
       toast.success("Review submitted successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to submit review";
-      
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to submit review";
+
       // Show specific error messages (only show once)
-      if (errorMessage.includes("login") || errorMessage.includes("authenticated")) {
+      if (
+        errorMessage.includes("login") ||
+        errorMessage.includes("authenticated")
+      ) {
         toast.error("Please login to submit a review");
       } else if (errorMessage.includes("already reviewed")) {
         toast.error("You have already reviewed this item");
@@ -163,22 +203,30 @@ export default function Page() {
     }
   };
 
-  const handleHelpful = async (reviewId: string, currentHasVoted: boolean): Promise<{ helpful: number; hasVoted: boolean }> => {
+  const handleHelpful = async (
+    reviewId: string,
+    currentHasVoted: boolean
+  ): Promise<{ helpful: number; hasVoted: boolean }> => {
     try {
       const { toggleHelpful } = await import("@/config/reviews");
       const result = await toggleHelpful(reviewId, currentHasVoted);
-      
+
       // Update the helpful count and hasVoted status for this review
       setReviews((prev) =>
         prev.map((review) => {
-          const reviewIdValue = review._id || (review as { id?: string }).id || "";
+          const reviewIdValue =
+            review._id || (review as { id?: string }).id || "";
           return reviewIdValue === reviewId
             ? { ...review, helpful: result.helpful, hasVoted: result.hasVoted }
             : review;
         })
       );
 
-      toast.success(currentHasVoted ? "Removed helpful vote" : "Thank you for your feedback!");
+      toast.success(
+        currentHasVoted
+          ? "Removed helpful vote"
+          : "Thank you for your feedback!"
+      );
       return result;
     } catch (error) {
       // Error handling is done in ReviewItem component
@@ -236,7 +284,9 @@ export default function Page() {
     const params = new URLSearchParams();
     if (item._id) params.set("itemId", String(item._id));
     if (item.title) params.set("title", item.title);
-    router.push(`/report-item${params.toString() ? `?${params.toString()}` : ""}`);
+    router.push(
+      `/report-item${params.toString() ? `?${params.toString()}` : ""}`
+    );
   };
 
   return (
@@ -444,9 +494,17 @@ export default function Page() {
 
                   <button
                     type="button"
-                    className="rounded-xl px-6 py-3 font-semibold text-white shadow hover:opacity-90 transition"
+                    className={`rounded-xl px-6 py-3 font-semibold text-white shadow transition ${
+                      isOwnItem
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:opacity-90"
+                    }`}
                     style={{ background: GREEN }}
                     onClick={handleAddToCart}
+                    disabled={isOwnItem}
+                    title={
+                      isOwnItem ? "You cannot add your own item" : "Add to cart"
+                    }
                   >
                     Add to Cart
                   </button>
