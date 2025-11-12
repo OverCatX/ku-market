@@ -62,7 +62,6 @@ export default class ChatController {
           const populatedBuyer = thread.buyer as unknown as PopulatedUser;
           const populatedSeller = thread.seller as unknown as PopulatedUser;
           const buyerId = populatedBuyer._id.toString();
-          const sellerId = populatedSeller._id.toString();
           const isBuyer = buyerId === userId;
           const partner = isBuyer ? populatedSeller : populatedBuyer;
           const partnerId = partner._id.toString();

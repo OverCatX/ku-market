@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import Review from "../../data/models/Review";
 import Item from "../../data/models/Item";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import User from "../../data/models/User";
 import Order from "../../data/models/Order";
 import HelpfulVote from "../../data/models/HelpfulVote";

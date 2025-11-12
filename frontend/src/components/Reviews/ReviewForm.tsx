@@ -55,7 +55,7 @@ export default function ReviewForm({
 
       if (authenticated) {
         const user = getAuthUser();
-        setIsVerified(user?.isVerified || false);
+        setIsVerified(Boolean(user?.isVerified));
         if (!user?.isVerified) {
           const now = Date.now();
           if (now - lastVerificationCheckRef.current > 5000) {
