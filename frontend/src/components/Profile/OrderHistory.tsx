@@ -11,7 +11,7 @@ export default function OrderHistory() {
 
       <div className="rounded-2xl border border-[#dfe7cf] bg-gradient-to-br from-[#f8fbf3] to-white p-6 shadow-sm">
         <p className="text-sm text-gray-600">
-          Keep track of every purchase you've made on KU Market. View current
+          Keep track of every purchase you&apos;ve made on KU Market. View current
           statuses, delivery methods, and detailed receipts.
         </p>
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
