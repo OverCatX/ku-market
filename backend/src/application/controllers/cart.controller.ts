@@ -4,7 +4,9 @@ import Item from "../../data/models/Item";
 import mongoose from "mongoose";
 
 interface AuthenticatedRequest extends Request {
-  userId: string;
+  user?: {
+    id: string;
+  };
 }
 
 interface PopulatedCartItem {
@@ -36,7 +38,10 @@ export default class CartController {
   // GET /api/cart
   getCart = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
 
       const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) })
         .populate({
@@ -49,15 +54,21 @@ export default class CartController {
       }
 
       const populatedItems = cart.items as unknown as PopulatedCartItem[];
-      const items: FormattedCartItem[] = populatedItems.map((item) => ({
-        id: item.itemId._id.toString(),
-        title: item.itemId.title,
-        price: item.itemId.price,
-        image: item.itemId.photo?.[0] || "",
-        quantity: item.quantity,
-        sellerId: item.itemId.owner?._id?.toString() || "",
-        sellerName: item.itemId.owner?.name || "Unknown",
-      }));
+      // Filter out any cart entries whose item has been deleted or is missing
+      const safeItems = populatedItems.filter((ci) => !!ci.itemId);
+      const items: FormattedCartItem[] = safeItems.map((item) => {
+        const ownerId = item.itemId.owner?._id ? item.itemId.owner._id.toString() : "";
+        const ownerName = item.itemId.owner?.name || "Unknown";
+        return {
+          id: item.itemId._id.toString(),
+          title: item.itemId.title,
+          price: item.itemId.price,
+          image: item.itemId.photo?.[0] || "",
+          quantity: item.quantity,
+          sellerId: ownerId,
+          sellerName: ownerName,
+        };
+      });
 
       return res.json({
         success: true,
@@ -74,12 +85,21 @@ export default class CartController {
   // POST /api/cart/add
   addToCart = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
       const { itemId } = req.body;
 
       const item = await Item.findById(itemId);
       if (!item) {
         return res.status(404).json({ success: false, error: "Item not found" });
+      }
+      // Prevent sellers from adding their own items to the cart
+      if (item.owner && item.owner.toString() === String(userId)) {
+        return res
+          .status(400)
+          .json({ success: false, error: "You cannot purchase your own item" });
       }
 
       let cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
@@ -109,7 +129,10 @@ export default class CartController {
   // PUT /api/cart/update
   updateQuantity = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
       const { itemId, quantity } = req.body;
 
       const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
@@ -137,7 +160,10 @@ export default class CartController {
   // DELETE /api/cart/remove/:itemId
   removeFromCart = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
       const { itemId } = req.params;
 
       const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
@@ -158,7 +184,10 @@ export default class CartController {
   // DELETE /api/cart/clear
   clearCart = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
 
       await Cart.findOneAndUpdate(
         { userId: new mongoose.Types.ObjectId(userId) },

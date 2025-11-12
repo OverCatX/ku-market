@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import ChatList, { Thread } from "@/components/chats/ChatList";
 import ChatWindow from "@/components/chats/ChatWindow";
+import FooterSection from "@/components/home/FooterSection";
 
 const NAV_H = 64;
 
@@ -236,6 +237,7 @@ export default function ChatPage() {
           )}
         </section>
       </div>
+      <FooterSection />
     </div>
   );
 }

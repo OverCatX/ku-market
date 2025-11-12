@@ -2,10 +2,15 @@ import { Request, Response } from "express";
 import Verification from "../../data/models/Verification";
 import Shop from "../../data/models/Shop";
 import User from "../../data/models/User";
+import Item from "../../data/models/Item";
+import Review, { IReview } from "../../data/models/Review";
 import mongoose from "mongoose";
+import { createNotification } from "../../lib/notifications";
 
 interface AuthenticatedRequest extends Request {
-  userId: string;
+  user?: {
+    id: string;
+  };
 }
 
 export default class AdminController {
@@ -33,25 +38,27 @@ export default class AdminController {
 
       return res.json({
         success: true,
-        verifications: verifications.map((v) => {
-          const user = v.userId as unknown as PopulatedUser;
-          return {
-            id: v._id,
-            user: {
-              id: user._id,
-              name: user.name,
-              email: user.kuEmail,
-              faculty: user.faculty,
-              contact: user.contact,
-            },
-            documentType: v.documentType,
-            documentUrl: v.documentUrl,
-            status: v.status,
-            createdAt: v.createdAt,
-            reviewedAt: v.reviewedAt,
-            rejectionReason: v.rejectionReason,
-          };
-        }),
+        verifications: verifications
+          .filter((v) => v.userId !== null) // Filter out verifications with deleted users
+          .map((v) => {
+            const user = v.userId as unknown as PopulatedUser;
+            return {
+              id: v._id,
+              user: {
+                id: user._id,
+                name: user.name,
+                email: user.kuEmail,
+                faculty: user.faculty,
+                contact: user.contact,
+              },
+              documentType: v.documentType,
+              documentUrl: v.documentUrl,
+              status: v.status,
+              createdAt: v.createdAt,
+              reviewedAt: v.reviewedAt,
+              rejectionReason: v.rejectionReason,
+            };
+          }),
       });
     } catch (error) {
       console.error("Get verifications error:", error);
@@ -63,7 +70,10 @@ export default class AdminController {
   approveVerification = async (req: Request, res: Response): Promise<Response> => {
     try {
       const { id } = req.params;
-      const adminId = (req as AuthenticatedRequest).userId;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "User not authenticated" });
+      }
 
       const verification = await Verification.findById(id);
       if (!verification) {
@@ -88,6 +98,15 @@ export default class AdminController {
         verificationDate: new Date(),
       });
 
+      // Notify user that verification is approved
+      await createNotification(
+        verification.userId,
+        "system",
+        "Identity Verified",
+        "Your identity verification has been approved! You can now use all features.",
+        "/profile"
+      );
+
       return res.json({
         success: true,
         message: "Verification approved successfully",
@@ -104,7 +123,10 @@ export default class AdminController {
     try {
       const { id } = req.params;
       const { reason } = req.body;
-      const adminId = (req as AuthenticatedRequest).userId;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "User not authenticated" });
+      }
 
       if (!reason) {
         return res.status(400).json({ success: false, error: "Rejection reason is required" });
@@ -127,6 +149,15 @@ export default class AdminController {
       verification.reviewedAt = new Date();
       verification.reviewedBy = new mongoose.Types.ObjectId(adminId);
       await verification.save();
+
+      // Notify user that verification is rejected
+      await createNotification(
+        verification.userId,
+        "system",
+        "Verification Rejected",
+        `Your identity verification was rejected. Reason: ${reason}`,
+        "/verify-identity"
+      );
 
       return res.json({
         success: true,
@@ -163,28 +194,30 @@ export default class AdminController {
 
       return res.json({
         success: true,
-        shops: shops.map((s) => {
-          const owner = s.owner as unknown as PopulatedOwner;
-          return {
-            id: s._id,
-            shopName: s.shopName,
-            shopType: s.shopType,
-            productCategory: s.productCategory,
-            description: s.shopdescription,
-            photo: s.shopPhoto,
-            status: s.shopStatus,
-            requestDate: s.shopRequestDate,
-            approvalDate: s.shopApprovalDate,
-            rejectionReason: s.shopRejectionReason,
-            owner: {
-              id: owner._id,
-              name: owner.name,
-              email: owner.kuEmail,
-              faculty: owner.faculty,
-              contact: owner.contact,
-            },
-          };
-        }),
+        shops: shops
+          .filter((s) => s.owner !== null) // Filter out shops with deleted owners
+          .map((s) => {
+            const owner = s.owner as unknown as PopulatedOwner;
+            return {
+              id: s._id,
+              shopName: s.shopName,
+              shopType: s.shopType,
+              productCategory: s.productCategory,
+              description: s.shopdescription,
+              photo: s.shopPhoto,
+              status: s.shopStatus,
+              requestDate: s.shopRequestDate,
+              approvalDate: s.shopApprovalDate,
+              rejectionReason: s.shopRejectionReason,
+              owner: {
+                id: owner._id,
+                name: owner.name,
+                email: owner.kuEmail,
+                faculty: owner.faculty,
+                contact: owner.contact,
+              },
+            };
+          }),
       });
     } catch (error) {
       console.error("Get shops error:", error);
@@ -217,6 +250,15 @@ export default class AdminController {
       await User.findByIdAndUpdate(shop.owner, {
         role: "seller",
       });
+
+      // Notify seller that shop is approved
+      await createNotification(
+        shop.owner,
+        "system",
+        "Shop Approved",
+        "Your shop has been approved! You can now start selling items.",
+        "/shop"
+      );
 
       return res.json({
         success: true,
@@ -255,6 +297,15 @@ export default class AdminController {
       shop.shopRejectionReason = reason;
       await shop.save();
 
+      // Notify seller that shop is rejected
+      await createNotification(
+        shop.owner,
+        "system",
+        "Shop Rejected",
+        `Your shop request was rejected. Reason: ${reason}`,
+        "/shop"
+      );
+
       return res.json({
         success: true,
         message: "Shop rejected",
@@ -275,12 +326,14 @@ export default class AdminController {
         pendingVerifications,
         totalShops,
         pendingShops,
+        pendingItems,
       ] = await Promise.all([
         User.countDocuments(),
         Verification.countDocuments(),
         Verification.countDocuments({ status: "pending" }),
         Shop.countDocuments(),
         Shop.countDocuments({ shopStatus: "pending" }),
+        Item.countDocuments({ approvalStatus: "pending" }),
       ]);
 
       return res.json({
@@ -291,6 +344,7 @@ export default class AdminController {
           pendingVerifications,
           totalShops,
           pendingShops,
+          pendingItems,
         },
       });
     } catch (error) {
@@ -462,7 +516,10 @@ export default class AdminController {
   deleteAdmin = async (req: Request, res: Response): Promise<Response> => {
     try {
       const { userId } = req.params;
-      const currentUserId = (req as AuthenticatedRequest).userId;
+      const currentUserId = (req as AuthenticatedRequest).user?.id;
+      if (!currentUserId) {
+        return res.status(401).json({ success: false, error: "User not authenticated" });
+      }
 
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(400).json({ success: false, error: "Invalid user ID" });
@@ -527,6 +584,372 @@ export default class AdminController {
       });
     } catch (error) {
       console.error("Clear admins error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // GET /api/admin/items - Get all items for management
+  getItems = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { approvalStatus, status } = req.query;
+      const filter: { approvalStatus?: string; status?: string } = {};
+
+      if (approvalStatus && typeof approvalStatus === "string" && ["pending", "approved", "rejected"].includes(approvalStatus)) {
+        filter.approvalStatus = approvalStatus;
+      }
+      // No default filter - show all items if not specified
+
+      if (status && typeof status === "string" && ["available", "reserved", "sold"].includes(status)) {
+        filter.status = status;
+      }
+
+      interface PopulatedOwner {
+        _id: mongoose.Types.ObjectId;
+        name: string;
+        kuEmail: string;
+      }
+
+      const items = await Item.find(filter)
+        .populate("owner", "name kuEmail")
+        .sort({ createAt: -1 });
+
+      return res.json({
+        success: true,
+        items: items.map((item) => {
+          const owner = item.owner as unknown as PopulatedOwner | null;
+          return {
+            id: item._id,
+            title: item.title,
+            description: item.description,
+            category: item.category,
+            price: item.price,
+            status: item.status,
+            approvalStatus: item.approvalStatus,
+            photo: item.photo || [],
+            owner: owner
+              ? {
+                  id: owner._id,
+                  name: owner.name || "Unknown",
+                  email: owner.kuEmail || "Unknown",
+                }
+              : {
+                  id: item.owner as mongoose.Types.ObjectId,
+                  name: "Deleted User",
+                  email: "N/A",
+                },
+            rejectionReason: item.rejectionReason,
+            createdAt: (item as unknown as { createdAt?: Date }).createdAt || item.createAt || new Date(),
+            updatedAt: (item as unknown as { updatedAt?: Date }).updatedAt || item.updateAt || new Date(),
+          };
+        }),
+      });
+    } catch (error) {
+      console.error("Get items error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Server error";
+      return res.status(500).json({ success: false, error: errorMessage });
+    }
+  };
+
+  // PATCH /api/admin/items/:id/approve - Approve an item
+  approveItem = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { id } = req.params;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid item ID" });
+      }
+
+      const item = await Item.findById(id);
+      if (!item) {
+        return res.status(404).json({ success: false, error: "Item not found" });
+      }
+
+      if (item.approvalStatus === "approved") {
+        return res.status(400).json({
+          success: false,
+          error: "Item is already approved",
+        });
+      }
+
+      item.approvalStatus = "approved";
+      await item.save();
+
+      // Notify seller that item is approved
+      await createNotification(
+        item.owner,
+        "item",
+        "Item Approved",
+        `Your item "${item.title}" has been approved and is now visible in the marketplace!`,
+        `/marketplace/${item._id}`
+      );
+
+      return res.json({
+        success: true,
+        message: "Item approved successfully",
+        item: {
+          id: item._id,
+          title: item.title,
+          approvalStatus: item.approvalStatus,
+        },
+      });
+    } catch (error) {
+      console.error("Approve item error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // PATCH /api/admin/items/:id/reject - Reject an item
+  rejectItem = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid item ID" });
+      }
+
+      const item = await Item.findById(id);
+      if (!item) {
+        return res.status(404).json({ success: false, error: "Item not found" });
+      }
+
+      if (item.approvalStatus === "rejected") {
+        return res.status(400).json({
+          success: false,
+          error: "Item is already rejected",
+        });
+      }
+
+      item.approvalStatus = "rejected";
+      if (reason) {
+        item.rejectionReason = reason;
+      }
+      await item.save();
+
+      // Notify seller that item is rejected
+      await createNotification(
+        item.owner,
+        "item",
+        "Item Rejected",
+        reason
+          ? `Your item "${item.title}" was rejected. Reason: ${reason}`
+          : `Your item "${item.title}" was rejected by an admin.`,
+        "/seller/items"
+      );
+
+      return res.json({
+        success: true,
+        message: "Item rejected successfully",
+        item: {
+          id: item._id,
+          title: item.title,
+          approvalStatus: item.approvalStatus,
+          rejectionReason: item.rejectionReason,
+        },
+      });
+    } catch (error) {
+      console.error("Reject item error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // PATCH /api/admin/items/:id - Update an item
+  updateItem = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { id } = req.params;
+      const { title, description, price, status, category } = req.body;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid item ID" });
+      }
+
+      const item = await Item.findById(id);
+      if (!item) {
+        return res.status(404).json({ success: false, error: "Item not found" });
+      }
+
+      // Update fields if provided
+      if (title !== undefined && typeof title === "string" && title.trim().length > 0) {
+        item.title = title.trim();
+      }
+      if (description !== undefined && typeof description === "string") {
+        item.description = description;
+      }
+      if (price !== undefined && typeof price === "number" && price >= 0) {
+        item.price = price;
+      }
+      const previousStatus = item.status;
+      if (status !== undefined && typeof status === "string" && ["available", "reserved", "sold"].includes(status)) {
+        item.status = status as "available" | "reserved" | "sold";
+      }
+      if (category !== undefined && typeof category === "string" && category.trim().length > 0) {
+        item.category = category.trim();
+      }
+
+      await item.save();
+
+      // Notify seller if item status changed to sold
+      if (item.status === "sold" && previousStatus !== "sold") {
+        await createNotification(
+          item.owner,
+          "item",
+          "Item Sold",
+          `Congratulations! Your item "${item.title}" has been marked as sold!`,
+          `/marketplace/${item._id}`
+        );
+      }
+
+      return res.json({
+        success: true,
+        message: "Item updated successfully",
+        item: {
+          id: item._id,
+          title: item.title,
+          description: item.description,
+          price: item.price,
+          status: item.status,
+          category: item.category,
+          approvalStatus: item.approvalStatus,
+        },
+      });
+    } catch (error) {
+      console.error("Update item error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // DELETE /api/admin/items/:id - Delete an item
+  deleteItem = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { id } = req.params;
+      const adminId = (req as AuthenticatedRequest).user?.id;
+
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid item ID" });
+      }
+
+      const item = await Item.findById(id);
+      if (!item) {
+        return res.status(404).json({ success: false, error: "Item not found" });
+      }
+
+      const itemTitle = item.title;
+      await Item.findByIdAndDelete(id);
+
+      return res.json({
+        success: true,
+        message: `Item "${itemTitle}" deleted successfully`,
+      });
+    } catch (error) {
+      console.error("Delete item error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // DELETE /api/admin/reviews/:id - Delete a review (admin only)
+  deleteReview = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      const { id } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid review ID" });
+      }
+
+      const review = await Review.findById(id);
+      if (!review) {
+        return res.status(404).json({ success: false, error: "Review not found" });
+      }
+
+      await Review.findByIdAndDelete(id);
+
+      return res.json({
+        success: true,
+        message: "Review deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete review error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // GET /api/admin/reviews/item/:itemId - Get all reviews for an item (admin)
+  getItemReviews = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const adminId = (req as AuthenticatedRequest).user?.id;
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      const { itemId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(itemId)) {
+        return res.status(400).json({ success: false, error: "Invalid item ID" });
+      }
+
+      const reviews = await Review.find({ item: itemId })
+        .populate("user", "name kuEmail")
+        .populate("item", "title")
+        .sort({ createAt: -1 });
+
+      interface PopulatedUser {
+        _id: mongoose.Types.ObjectId;
+        name?: string;
+        kuEmail?: string;
+      }
+
+      interface PopulatedItem {
+        _id: mongoose.Types.ObjectId;
+        title?: string;
+      }
+
+      return res.json({
+        success: true,
+        reviews: reviews.map((review: IReview & { user: PopulatedUser | null; item: PopulatedItem | null }) => {
+          const populatedUser = review.user as unknown as PopulatedUser | null;
+          const populatedItem = review.item as unknown as PopulatedItem | null;
+          return {
+            id: review._id,
+            itemId: review.item,
+            itemTitle: populatedItem?.title || "Unknown Item",
+            userId: review.user,
+            userName: populatedUser?.name || "Deleted User",
+            userEmail: populatedUser?.kuEmail || "N/A",
+            rating: review.rating,
+            title: review.title,
+            comment: review.comment,
+            helpful: review.helpful,
+            verified: review.verified,
+            createdAt: (review as unknown as { createdAt?: Date }).createdAt || review.createAt,
+            updatedAt: (review as unknown as { updatedAt?: Date }).updatedAt || review.updateAt,
+          };
+        }),
+      });
+    } catch (error) {
+      console.error("Get item reviews error:", error);
       return res.status(500).json({ success: false, error: "Server error" });
     }
   };

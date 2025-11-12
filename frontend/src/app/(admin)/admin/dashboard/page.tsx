@@ -3,13 +3,22 @@
 import { useEffect, useState, memo } from "react";
 import { getStats } from "@/config/admin";
 import toast from "react-hot-toast";
-import { Users, FileCheck, Store, TrendingUp } from "lucide-react";
+import {
+  Users,
+  FileCheck,
+  Store,
+  Package,
+  UserCog,
+  FolderTree,
+  Flag,
+} from "lucide-react";
 import Link from "next/link";
 
 interface AdminStats {
   totalUsers: number;
   pendingVerifications: number;
   pendingShops: number;
+  pendingItems?: number;
 }
 
 interface StatCardProps {
@@ -60,11 +69,8 @@ export default function AdminDashboard() {
   }, []);
 
   const loadStats = async (): Promise<void> => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
     try {
-      const data = await getStats(token);
+      const data = await getStats();
       setStats(data);
     } catch (error) {
       console.error("Failed to load stats:", error);
@@ -120,10 +126,11 @@ export default function AdminDashboard() {
             link="/admin/shops"
           />
           <StatCard
-            icon={TrendingUp}
-            label="Active Items"
-            value={0}
+            icon={Package}
+            label="Pending Items"
+            value={stats.pendingItems || 0}
             color="green"
+            link="/admin/items"
           />
         </div>
       )}
@@ -133,7 +140,7 @@ export default function AdminDashboard() {
         <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
           Quick Actions
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
           <Link
             href="/admin/verifications"
             className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all"
@@ -148,6 +155,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </Link>
+
           <Link
             href="/admin/shops"
             className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all"
@@ -159,6 +167,60 @@ export default function AdminDashboard() {
               </div>
               <div className="text-sm text-gray-600">
                 Approve or reject new shop applications
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/items"
+            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all"
+          >
+            <Package className="text-green-600" size={24} />
+            <div>
+              <div className="font-semibold text-gray-900">
+                Review Items
+              </div>
+              <div className="text-sm text-gray-600">
+                Approve or reject item listings
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/users"
+            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all"
+          >
+            <UserCog className="text-indigo-600" size={24} />
+            <div>
+              <div className="font-semibold text-gray-900">Manage Users</div>
+              <div className="text-sm text-gray-600">
+                Promote, demote, or remove marketplace users
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/categories"
+            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all"
+          >
+            <FolderTree className="text-amber-600" size={24} />
+            <div>
+              <div className="font-semibold text-gray-900">Manage Categories</div>
+              <div className="text-sm text-gray-600">
+                Add, edit, or remove marketplace categories
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/reports"
+            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all"
+          >
+            <Flag className="text-red-600" size={24} />
+            <div>
+              <div className="font-semibold text-gray-900">Review Reports</div>
+              <div className="text-sm text-gray-600">
+                Investigate user and item reports
               </div>
             </div>
           </Link>

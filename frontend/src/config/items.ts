@@ -59,11 +59,34 @@ export async function listItems(
         "Content-Type": "application/json",
       },
       cache: "no-store",
+    }).catch((fetchError) => {
+      // Handle network errors
+      if (fetchError instanceof TypeError && fetchError.message.includes("Failed to fetch")) {
+        return null; // Indicate network error
+      }
+      throw fetchError;
     });
 
+    if (!res) {
+      // Network error occurred
+      return {
+        success: false,
+        data: {
+          items: [],
+          pagination: {
+            totalItems: 0,
+            totalPages: 1,
+            currentPage: params.page || 1,
+            limit: params.limit || 10,
+          },
+        },
+        error: "Network error: Cannot connect to server",
+      };
+    }
+
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`API Error (${res.status}):`, errorText);
+      // Error occurred, return empty result
+      await res.text().catch(() => "Unknown error");
       return {
         success: false,
         data: {
@@ -82,14 +105,16 @@ export async function listItems(
     const data: ListItemsResponse = await res.json();
 
     if (!data.success) {
-      console.error("API returned success: false", data);
+      console.warn("API returned success: false", data);
     }
 
     return data;
   } catch (err: unknown) {
     if (err instanceof Error) {
-      if (err.name === "AbortError") throw err;
-      console.error("Fetch error:", err.message);
+      if (err.name === "AbortError") {
+        // AbortError is expected when cancelling requests
+        throw err;
+      }
     }
 
     return {
@@ -103,7 +128,7 @@ export async function listItems(
           limit: params.limit || 10,
         },
       },
-      error: "Network error",
+      error: "Failed to fetch items",
     };
   }
 }

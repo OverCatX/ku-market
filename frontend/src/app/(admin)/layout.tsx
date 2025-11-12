@@ -7,6 +7,9 @@ import {
   FileCheck,
   Store,
   Users,
+  Package,
+  FolderTree,
+  Flag,
   LogOut,
   Menu,
   X,
@@ -27,6 +30,9 @@ const navItems: NavItem[] = [
   { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Verifications", path: "/admin/verifications", icon: FileCheck },
   { label: "Shop Requests", path: "/admin/shops", icon: Store },
+  { label: "Items", path: "/admin/items", icon: Package },
+  { label: "Categories", path: "/admin/categories", icon: FolderTree },
+  { label: "Reports", path: "/admin/reports", icon: Flag },
   { label: "Users", path: "/admin/users", icon: Users },
 ];
 
@@ -97,7 +103,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Mobile Overlay */}
       {isMobile && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}

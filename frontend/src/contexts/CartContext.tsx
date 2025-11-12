@@ -15,6 +15,7 @@ import {
   clearCart as clearCartAPI,
   CartItem,
 } from "@/config/cart";
+import { getAuthToken, clearAuthTokens } from "@/lib/auth";
 
 interface CartContextType {
   items: CartItem[];
@@ -35,8 +36,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadCart = async () => {
-    const token = localStorage.getItem("authentication");
+    const token = getAuthToken();
     if (!token) {
+      // Guest mode - use local storage
       const saved = localStorage.getItem("cart");
       if (saved) {
         try {
@@ -50,23 +52,42 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const res = await getCartAPI(token);
+      const res = await getCartAPI();
       if (res.success) {
         setItems(res.items || []);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "";
 
+      // Network/server connection errors - fallback to local storage
+      if (
+        errorMessage.toLowerCase().includes("failed to fetch") ||
+        errorMessage.toLowerCase().includes("cannot connect to server") ||
+        errorMessage.toLowerCase().includes("network error")
+      ) {
+        console.warn("⚠️ Cannot connect to backend. Using local cart storage.");
+        const saved = localStorage.getItem("cart");
+        if (saved) {
+          try {
+            setItems(JSON.parse(saved));
+          } catch {
+            setItems([]);
+          }
+        }
+        setLoading(false);
+        return;
+      }
+
       // If token is invalid, clear it and use guest mode
       if (
         errorMessage.toLowerCase().includes("invalid token") ||
-        errorMessage.toLowerCase().includes("unauthorized")
+        errorMessage.toLowerCase().includes("unauthorized") ||
+        errorMessage.toLowerCase().includes("please login")
       ) {
         console.log(
           "🔑 Invalid token detected, clearing and switching to guest mode"
         );
-        localStorage.removeItem("authentication");
-        localStorage.removeItem("user");
+        clearAuthTokens();
       }
 
       console.error("Load cart error:", error);
@@ -88,18 +109,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("authentication");
+    const token = getAuthToken();
     if (!token) {
+      // Guest mode - save to local storage
       localStorage.setItem("cart", JSON.stringify(items));
     }
   }, [items]);
 
   const refreshCart = async () => {
-    const token = localStorage.getItem("authentication");
+    const token = getAuthToken();
     if (!token) return;
 
     try {
-      const res = await getCartAPI(token);
+      const res = await getCartAPI();
       if (res.success) {
         setItems(res.items || []);
       }
@@ -109,11 +131,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // If token is invalid, clear it
       if (
         errorMessage.toLowerCase().includes("invalid token") ||
-        errorMessage.toLowerCase().includes("unauthorized")
+        errorMessage.toLowerCase().includes("unauthorized") ||
+        errorMessage.toLowerCase().includes("please login")
       ) {
         console.log("🔑 Invalid token detected during refresh, clearing");
-        localStorage.removeItem("authentication");
-        localStorage.removeItem("user");
+        clearAuthTokens();
       }
 
       console.error("Refresh error:", error);
@@ -121,9 +143,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const addToCart = async (newItem: Omit<CartItem, "quantity">) => {
-    const token = localStorage.getItem("authentication");
+    const token = getAuthToken();
+    // Prevent adding own items
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "null") || undefined;
+      if (user?._id && newItem.sellerId && String(user._id) === String(newItem.sellerId)) {
+        console.warn("Attempt to add own item to cart blocked");
+        throw new Error("You cannot purchase your own item");
+      }
+    } catch {
+      // ignore parse errors
+    }
 
     if (!token) {
+      // Guest mode - add to local cart
       setItems((prev) => {
         const idx = prev.findIndex((i) => i.id === newItem.id);
         if (idx > -1) {
@@ -137,7 +170,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      await addToCartAPI(token, newItem.id);
+      await addToCartAPI(newItem.id);
       await refreshCart();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "";
@@ -145,11 +178,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // If token is invalid, clear it and switch to guest mode
       if (
         errorMessage.toLowerCase().includes("invalid token") ||
-        errorMessage.toLowerCase().includes("unauthorized")
+        errorMessage.toLowerCase().includes("unauthorized") ||
+        errorMessage.toLowerCase().includes("please login")
       ) {
         console.log("🔑 Invalid token, switching to guest mode for add");
-        localStorage.removeItem("authentication");
-        localStorage.removeItem("user");
+        clearAuthTokens();
         // Add to cart locally
         setItems((prev) => {
           const idx = prev.findIndex((i) => i.id === newItem.id);
@@ -169,15 +202,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromCart = async (itemId: string) => {
-    const token = localStorage.getItem("authentication");
+    const token = getAuthToken();
 
     if (!token) {
+      // Guest mode - remove from local cart
       setItems((prev) => prev.filter((i) => i.id !== itemId));
       return;
     }
 
     try {
-      await removeFromCartAPI(token, itemId);
+      await removeFromCartAPI(itemId);
       await refreshCart();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "";
@@ -185,11 +219,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // If token is invalid, clear it and switch to guest mode
       if (
         errorMessage.toLowerCase().includes("invalid token") ||
-        errorMessage.toLowerCase().includes("unauthorized")
+        errorMessage.toLowerCase().includes("unauthorized") ||
+        errorMessage.toLowerCase().includes("please login")
       ) {
         console.log("🔑 Invalid token, switching to guest mode for remove");
-        localStorage.removeItem("authentication");
-        localStorage.removeItem("user");
+        clearAuthTokens();
         // Remove locally
         setItems((prev) => prev.filter((i) => i.id !== itemId));
         return;
@@ -201,9 +235,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQuantity = async (itemId: string, quantity: number) => {
-    const token = localStorage.getItem("authentication");
+    const token = getAuthToken();
 
     if (!token) {
+      // Guest mode - update local cart
       setItems((prev) => {
         if (quantity === 0) return prev.filter((i) => i.id !== itemId);
         return prev.map((i) => (i.id === itemId ? { ...i, quantity } : i));
@@ -212,7 +247,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      await updateCartQuantityAPI(token, itemId, quantity);
+      await updateCartQuantityAPI(itemId, quantity);
       await refreshCart();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "";
@@ -220,11 +255,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // If token is invalid, clear it and switch to guest mode
       if (
         errorMessage.toLowerCase().includes("invalid token") ||
-        errorMessage.toLowerCase().includes("unauthorized")
+        errorMessage.toLowerCase().includes("unauthorized") ||
+        errorMessage.toLowerCase().includes("please login")
       ) {
         console.log("🔑 Invalid token, switching to guest mode for update");
-        localStorage.removeItem("authentication");
-        localStorage.removeItem("user");
+        clearAuthTokens();
         // Update locally
         setItems((prev) => {
           if (quantity === 0) return prev.filter((i) => i.id !== itemId);
@@ -239,16 +274,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const clearCart = async () => {
-    const token = localStorage.getItem("authentication");
+    const token = getAuthToken();
 
     if (!token) {
+      // Guest mode - clear local cart
       setItems([]);
       localStorage.removeItem("cart");
       return;
     }
 
     try {
-      await clearCartAPI(token);
+      await clearCartAPI();
       setItems([]);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "";
@@ -256,11 +292,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // If token is invalid, clear it and switch to guest mode
       if (
         errorMessage.toLowerCase().includes("invalid token") ||
-        errorMessage.toLowerCase().includes("unauthorized")
+        errorMessage.toLowerCase().includes("unauthorized") ||
+        errorMessage.toLowerCase().includes("please login")
       ) {
         console.log("🔑 Invalid token, switching to guest mode for clear");
-        localStorage.removeItem("authentication");
-        localStorage.removeItem("user");
+        clearAuthTokens();
         // Clear locally
         setItems([]);
         localStorage.removeItem("cart");

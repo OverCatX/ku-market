@@ -8,10 +8,18 @@ import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
 import { ReviewList } from "@/components/Reviews";
 import { Review, ReviewSummary } from "@/types/review";
+import { getAuthUser } from "@/lib/auth";
 
 const GREEN = "#69773D";
 const LIGHT = "#f7f4f1";
 const BORDER = "rgba(122,74,34,0.25)";
+
+// Type for populated owner object
+interface OwnerObject {
+  _id: string;
+  name?: string;
+  email?: string;
+}
 
 export default function Page() {
   const { slug } = useParams<{ slug: string }>();
@@ -23,6 +31,7 @@ export default function Page() {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
+  const [isOwnItem, setIsOwnItem] = useState(false);
 
   // Reviews data (will be fetched from API when backend is ready)
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -48,7 +57,46 @@ export default function Page() {
     (async () => {
       try {
         const res = await getItem(String(slug));
-        if (ok) setItem(res.item);
+        if (ok) {
+          setItem(res.item);
+          // Determine if the current user is the owner
+          try {
+            const user = getAuthUser?.();
+            const ownerId = (res.item?.owner as unknown as string) || "";
+            const currentUserId =
+              (user && (user as { id?: string }).id) ||
+              (user && (user as { _id?: string })._id) ||
+              (user && (user as { sub?: string }).sub) ||
+              "";
+            setIsOwnItem(
+              Boolean(
+                currentUserId &&
+                  ownerId &&
+                  String(currentUserId) === String(ownerId)
+              )
+            );
+          } catch {
+            setIsOwnItem(false);
+          }
+        }
+
+        // Load reviews and summary
+        const { getItemReviews, getReviewSummary } = await import(
+          "@/config/reviews"
+        );
+        const [reviewsData, summaryData] = await Promise.all([
+          getItemReviews(String(slug)).catch(() => []),
+          getReviewSummary(String(slug)).catch(() => ({
+            averageRating: 0,
+            totalReviews: 0,
+            ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+          })),
+        ]);
+
+        if (ok) {
+          setReviews(reviewsData);
+          setReviewSummary(summaryData);
+        }
       } catch {
         if (ok) setItem(null);
       } finally {
@@ -62,6 +110,10 @@ export default function Page() {
 
   const handleAddToCart = async () => {
     if (!isMounted || !item) return;
+    if (isOwnItem) {
+      toast.error("You cannot add your own item");
+      return;
+    }
 
     try {
       // Add item to cart
@@ -82,63 +134,104 @@ export default function Page() {
       toast.success(`Added ${qty} item(s) to cart!`, { icon: "🛒" });
       setQty(1); // Reset quantity to 1
     } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (message.toLowerCase().includes("own item")) {
+        toast.error("You cannot add your own item");
+        return;
+      }
       console.error("Add to cart error:", error);
       toast.error("Failed to add item");
     }
   };
 
-  const handleSubmitReview = async (data: { rating: number; title?: string; comment: string }) => {
-    // TODO: Replace with actual API call when backend is ready
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
-    
-    // Get user name from localStorage or use default
-    const userName = localStorage.getItem("user_name") || "Anonymous User";
-    
-    // Create new review
-    const newReview: Review = {
-      _id: Date.now().toString(), // Generate temporary ID
-      itemId: String(slug),
-      userId: "current-user",
-      userName: userName,
-      rating: data.rating,
-      title: data.title,
-      comment: data.comment,
-      helpful: 0,
-      verified: false, // Would be true if user actually purchased
-      createdAt: new Date().toISOString(),
-    };
-    
-    // Add to reviews list
-    setReviews((prev) => [newReview, ...prev]); // Add at beginning
-    
-    // Update summary
-    const newTotalReviews = reviewSummary.totalReviews + 1;
-    const currentTotal = reviewSummary.averageRating * reviewSummary.totalReviews;
-    const newAverage = (currentTotal + data.rating) / newTotalReviews;
-    
-    const newDistribution = { ...reviewSummary.ratingDistribution };
-    newDistribution[data.rating as keyof typeof newDistribution] += 1;
-    
-    setReviewSummary({
-      averageRating: newAverage,
-      totalReviews: newTotalReviews,
-      ratingDistribution: newDistribution,
-    });
+  const handleSubmitReview = async (data: {
+    rating: number;
+    title?: string;
+    comment: string;
+  }) => {
+    // Authentication check is done in createReview API function
+    // It will automatically handle expired tokens
+
+    try {
+      const { createReview: createReviewAPI, getReviewSummary } = await import(
+        "@/config/reviews"
+      );
+
+      // Validate before submitting
+      if (!data.rating || data.rating < 1 || data.rating > 5) {
+        toast.error("Rating must be between 1 and 5");
+        return;
+      }
+
+      if (!data.comment || data.comment.trim().length < 10) {
+        toast.error("Comment must be at least 10 characters");
+        return;
+      }
+
+      if (data.comment.trim().length > 2000) {
+        toast.error("Comment must not exceed 2000 characters");
+        return;
+      }
+
+      // Create review via API
+      const newReview = await createReviewAPI(String(slug), data);
+
+      // Add to reviews list
+      setReviews((prev) => [newReview, ...prev]);
+
+      // Fetch updated summary
+      const updatedSummary = await getReviewSummary(String(slug));
+      setReviewSummary(updatedSummary);
+
+      toast.success("Review submitted successfully!");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to submit review";
+
+      // Show specific error messages (only show once)
+      if (
+        errorMessage.includes("login") ||
+        errorMessage.includes("authenticated")
+      ) {
+        toast.error("Please login to submit a review");
+      } else if (errorMessage.includes("already reviewed")) {
+        toast.error("You have already reviewed this item");
+      } else {
+        toast.error(errorMessage);
+      }
+      // Don't re-throw - error already handled
+    }
   };
 
-  const handleHelpful = (reviewId: string) => {
-    // TODO: Replace with actual API call when backend is ready
-    
-    // Update the helpful count for this review
-    setReviews((prev) =>
-      prev.map((review) =>
-        review._id === reviewId
-          ? { ...review, helpful: review.helpful + 1 }
-          : review
-      )
-    );
-    
-    toast.success("Thank you for your feedback!");
+  const handleHelpful = async (
+    reviewId: string,
+    currentHasVoted: boolean
+  ): Promise<{ helpful: number; hasVoted: boolean }> => {
+    try {
+      const { toggleHelpful } = await import("@/config/reviews");
+      const result = await toggleHelpful(reviewId, currentHasVoted);
+
+      // Update the helpful count and hasVoted status for this review
+      setReviews((prev) =>
+        prev.map((review) => {
+          const reviewIdValue =
+            review._id || (review as { id?: string }).id || "";
+          return reviewIdValue === reviewId
+            ? { ...review, helpful: result.helpful, hasVoted: result.hasVoted }
+            : review;
+        })
+      );
+
+      toast.success(
+        currentHasVoted
+          ? "Removed helpful vote"
+          : "Thank you for your feedback!"
+      );
+      return result;
+    } catch (error) {
+      // Error handling is done in ReviewItem component
+      throw error;
+    }
   };
 
   if (loading) {
@@ -181,8 +274,20 @@ export default function Page() {
     return null;
   }
 
-  const main = item.photo?.[selectedImage] || item.photo?.[0] || "https://picsum.photos/seed/fallback/800/600";
+  const main =
+    item.photo?.[selectedImage] ||
+    item.photo?.[0] ||
+    "https://picsum.photos/seed/fallback/800/600";
   const isSoldOrReserved = item.status === "sold" || item.status === "reserved";
+
+  const handleReportItem = () => {
+    const params = new URLSearchParams();
+    if (item._id) params.set("itemId", String(item._id));
+    if (item.title) params.set("title", item.title);
+    router.push(
+      `/report-item${params.toString() ? `?${params.toString()}` : ""}`
+    );
+  };
 
   return (
     <div className="min-h-screen" style={{ background: LIGHT }}>
@@ -299,21 +404,36 @@ export default function Page() {
 
             {/* Seller Info */}
             {item.owner && (
-              <div className="mt-6 p-4 bg-gray-50 rounded-xl border" style={{ borderColor: BORDER }}>
-                <h3 className="text-sm font-semibold text-gray-600 mb-2">Seller Information</h3>
+              <div
+                className="mt-6 p-4 bg-gray-50 rounded-xl border"
+                style={{ borderColor: BORDER }}
+              >
+                <h3 className="text-sm font-semibold text-gray-600 mb-2">
+                  Seller Information
+                </h3>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold">
-                    {item.owner.charAt(0).toUpperCase()}
+                    {typeof item.owner === "string"
+                      ? item.owner.charAt(0).toUpperCase()
+                      : (item.owner as OwnerObject)?.name
+                          ?.charAt(0)
+                          ?.toUpperCase() || "S"}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">Seller ID: {item.owner.slice(0, 8)}...</p>
+                    <p className="font-medium text-gray-900">
+                      {typeof item.owner === "string"
+                        ? `Seller ID: ${item.owner.slice(0, 8)}...`
+                        : (item.owner as OwnerObject)?.name || "Seller"}
+                    </p>
                     <p className="text-sm text-gray-500">KU Market Seller</p>
                   </div>
                   <button
                     type="button"
                     className="px-4 py-2 border-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition"
                     style={{ borderColor: BORDER, color: GREEN }}
-                    onClick={() => toast("Chat feature coming soon!", { icon: "💬" })}
+                    onClick={() =>
+                      toast("Chat feature coming soon!", { icon: "💬" })
+                    }
                   >
                     Contact
                   </button>
@@ -340,75 +460,96 @@ export default function Page() {
               )}
             </div>
 
-            {/* Qty */}
-            {isSoldOrReserved ? (
-              <div className="mt-8 p-4 bg-gray-100 rounded-xl border border-gray-300 text-center">
-                <p className="text-gray-600 font-medium">
-                  This item is currently <span className="font-bold uppercase">{item.status}</span>
-                </p>
-              </div>
-            ) : (
-              <div className="mt-8 flex items-center gap-4">
-                <label className="text-sm text-gray-600">Qty</label>
-
-                <div
-                  className="inline-flex items-stretch rounded-xl overflow-hidden border shadow-sm select-none"
-                  style={{ borderColor: BORDER }}
-                  role="group"
-                  aria-label="Quantity"
-                >
-                  <button
-                    type="button"
-                    className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
-                    onClick={() => setQty((q) => Math.max(1, q - 1))}
-                    aria-label="Decrease quantity"
+            <div className="mt-8 flex flex-col gap-3">
+              {!isSoldOrReserved && (
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div
+                    className="flex items-center gap-2 rounded-xl border bg-white shadow-sm"
+                    style={{ borderColor: BORDER }}
+                    role="group"
+                    aria-label="Quantity"
                   >
-                    —
-                  </button>
+                    <button
+                      type="button"
+                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
+                      onClick={() => setQty((q) => Math.max(1, q - 1))}
+                      aria-label="Decrease quantity"
+                    >
+                      —
+                    </button>
 
-                  <div className="min-w-[3.5rem] px-4 py-2 flex items-center justify-center font-semibold text-gray-800 bg-white">
-                    {qty}
+                    <div className="min-w-[3.5rem] px-4 py-2 flex items-center justify-center font-semibold text-gray-800 bg-white">
+                      {qty}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
+                      onClick={() => setQty((q) => q + 1)}
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
                   </div>
 
                   <button
                     type="button"
-                    className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
-                    onClick={() => setQty((q) => q + 1)}
-                    aria-label="Increase quantity"
+                    className={`rounded-xl px-6 py-3 font-semibold text-white shadow transition ${
+                      isOwnItem
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:opacity-90"
+                    }`}
+                    style={{ background: GREEN }}
+                    onClick={handleAddToCart}
+                    disabled={isOwnItem}
+                    title={
+                      isOwnItem ? "You cannot add your own item" : "Add to cart"
+                    }
                   >
-                    +
+                    Add to Cart
                   </button>
                 </div>
+              )}
 
-                <button
-                  type="button"
-                  className="rounded-xl px-6 py-3 font-semibold text-white shadow hover:opacity-90 transition"
-                  style={{ background: GREEN }}
-                  onClick={handleAddToCart}
-                >
-                  Add to Cart
-                </button>
-              </div>
-            )}
+              <button
+                type="button"
+                onClick={handleReportItem}
+                className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold text-white bg-gradient-to-r from-red-500 via-red-500 to-red-600 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+              >
+                Report this item
+              </button>
+            </div>
           </section>
         </div>
 
         {/* Reviews Section */}
-        <div className="mx-auto max-w-6xl px-6 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Customer Reviews</h2>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Customer Reviews
+            </h2>
             <Link
               href={`/marketplace/${item._id}/reviews`}
-              className="text-[#84B067] hover:text-[#69773D] font-semibold transition-colors flex items-center gap-1"
+              className="text-[#84B067] hover:text-[#69773D] font-semibold text-sm sm:text-base transition-colors flex items-center gap-1 self-start sm:self-auto"
             >
-              View All Reviews
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <span className="hidden sm:inline">View All Reviews</span>
+              <span className="sm:hidden">View All</span>
+              <svg
+                className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </Link>
           </div>
           <ReviewList
-            itemId={item._id}
             reviews={reviews.slice(0, 3)}
             summary={reviewSummary}
             onSubmitReview={handleSubmitReview}
@@ -428,13 +569,26 @@ export default function Page() {
             className="absolute top-4 right-4 text-white hover:text-gray-300 transition"
             onClick={() => setShowLightbox(false)}
           >
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
 
           {/* Navigation */}
-          <div className="relative max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative max-w-5xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Main image */}
             <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -449,10 +603,22 @@ export default function Page() {
             {selectedImage > 0 && (
               <button
                 className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition"
-                onClick={() => setSelectedImage((prev) => Math.max(0, prev - 1))}
+                onClick={() =>
+                  setSelectedImage((prev) => Math.max(0, prev - 1))
+                }
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
             )}
@@ -461,10 +627,24 @@ export default function Page() {
             {selectedImage < item.photo.length - 1 && (
               <button
                 className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-3 shadow-lg transition"
-                onClick={() => setSelectedImage((prev) => Math.min(item.photo.length - 1, prev + 1))}
+                onClick={() =>
+                  setSelectedImage((prev) =>
+                    Math.min(item.photo.length - 1, prev + 1)
+                  )
+                }
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             )}
@@ -487,7 +667,11 @@ export default function Page() {
                   }`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt={`thumb-${i}`} className="w-full h-full object-cover" />
+                  <img
+                    src={src}
+                    alt={`thumb-${i}`}
+                    className="w-full h-full object-cover"
+                  />
                 </button>
               ))}
             </div>
