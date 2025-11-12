@@ -8,7 +8,13 @@ import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
 import { ReviewList } from "@/components/Reviews";
 import { Review, ReviewSummary } from "@/types/review";
-import { getAuthUser } from "@/lib/auth";
+import { API_BASE } from "@/config/constants";
+import {
+  clearAuthTokens,
+  getAuthToken,
+  getAuthUser,
+  isAuthenticated,
+} from "@/lib/auth";
 
 const GREEN = "#69773D";
 const LIGHT = "#f7f4f1";
@@ -21,6 +27,37 @@ interface OwnerObject {
   email?: string;
 }
 
+const isOwnerObject = (value: unknown): value is OwnerObject =>
+  typeof value === "object" &&
+  value !== null &&
+  "_id" in (value as Record<string, unknown>);
+
+const resolveOwnerInfo = (
+  owner: unknown
+): { id: string | null; name: string | null } => {
+  if (typeof owner === "string") {
+    return { id: owner, name: null };
+  }
+  if (isOwnerObject(owner)) {
+    return {
+      id: owner._id ?? null,
+      name: owner.name ?? null,
+    };
+  }
+  return { id: null, name: null };
+};
+
+const extractUserId = (user: unknown): string | null => {
+  if (typeof user !== "object" || user === null) {
+    return null;
+  }
+  const candidate =
+    (user as Record<string, unknown>).id ??
+    (user as Record<string, unknown>)._id ??
+    (user as Record<string, unknown>).sub;
+  return typeof candidate === "string" ? candidate : null;
+};
+
 export default function Page() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
@@ -31,7 +68,7 @@ export default function Page() {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
-  const [isOwnItem, setIsOwnItem] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // Reviews data (will be fetched from API when backend is ready)
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -48,8 +85,27 @@ export default function Page() {
     },
   });
 
+  const ownerInfo = item
+    ? resolveOwnerInfo(item.owner)
+    : { id: null, name: null };
+  const isOwnItem = Boolean(
+    ownerInfo.id && currentUserId && ownerInfo.id === currentUserId
+  );
+  const sellerInitial =
+    ownerInfo.name?.charAt(0).toUpperCase() ??
+    ownerInfo.id?.charAt(0).toUpperCase() ??
+    "S";
+  const sellerDisplayName =
+    ownerInfo.name ??
+    (ownerInfo.id ? `Seller ID: ${ownerInfo.id.slice(0, 8)}...` : "Seller");
+
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const authUser = getAuthUser();
+    setCurrentUserId(extractUserId(authUser));
   }, []);
 
   useEffect(() => {
@@ -59,25 +115,6 @@ export default function Page() {
         const res = await getItem(String(slug));
         if (ok) {
           setItem(res.item);
-          // Determine if the current user is the owner
-          try {
-            const user = getAuthUser?.();
-            const ownerId = (res.item?.owner as unknown as string) || "";
-            const currentUserId =
-              (user && (user as { id?: string }).id) ||
-              (user && (user as { _id?: string })._id) ||
-              (user && (user as { sub?: string }).sub) ||
-              "";
-            setIsOwnItem(
-              Boolean(
-                currentUserId &&
-                  ownerId &&
-                  String(currentUserId) === String(ownerId)
-              )
-            );
-          } catch {
-            setIsOwnItem(false);
-          }
         }
 
         // Load reviews and summary
@@ -122,8 +159,8 @@ export default function Page() {
         title: item.title,
         price: item.price,
         image: item.photo?.[0] || "",
-        sellerId: item.owner || "",
-        sellerName: "Seller",
+        sellerId: ownerInfo.id || "",
+        sellerName: ownerInfo.name || "Seller",
       });
 
       // If quantity > 1, update the quantity
@@ -141,6 +178,89 @@ export default function Page() {
       }
       console.error("Add to cart error:", error);
       toast.error("Failed to add item");
+    }
+  };
+
+  const handleContactSeller = async () => {
+    if (!item) {
+      return;
+    }
+
+    if (!ownerInfo.id) {
+      toast.error("Seller information is unavailable");
+      return;
+    }
+
+    if (isOwnItem) {
+      toast.error("You cannot contact yourself");
+      return;
+    }
+
+    if (!isAuthenticated()) {
+      toast.error("Please login to contact the seller");
+      const redirect = encodeURIComponent(`/marketplace/${item._id}`);
+      router.push(`/login?redirect=${redirect}`);
+      return;
+    }
+
+    const token = getAuthToken();
+    if (!token) {
+      toast.error("Please login to contact the seller");
+      const redirect = encodeURIComponent(`/marketplace/${item._id}`);
+      router.push(`/login?redirect=${redirect}`);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/chats/threads`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          sellerId: ownerInfo.id,
+          itemId: item._id,
+        }),
+      });
+
+      if (response.status === 401) {
+        clearAuthTokens();
+        toast.error("Session expired. Please login again");
+        const redirect = encodeURIComponent(`/marketplace/${item._id}`);
+        router.push(`/login?redirect=${redirect}`);
+        return;
+      }
+
+      if (!response.ok) {
+        const errorPayload = (await response.json().catch(() => null)) as {
+          error?: string;
+          message?: string;
+        } | null;
+        const message =
+          errorPayload?.error ||
+          errorPayload?.message ||
+          "Failed to start chat with seller";
+        throw new Error(message);
+      }
+
+      const data = (await response.json().catch(() => null)) as {
+        id?: string;
+        threadId?: string;
+        _id?: string;
+      } | null;
+      const threadId = data?.id || data?.threadId || data?._id;
+
+      if (!threadId) {
+        throw new Error("Chat thread not available");
+      }
+
+      router.push(`/chats?threadId=${encodeURIComponent(threadId)}`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to contact seller";
+      toast.error(message);
     }
   };
 
@@ -402,8 +522,7 @@ export default function Page() {
               {item.description}
             </p>
 
-            {/* Seller Info */}
-            {item.owner && (
+            {(ownerInfo.id || ownerInfo.name) && (
               <div
                 className="mt-6 p-4 bg-gray-50 rounded-xl border"
                 style={{ borderColor: BORDER }}
@@ -413,29 +532,31 @@ export default function Page() {
                 </h3>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold">
-                    {typeof item.owner === "string"
-                      ? item.owner.charAt(0).toUpperCase()
-                      : (item.owner as OwnerObject)?.name
-                          ?.charAt(0)
-                          ?.toUpperCase() || "S"}
+                    {sellerInitial}
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">
-                      {typeof item.owner === "string"
-                        ? `Seller ID: ${item.owner.slice(0, 8)}...`
-                        : (item.owner as OwnerObject)?.name || "Seller"}
+                      {sellerDisplayName}
                     </p>
                     <p className="text-sm text-gray-500">KU Market Seller</p>
                   </div>
                   <button
                     type="button"
-                    className="px-4 py-2 border-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition"
+                    className={`px-4 py-2 border-2 rounded-lg font-medium text-sm transition ${
+                      isOwnItem
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-gray-100"
+                    }`}
                     style={{ borderColor: BORDER, color: GREEN }}
-                    onClick={() =>
-                      toast("Chat feature coming soon!", { icon: "💬" })
+                    onClick={handleContactSeller}
+                    disabled={isOwnItem}
+                    title={
+                      isOwnItem
+                        ? "You cannot contact yourself"
+                        : "Chat with seller"
                     }
                   >
-                    Contact
+                    {isOwnItem ? "Your item" : "Contact Seller"}
                   </button>
                 </div>
               </div>
@@ -495,15 +616,17 @@ export default function Page() {
                   <button
                     type="button"
                     className={`rounded-xl px-6 py-3 font-semibold text-white shadow transition ${
-                      isOwnItem
+                      item.owner === currentUserId
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:opacity-90"
                     }`}
                     style={{ background: GREEN }}
                     onClick={handleAddToCart}
-                    disabled={isOwnItem}
+                    disabled={item.owner === currentUserId}
                     title={
-                      isOwnItem ? "You cannot add your own item" : "Add to cart"
+                      item.owner === currentUserId
+                        ? "You cannot add your own item"
+                        : "Add to cart"
                     }
                   >
                     Add to Cart
