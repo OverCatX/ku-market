@@ -98,30 +98,29 @@ export default class OrderController {
 
       // Group items by seller
       const itemsBySeller = new Map<string, OrderItem[]>();
+      const invalidItemIds: string[] = [];
+      const invalidReasons: string[] = [];
       
       for (const cartItem of cart.items) {
-        const item = cartItem.itemId as unknown as PopulatedItem;
+        const item = cartItem.itemId as unknown as PopulatedItem | undefined;
         if (!item || !item.owner) {
-          return res.status(400).json({
-            success: false,
-            error: "Some items are invalid or no longer available",
-          });
+          invalidItemIds.push((cartItem.itemId as unknown as { _id?: mongoose.Types.ObjectId })?._id?.toString() || "");
+          invalidReasons.push("invalid");
+          continue;
         }
 
         // Check if item is approved
         if (item.approvalStatus !== "approved") {
-          return res.status(400).json({
-            success: false,
-            error: `Item "${item.title}" is not approved yet`,
-          });
+          invalidItemIds.push(item._id.toString());
+          invalidReasons.push(`not approved: ${item.title}`);
+          continue;
         }
 
         // Check if item is available
         if (item.status !== "available") {
-          return res.status(400).json({
-            success: false,
-            error: `Item "${item.title}" is no longer available`,
-          });
+          invalidItemIds.push(item._id.toString());
+          invalidReasons.push(`not available: ${item.title}`);
+          continue;
         }
 
         const sellerId = item.owner._id.toString();
@@ -135,6 +134,26 @@ export default class OrderController {
           price: item.price,
           quantity: cartItem.quantity,
           image: item.photo?.[0],
+        });
+      }
+
+      // If there are invalid items, remove them from cart to avoid repeated errors
+      if (invalidItemIds.length > 0) {
+        cart.items = cart.items.filter(
+          (ci) => {
+            const id = (ci.itemId as unknown as { _id?: mongoose.Types.ObjectId })?._id?.toString();
+            return id ? !invalidItemIds.includes(id) : false;
+          }
+        );
+        await cart.save();
+      }
+
+      // If after filtering, there are no valid items left, block checkout
+      if (itemsBySeller.size === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Some items are invalid or no longer available. We have updated your cart.",
+          removed: invalidReasons,
         });
       }
 
@@ -272,8 +291,12 @@ export default class OrderController {
       }
 
       // Check if user is buyer or seller
-      const buyerId = order.buyer.toString();
-      const sellerId = order.seller.toString();
+      const buyerId = (
+        order.buyer as unknown as PopulatedBuyer
+      )._id.toString();
+      const sellerId = (
+        order.seller as unknown as PopulatedSeller
+      )._id.toString();
 
       if (userId !== buyerId && userId !== sellerId) {
         return res.status(403).json({ success: false, error: "Access denied" });

@@ -18,6 +18,7 @@ import {
 import Image from "next/image";
 import type { UserData } from "@/config/auth";
 import { API_BASE } from "@/config/constants";
+import toast from "react-hot-toast";
 
 type PaymentMethod = "cash" | "promptpay";
 type DeliveryMethod = "pickup" | "delivery";
@@ -31,7 +32,7 @@ interface ShippingInfo {
 }
 
 export default function CheckoutPage() {
-  const { items, getTotalPrice, clearCart } = useCart();
+  const { items, getTotalPrice, clearCart, refreshCart } = useCart();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -86,13 +87,16 @@ export default function CheckoutPage() {
             const approved =
               statusRes.success &&
               statusRes.verification &&
-              (statusRes.verification as { status?: string }).status === "approved";
+              (statusRes.verification as { status?: string }).status ===
+                "approved";
             if (approved) {
               setIsVerified(true);
               // Update localStorage user to reflect verified status so other pages update immediately
               try {
                 const latestUserStr = localStorage.getItem("user");
-                const latestUser = latestUserStr ? JSON.parse(latestUserStr) : user;
+                const latestUser = latestUserStr
+                  ? JSON.parse(latestUserStr)
+                  : user;
                 const updatedUser = { ...latestUser, isVerified: true };
                 localStorage.setItem("user", JSON.stringify(updatedUser));
               } catch {
@@ -125,7 +129,51 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Show confirmation dialog first
+    // Strong client-side validation
+    const name = (shippingInfo.fullName || "").trim();
+    const rawPhone = (shippingInfo.phone || "").trim();
+    const phone = rawPhone.replace(/\D/g, ""); // keep digits only
+    const address = (shippingInfo.address || "").trim();
+    const city = (shippingInfo.city || "").trim();
+    const postal = (shippingInfo.postalCode || "").trim();
+
+    // Basic required fields
+    if (!name) {
+      toast.error("Please enter your full name");
+      return;
+    }
+
+    // Thailand mobile format: exactly 10 digits and starts with 0
+    const thPhoneStrict = /^0\d{9}$/;
+    if (!thPhoneStrict.test(phone)) {
+      toast.error(
+        "Please enter a valid 10-digit Thai phone number (starts with 0)"
+      );
+      return;
+    }
+
+    if (deliveryMethod === "delivery") {
+      if (!address || address.length < 5) {
+        toast.error("Please enter a valid address (min 5 characters)");
+        return;
+      }
+      if (!city || city.length < 2) {
+        toast.error("Please enter a valid city");
+        return;
+      }
+      // Thailand postal code (5 digits) or allow 3-10 digits for international
+      const thPostal = /^\d{5}$/;
+      const intlPostal = /^\w[\w\s-]{2,9}$/;
+      if (!(thPostal.test(postal) || intlPostal.test(postal))) {
+        toast.error("Please enter a valid postal code");
+        return;
+      }
+    }
+
+    // Inform buyer and show confirmation dialog before sending to seller
+    toast("Please confirm your order details before sending to seller", {
+      icon: "🧾",
+    });
     setShowConfirmation(true);
   };
 
@@ -139,6 +187,15 @@ export default function CheckoutPage() {
         return;
       }
 
+      // Normalize and trim before sending
+      const normalizedInfo = {
+        fullName: (shippingInfo.fullName || "").trim(),
+        phone: (shippingInfo.phone || "").trim().replace(/\D/g, ""),
+        address: (shippingInfo.address || "").trim(),
+        city: (shippingInfo.city || "").trim(),
+        postalCode: (shippingInfo.postalCode || "").trim(),
+      };
+
       const payload: {
         deliveryMethod: DeliveryMethod;
         paymentMethod: PaymentMethod;
@@ -148,16 +205,16 @@ export default function CheckoutPage() {
         deliveryMethod,
         paymentMethod,
         buyerContact: {
-          fullName: shippingInfo.fullName,
-          phone: shippingInfo.phone,
+          fullName: normalizedInfo.fullName,
+          phone: normalizedInfo.phone,
         },
       };
 
       if (deliveryMethod === "delivery") {
         payload.shippingAddress = {
-          address: shippingInfo.address,
-          city: shippingInfo.city,
-          postalCode: shippingInfo.postalCode,
+          address: normalizedInfo.address,
+          city: normalizedInfo.city,
+          postalCode: normalizedInfo.postalCode,
         };
       }
 
@@ -173,7 +230,19 @@ export default function CheckoutPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const message = errorData.error || errorData.message || "Failed to place order";
+        const message =
+          errorData.error || errorData.message || "Failed to place order";
+        if (
+          String(message).toLowerCase().includes("invalid") ||
+          String(message).toLowerCase().includes("no longer available")
+        ) {
+          toast.error(
+            "Some items are no longer available. We've updated your cart."
+          );
+          try {
+            await refreshCart();
+          } catch {}
+        }
         throw new Error(message);
       }
 
@@ -183,13 +252,19 @@ export default function CheckoutPage() {
       await clearCart();
 
       if (orderId) {
+        toast.success("Order placed! You can track the status in Orders.");
         router.push(`/order/${orderId}`);
       } else {
+        toast.success("Order placed! You can track the status in Orders.");
         router.push("/orders");
       }
     } catch (error) {
       console.error("Order failed:", error);
-      alert(error instanceof Error ? error.message : "Failed to place order. Please try again.");
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Failed to place order. Please try again.";
+      toast.error(msg);
       setIsProcessing(false);
     }
   };
