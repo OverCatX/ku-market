@@ -683,7 +683,6 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
         >
           {selectedId && selectedThread ? (
             <ChatWindow
-              threadId={String(selectedId)}
               partnerName={
                 selectedThread.otherUserName ??
                 selectedThread.sellerName ??

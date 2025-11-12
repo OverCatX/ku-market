@@ -16,7 +16,6 @@ export type Msg = {
 };
 
 export default function ChatWindow({
-  threadId,
   partnerName,
   subtitle,
   itemInfo,
@@ -24,7 +23,6 @@ export default function ChatWindow({
   onSendMessage,
   onBack,
 }: {
-  threadId: string;
   partnerName: string;
   subtitle?: string;
   itemInfo?: {
@@ -90,12 +88,7 @@ export default function ChatWindow({
         )}
 
         {messages.map((m) => (
-          <MessageBubble
-            key={m.id}
-            who={m.who}
-            text={m.text}
-            time={m.time}
-          />
+          <MessageBubble key={m.id} who={m.who} text={m.text} time={m.time} />
         ))}
       </div>
 
