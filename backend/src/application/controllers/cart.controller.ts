@@ -54,15 +54,21 @@ export default class CartController {
       }
 
       const populatedItems = cart.items as unknown as PopulatedCartItem[];
-      const items: FormattedCartItem[] = populatedItems.map((item) => ({
-        id: item.itemId._id.toString(),
-        title: item.itemId.title,
-        price: item.itemId.price,
-        image: item.itemId.photo?.[0] || "",
-        quantity: item.quantity,
-        sellerId: item.itemId.owner?._id?.toString() || "",
-        sellerName: item.itemId.owner?.name || "Unknown",
-      }));
+      // Filter out any cart entries whose item has been deleted or is missing
+      const safeItems = populatedItems.filter((ci) => !!ci.itemId);
+      const items: FormattedCartItem[] = safeItems.map((item) => {
+        const ownerId = item.itemId.owner?._id ? item.itemId.owner._id.toString() : "";
+        const ownerName = item.itemId.owner?.name || "Unknown";
+        return {
+          id: item.itemId._id.toString(),
+          title: item.itemId.title,
+          price: item.itemId.price,
+          image: item.itemId.photo?.[0] || "",
+          quantity: item.quantity,
+          sellerId: ownerId,
+          sellerName: ownerName,
+        };
+      });
 
       return res.json({
         success: true,
@@ -88,6 +94,12 @@ export default class CartController {
       const item = await Item.findById(itemId);
       if (!item) {
         return res.status(404).json({ success: false, error: "Item not found" });
+      }
+      // Prevent sellers from adding their own items to the cart
+      if (item.owner && item.owner.toString() === String(userId)) {
+        return res
+          .status(400)
+          .json({ success: false, error: "You cannot purchase your own item" });
       }
 
       let cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });

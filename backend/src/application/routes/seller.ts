@@ -19,6 +19,7 @@ router.patch("/orders/:orderId/reject", sellerController.rejectOrder);
 
 // Items management
 router.get("/items", sellerController.getItems);
+router.patch("/items/:itemId/status", sellerController.updateItemStatus);
 
 export default router;
 

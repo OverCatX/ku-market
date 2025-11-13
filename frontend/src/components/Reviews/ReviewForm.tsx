@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import StarRating from "./StarRating";
 import toast from "react-hot-toast";
-import { isAuthenticated as checkAuth, getAuthUser } from "@/lib/auth";
+import {
+  isAuthenticated as checkAuth,
+  getAuthUser,
+  updateStoredUser,
+} from "@/lib/auth";
+import { getProfile } from "@/config/profile";
 
 interface ReviewFormProps {
   itemId: string;
@@ -26,6 +31,21 @@ export default function ReviewForm({
   const [submitting, setSubmitting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const lastVerificationCheckRef = useRef(0);
+
+  const refreshVerificationFromServer = async () => {
+    try {
+      const profile = await getProfile();
+      if (profile?.isVerified) {
+        updateStoredUser({ isVerified: true });
+        setIsVerified(true);
+        return true;
+      }
+    } catch (error) {
+      console.warn("Failed to refresh verification status", error);
+    }
+    return false;
+  };
 
   // Check authentication and verification status on mount and listen for changes
   useEffect(() => {
@@ -35,7 +55,14 @@ export default function ReviewForm({
 
       if (authenticated) {
         const user = getAuthUser();
-        setIsVerified(user?.isVerified || false);
+        setIsVerified(Boolean(user?.isVerified));
+        if (!user?.isVerified) {
+          const now = Date.now();
+          if (now - lastVerificationCheckRef.current > 5000) {
+            lastVerificationCheckRef.current = now;
+            refreshVerificationFromServer();
+          }
+        }
       } else {
         setIsVerified(false);
       }
@@ -59,6 +86,8 @@ export default function ReviewForm({
 
     const user = getAuthUser();
     if (!user?.isVerified) {
+      // Attempt to refresh verification once more when user tries to submit
+      refreshVerificationFromServer();
       toast.error(
         "You must verify your identity before submitting a review. Please complete identity verification first.",
         {

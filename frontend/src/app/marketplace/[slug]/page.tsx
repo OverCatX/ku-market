@@ -8,6 +8,13 @@ import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
 import { ReviewList } from "@/components/Reviews";
 import { Review, ReviewSummary } from "@/types/review";
+import { API_BASE } from "@/config/constants";
+import {
+  clearAuthTokens,
+  getAuthToken,
+  getAuthUser,
+  isAuthenticated,
+} from "@/lib/auth";
 
 const GREEN = "#69773D";
 const LIGHT = "#f7f4f1";
@@ -20,6 +27,37 @@ interface OwnerObject {
   email?: string;
 }
 
+const isOwnerObject = (value: unknown): value is OwnerObject =>
+  typeof value === "object" &&
+  value !== null &&
+  "_id" in (value as Record<string, unknown>);
+
+const resolveOwnerInfo = (
+  owner: unknown
+): { id: string | null; name: string | null } => {
+  if (typeof owner === "string") {
+    return { id: owner, name: null };
+  }
+  if (isOwnerObject(owner)) {
+    return {
+      id: owner._id ?? null,
+      name: owner.name ?? null,
+    };
+  }
+  return { id: null, name: null };
+};
+
+const extractUserId = (user: unknown): string | null => {
+  if (typeof user !== "object" || user === null) {
+    return null;
+  }
+  const candidate =
+    (user as Record<string, unknown>).id ??
+    (user as Record<string, unknown>)._id ??
+    (user as Record<string, unknown>).sub;
+  return typeof candidate === "string" ? candidate : null;
+};
+
 export default function Page() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
@@ -30,6 +68,7 @@ export default function Page() {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // Reviews data (will be fetched from API when backend is ready)
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -46,8 +85,27 @@ export default function Page() {
     },
   });
 
+  const ownerInfo = item
+    ? resolveOwnerInfo(item.owner)
+    : { id: null, name: null };
+  const isOwnItem = Boolean(
+    ownerInfo.id && currentUserId && ownerInfo.id === currentUserId
+  );
+  const sellerInitial =
+    ownerInfo.name?.charAt(0).toUpperCase() ??
+    ownerInfo.id?.charAt(0).toUpperCase() ??
+    "S";
+  const sellerDisplayName =
+    ownerInfo.name ??
+    (ownerInfo.id ? `Seller ID: ${ownerInfo.id.slice(0, 8)}...` : "Seller");
+
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const authUser = getAuthUser();
+    setCurrentUserId(extractUserId(authUser));
   }, []);
 
   useEffect(() => {
@@ -55,10 +113,14 @@ export default function Page() {
     (async () => {
       try {
         const res = await getItem(String(slug));
-        if (ok) setItem(res.item);
-        
+        if (ok) {
+          setItem(res.item);
+        }
+
         // Load reviews and summary
-        const { getItemReviews, getReviewSummary } = await import("@/config/reviews");
+        const { getItemReviews, getReviewSummary } = await import(
+          "@/config/reviews"
+        );
         const [reviewsData, summaryData] = await Promise.all([
           getItemReviews(String(slug)).catch(() => []),
           getReviewSummary(String(slug)).catch(() => ({
@@ -67,7 +129,7 @@ export default function Page() {
             ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
           })),
         ]);
-        
+
         if (ok) {
           setReviews(reviewsData);
           setReviewSummary(summaryData);
@@ -85,6 +147,10 @@ export default function Page() {
 
   const handleAddToCart = async () => {
     if (!isMounted || !item) return;
+    if (isOwnItem) {
+      toast.error("You cannot add your own item");
+      return;
+    }
 
     try {
       // Add item to cart
@@ -93,8 +159,8 @@ export default function Page() {
         title: item.title,
         price: item.price,
         image: item.photo?.[0] || "",
-        sellerId: item.owner || "",
-        sellerName: "Seller",
+        sellerId: ownerInfo.id || "",
+        sellerName: ownerInfo.name || "Seller",
       });
 
       // If quantity > 1, update the quantity
@@ -105,8 +171,95 @@ export default function Page() {
       toast.success(`Added ${qty} item(s) to cart!`, { icon: "🛒" });
       setQty(1); // Reset quantity to 1
     } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (message.toLowerCase().includes("own item")) {
+        toast.error("You cannot add your own item");
+        return;
+      }
       console.error("Add to cart error:", error);
       toast.error("Failed to add item");
+    }
+  };
+
+  const handleContactSeller = async () => {
+    if (!item) {
+      return;
+    }
+
+    if (!ownerInfo.id) {
+      toast.error("Seller information is unavailable");
+      return;
+    }
+
+    if (isOwnItem) {
+      toast.error("You cannot contact yourself");
+      return;
+    }
+
+    if (!isAuthenticated()) {
+      toast.error("Please login to contact the seller");
+      const redirect = encodeURIComponent(`/marketplace/${item._id}`);
+      router.push(`/login?redirect=${redirect}`);
+      return;
+    }
+
+    const token = getAuthToken();
+    if (!token) {
+      toast.error("Please login to contact the seller");
+      const redirect = encodeURIComponent(`/marketplace/${item._id}`);
+      router.push(`/login?redirect=${redirect}`);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/chats/threads`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          sellerId: ownerInfo.id,
+        }),
+      });
+
+      if (response.status === 401) {
+        clearAuthTokens();
+        toast.error("Session expired. Please login again");
+        const redirect = encodeURIComponent(`/marketplace/${item._id}`);
+        router.push(`/login?redirect=${redirect}`);
+        return;
+      }
+
+      if (!response.ok) {
+        const errorPayload = (await response.json().catch(() => null)) as {
+          error?: string;
+          message?: string;
+        } | null;
+        const message =
+          errorPayload?.error ||
+          errorPayload?.message ||
+          "Failed to start chat with seller";
+        throw new Error(message);
+      }
+
+      const data = (await response.json().catch(() => null)) as {
+        id?: string;
+        threadId?: string;
+        _id?: string;
+      } | null;
+      const threadId = data?.id || data?.threadId || data?._id;
+
+      if (!threadId) {
+        throw new Error("Chat thread not available");
+      }
+
+      router.push(`/chats?threadId=${encodeURIComponent(threadId)}`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to contact seller";
+      toast.error(message);
     }
   };
 
@@ -119,8 +272,10 @@ export default function Page() {
     // It will automatically handle expired tokens
 
     try {
-      const { createReview: createReviewAPI, getReviewSummary } = await import("@/config/reviews");
-      
+      const { createReview: createReviewAPI, getReviewSummary } = await import(
+        "@/config/reviews"
+      );
+
       // Validate before submitting
       if (!data.rating || data.rating < 1 || data.rating > 5) {
         toast.error("Rating must be between 1 and 5");
@@ -139,20 +294,24 @@ export default function Page() {
 
       // Create review via API
       const newReview = await createReviewAPI(String(slug), data);
-      
+
       // Add to reviews list
       setReviews((prev) => [newReview, ...prev]);
 
       // Fetch updated summary
       const updatedSummary = await getReviewSummary(String(slug));
       setReviewSummary(updatedSummary);
-      
+
       toast.success("Review submitted successfully!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to submit review";
-      
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to submit review";
+
       // Show specific error messages (only show once)
-      if (errorMessage.includes("login") || errorMessage.includes("authenticated")) {
+      if (
+        errorMessage.includes("login") ||
+        errorMessage.includes("authenticated")
+      ) {
         toast.error("Please login to submit a review");
       } else if (errorMessage.includes("already reviewed")) {
         toast.error("You have already reviewed this item");
@@ -163,22 +322,30 @@ export default function Page() {
     }
   };
 
-  const handleHelpful = async (reviewId: string, currentHasVoted: boolean): Promise<{ helpful: number; hasVoted: boolean }> => {
+  const handleHelpful = async (
+    reviewId: string,
+    currentHasVoted: boolean
+  ): Promise<{ helpful: number; hasVoted: boolean }> => {
     try {
       const { toggleHelpful } = await import("@/config/reviews");
       const result = await toggleHelpful(reviewId, currentHasVoted);
-      
+
       // Update the helpful count and hasVoted status for this review
       setReviews((prev) =>
         prev.map((review) => {
-          const reviewIdValue = review._id || (review as { id?: string }).id || "";
+          const reviewIdValue =
+            review._id || (review as { id?: string }).id || "";
           return reviewIdValue === reviewId
             ? { ...review, helpful: result.helpful, hasVoted: result.hasVoted }
             : review;
         })
       );
 
-      toast.success(currentHasVoted ? "Removed helpful vote" : "Thank you for your feedback!");
+      toast.success(
+        currentHasVoted
+          ? "Removed helpful vote"
+          : "Thank you for your feedback!"
+      );
       return result;
     } catch (error) {
       // Error handling is done in ReviewItem component
@@ -236,7 +403,9 @@ export default function Page() {
     const params = new URLSearchParams();
     if (item._id) params.set("itemId", String(item._id));
     if (item.title) params.set("title", item.title);
-    router.push(`/report-item${params.toString() ? `?${params.toString()}` : ""}`);
+    router.push(
+      `/report-item${params.toString() ? `?${params.toString()}` : ""}`
+    );
   };
 
   return (
@@ -352,8 +521,7 @@ export default function Page() {
               {item.description}
             </p>
 
-            {/* Seller Info */}
-            {item.owner && (
+            {(ownerInfo.id || ownerInfo.name) && (
               <div
                 className="mt-6 p-4 bg-gray-50 rounded-xl border"
                 style={{ borderColor: BORDER }}
@@ -363,29 +531,31 @@ export default function Page() {
                 </h3>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold">
-                    {typeof item.owner === "string"
-                      ? item.owner.charAt(0).toUpperCase()
-                      : (item.owner as OwnerObject)?.name
-                          ?.charAt(0)
-                          ?.toUpperCase() || "S"}
+                    {sellerInitial}
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">
-                      {typeof item.owner === "string"
-                        ? `Seller ID: ${item.owner.slice(0, 8)}...`
-                        : (item.owner as OwnerObject)?.name || "Seller"}
+                      {sellerDisplayName}
                     </p>
                     <p className="text-sm text-gray-500">KU Market Seller</p>
                   </div>
                   <button
                     type="button"
-                    className="px-4 py-2 border-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition"
+                    className={`px-4 py-2 border-2 rounded-lg font-medium text-sm transition ${
+                      isOwnItem
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-gray-100"
+                    }`}
                     style={{ borderColor: BORDER, color: GREEN }}
-                    onClick={() =>
-                      toast("Chat feature coming soon!", { icon: "💬" })
+                    onClick={handleContactSeller}
+                    disabled={isOwnItem}
+                    title={
+                      isOwnItem
+                        ? "You cannot contact yourself"
+                        : "Chat with seller"
                     }
                   >
-                    Contact
+                    {isOwnItem ? "Your item" : "Contact Seller"}
                   </button>
                 </div>
               </div>
@@ -444,9 +614,19 @@ export default function Page() {
 
                   <button
                     type="button"
-                    className="rounded-xl px-6 py-3 font-semibold text-white shadow hover:opacity-90 transition"
+                    className={`rounded-xl px-6 py-3 font-semibold text-white shadow transition ${
+                      item.owner === currentUserId
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:opacity-90"
+                    }`}
                     style={{ background: GREEN }}
                     onClick={handleAddToCart}
+                    disabled={item.owner === currentUserId}
+                    title={
+                      item.owner === currentUserId
+                        ? "You cannot add your own item"
+                        : "Add to cart"
+                    }
                   >
                     Add to Cart
                   </button>

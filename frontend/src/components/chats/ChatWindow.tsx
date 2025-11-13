@@ -7,24 +7,22 @@ import Composer from "./Composer";
 const colors = { creamSoft: "#F6F2E5" };
 
 export type Msg = {
-  id: number;
+  id: string;
   who: "me" | "them";
   text: string;
   time: string;
+  optimistic?: boolean;
 };
 
 export default function ChatWindow({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  threadId,
-  title,
-  sellerName,
+  partnerName,
+  subtitle,
   messages,
   onSendMessage,
   onBack,
 }: {
-  threadId: string;
-  title: string;
-  sellerName: string;
+  partnerName: string;
+  subtitle?: string;
   messages: Msg[];
   onSendMessage: (text: string) => void;
   onBack: () => void;
@@ -36,8 +34,8 @@ export default function ChatWindow({
     >
       {/* Header */}
       <ChatHeader
-        title={title || "Loading..."}
-        sellerName={sellerName || "Seller"}
+        partnerName={partnerName || "Chat"}
+        subtitle={subtitle}
         onBack={onBack}
       />
 
@@ -50,12 +48,7 @@ export default function ChatWindow({
         )}
 
         {messages.map((m) => (
-          <MessageBubble
-            key={m.id}
-            who={m.who}
-            text={m.text}
-            time={m.time}
-          />
+          <MessageBubble key={m.id} who={m.who} text={m.text} time={m.time} />
         ))}
       </div>
 

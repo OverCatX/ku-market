@@ -6,7 +6,11 @@ export type Thread = {
   id: string | number;
   title: string;
   unread: number;
-  sellerName: string;
+  partnerId: string;
+  partnerName: string;
+  lastMessage?: string;
+  lastMessageAt?: string;
+  viewerRole?: "buyer" | "seller";
 };
 
 export default function ChatList({
@@ -16,7 +20,7 @@ export default function ChatList({
 }: {
   threads: Thread[];
   selectedId: string | number | null;
-  onSelect: (id: string | number, title: string, sellerName: string) => void;
+  onSelect: (thread: Thread) => void;
 }) {
   return (
     <div className="p-4 space-y-2">
@@ -31,7 +35,7 @@ export default function ChatList({
           key={t.id}
           item={t}
           active={t.id === selectedId}
-          onClick={() => onSelect(t.id, t.title, t.sellerName)}
+          onClick={() => onSelect(t)}
         />
       ))}
     </div>

@@ -144,6 +144,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = async (newItem: Omit<CartItem, "quantity">) => {
     const token = getAuthToken();
+    // Prevent adding own items
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "null") || undefined;
+      if (user?._id && newItem.sellerId && String(user._id) === String(newItem.sellerId)) {
+        console.warn("Attempt to add own item to cart blocked");
+        throw new Error("You cannot purchase your own item");
+      }
+    } catch {
+      // ignore parse errors
+    }
 
     if (!token) {
       // Guest mode - add to local cart

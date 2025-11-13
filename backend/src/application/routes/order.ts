@@ -17,4 +17,7 @@ router.get("/", orderController.getBuyerOrders);
 // GET /api/orders/:id - Get order details
 router.get("/:id", orderController.getOrderDetails);
 
+// POST /api/orders/:id/payment - Buyer submits payment notification
+router.post("/:id/payment", orderController.submitPaymentNotification);
+
 export default router;
