@@ -187,6 +187,7 @@ export default class OrderController {
               address?: string;
               note?: string;
               coordinates?: { lat: number; lng: number };
+              preferredTime?: Date;
             }
           | undefined;
 
@@ -228,11 +229,24 @@ export default class OrderController {
             coordinates = { lat, lng };
           }
 
+          let preferredTime: Date | undefined;
+          if (pickupDetails.preferredTime) {
+            const time = new Date(pickupDetails.preferredTime);
+            if (isNaN(time.getTime())) {
+              return res.status(400).json({
+                success: false,
+                error: "Preferred time must be a valid date",
+              });
+            }
+            preferredTime = time;
+          }
+
           normalizedPickupDetails = {
             locationName,
             address: locationAddress || undefined,
             note: note || undefined,
             coordinates,
+            preferredTime,
           };
         }
 

@@ -75,6 +75,7 @@ interface OrderDetail {
       lat: number;
       lng: number;
     };
+    preferredTime?: string;
   };
   buyerContact: BuyerContact;
   confirmedAt?: string;
@@ -700,6 +701,18 @@ export default function OrderDetailPage({
                       {order.pickupDetails.note && (
                         <p className="text-[11px] text-gray-500">
                           Buyer note: {order.pickupDetails.note}
+                        </p>
+                      )}
+                      {order.pickupDetails.preferredTime && (
+                        <p className="text-[11px] text-blue-600 font-medium flex items-center gap-1">
+                          <Clock size={10} />
+                          Preferred time: {new Date(order.pickupDetails.preferredTime).toLocaleString("th-TH", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </p>
                       )}
                     </div>

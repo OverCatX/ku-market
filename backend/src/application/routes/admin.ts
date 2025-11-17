@@ -50,5 +50,11 @@ router.delete("/categories/:id", authenticate, adminMiddleware, categoryControll
 router.get("/reviews/item/:itemId", authenticate, adminMiddleware, adminController.getItemReviews);
 router.delete("/reviews/:id", authenticate, adminMiddleware, adminController.deleteReview);
 
+// Meetup presets management
+router.get("/meetup-presets", authenticate, adminMiddleware, adminController.getMeetupPresets);
+router.post("/meetup-presets", authenticate, adminMiddleware, adminController.createMeetupPreset);
+router.patch("/meetup-presets/:id", authenticate, adminMiddleware, adminController.updateMeetupPreset);
+router.delete("/meetup-presets/:id", authenticate, adminMiddleware, adminController.deleteMeetupPreset);
+
 export default router;
 

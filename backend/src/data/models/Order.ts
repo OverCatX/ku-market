@@ -24,6 +24,7 @@ export interface IPickupDetails {
   address?: string;
   note?: string;
   coordinates?: IPickupCoordinates;
+  preferredTime?: Date;
 }
 
 export type PaymentStatus =
@@ -103,6 +104,7 @@ const PickupDetailsSchema = new Schema<IPickupDetails>(
       lat: { type: Number },
       lng: { type: Number },
     },
+    preferredTime: { type: Date },
   },
   { _id: false }
 );

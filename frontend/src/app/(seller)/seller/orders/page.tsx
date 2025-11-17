@@ -8,6 +8,7 @@ import {
   Clock,
   RefreshCw,
   Printer,
+  MapPin,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -42,6 +43,16 @@ interface OrderData {
     address: string;
     city: string;
     postalCode: string;
+  };
+  pickupDetails?: {
+    locationName: string;
+    address?: string;
+    note?: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+    preferredTime?: string;
   };
   createdAt: string;
   confirmedAt?: string;
@@ -314,6 +325,42 @@ export default function SellerOrders() {
                       <p className="text-gray-600">
                         {order.shippingAddress.address}, {order.shippingAddress.city} {order.shippingAddress.postalCode}
                       </p>
+                    </div>
+                  )}
+                  {order.deliveryMethod === "pickup" && order.pickupDetails && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <p className="font-medium flex items-center gap-1 text-green-700">
+                        <MapPin size={14} />
+                        Meetup Point
+                      </p>
+                      <div className="mt-1 space-y-1 text-gray-700">
+                        <p className="font-semibold">{order.pickupDetails.locationName}</p>
+                        {order.pickupDetails.address && (
+                          <p className="text-sm">{order.pickupDetails.address}</p>
+                        )}
+                        {order.pickupDetails.preferredTime && (
+                          <p className="text-sm text-blue-600">
+                            <Clock size={12} className="inline mr-1" />
+                            Preferred time: {new Date(order.pickupDetails.preferredTime).toLocaleString("th-TH", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        )}
+                        {order.pickupDetails.coordinates && (
+                          <p className="text-xs text-gray-500">
+                            📍 {order.pickupDetails.coordinates.lat.toFixed(5)}, {order.pickupDetails.coordinates.lng.toFixed(5)}
+                          </p>
+                        )}
+                        {order.pickupDetails.note && (
+                          <p className="text-sm text-gray-600 italic">
+                            Note: {order.pickupDetails.note}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
                   <p>

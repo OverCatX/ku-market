@@ -36,6 +36,7 @@ interface PickupDetailsState {
   locationName: string;
   address: string;
   note: string;
+  preferredTime?: string;
   coordinates?: {
     lat: number;
     lng: number;
@@ -86,60 +87,33 @@ export default function CheckoutPage() {
     []
   );
 
-  const pickupPresets = useMemo(
-    () => [
-      {
-        label: "Main Gate (Ngamwongwan)",
-        lat: 13.846995,
-        lng: 100.568308,
-        locationName: "Main Gate (Ngamwongwan)",
-        address: "Front gate near Ngamwongwan Road entrance",
-      },
-      {
-        label: "KU Avenue Plaza",
-        lat: 13.851944,
-        lng: 100.573817,
-        locationName: "KU Avenue Plaza",
-        address: "Central shopping plaza inside campus",
-      },
-      {
-        label: "Central Library Lawn",
-        lat: 13.852583,
-        lng: 100.571013,
-        locationName: "Central Library Lawn",
-        address: "Green lawn in front of the Central Library",
-      },
-      {
-        label: "Sriwattanawilai Dorm",
-        lat: 13.840732,
-        lng: 100.572632,
-        locationName: "Sriwattanawilai Dormitory Lobby",
-        address: "Dorm lobby entrance",
-      },
-      {
-        label: "Engineering Gate (Phahonyothin)",
-        lat: 13.85512,
-        lng: 100.57189,
-        locationName: "Faculty of Engineering Gate",
-        address: "Phahonyothin Road entrance near Eng Building 3",
-      },
-      {
-        label: "Kasetsart Stadium",
-        lat: 13.84847,
-        lng: 100.57794,
-        locationName: "Kasetsart Stadium Entrance",
-        address: "Stadium parking area",
-      },
-      {
-        label: "KU Business School",
-        lat: 13.84564,
-        lng: 100.56598,
-        locationName: "KU Business School Lobby",
-        address: "In front of BBA building lobby",
-      },
-    ],
-    []
-  );
+  const [pickupPresets, setPickupPresets] = useState<
+    Array<{
+      label: string;
+      lat: number;
+      lng: number;
+      locationName: string;
+      address?: string;
+    }>
+  >([]);
+
+  // Load presets from API
+  useEffect(() => {
+    const loadPresets = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/meetup-presets`);
+        if (response.ok) {
+          const data = await response.json();
+          setPickupPresets(data.presets || []);
+        }
+      } catch (error) {
+        console.error("Failed to load meetup presets:", error);
+        // Fallback to empty array if API fails
+        setPickupPresets([]);
+      }
+    };
+    loadPresets();
+  }, []);
 
   useEffect(() => {
     if (deliveryMethod !== "pickup") {
@@ -314,6 +288,7 @@ export default function CheckoutPage() {
           address?: string;
           note?: string;
           coordinates?: { lat: number; lng: number };
+          preferredTime?: string;
         };
       } = {
         deliveryMethod,
@@ -336,6 +311,7 @@ export default function CheckoutPage() {
           address: pickupDetails.address.trim() || undefined,
           note: pickupDetails.note.trim() || undefined,
           coordinates: pickupDetails.coordinates,
+          preferredTime: pickupDetails.preferredTime || undefined,
         };
       }
 
@@ -722,6 +698,26 @@ export default function CheckoutPage() {
                               placeholder="I'll wear a green jacket and wait by the fountain."
                             />
                           </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Preferred meetup time (optional)
+                            </label>
+                            <input
+                              type="datetime-local"
+                              value={pickupDetails.preferredTime || ""}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  preferredTime: e.target.value,
+                                }))
+                              }
+                              min={new Date().toISOString().slice(0, 16)}
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                              Select when you'd like to meet up with the seller
+                            </p>
+                          </div>
                         </div>
 
                         <div className="rounded-2xl border border-[#dfe7cf] bg-white/90 p-4">
@@ -765,6 +761,22 @@ export default function CheckoutPage() {
                                 <span className="text-right">
                                   {pickupDetails.coordinates.lat.toFixed(6)},{" "}
                                   {pickupDetails.coordinates.lng.toFixed(6)}
+                                </span>
+                              </div>
+                            )}
+                            {pickupDetails.preferredTime && (
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                  Preferred Time
+                                </span>
+                                <span className="text-right text-sm font-medium text-blue-600">
+                                  {new Date(pickupDetails.preferredTime).toLocaleString("th-TH", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
                                 </span>
                               </div>
                             )}
@@ -1107,6 +1119,18 @@ export default function CheckoutPage() {
                           {pickupDetails.note}
                         </p>
                       )}
+                      {deliveryMethod === "pickup" && pickupDetails.preferredTime && (
+                        <p className="mb-1 text-blue-600">
+                          <span className="font-medium">Preferred time:</span>{" "}
+                          {new Date(pickupDetails.preferredTime).toLocaleString("th-TH", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      )}
                       <p>
                         <span className="font-medium">Payment:</span>{" "}
                         {paymentMethod === "cash"
@@ -1221,6 +1245,17 @@ export default function CheckoutPage() {
                         {pickupDetails.note && (
                           <p className="text-[11px] text-gray-500">
                             Your note: {pickupDetails.note}
+                          </p>
+                        )}
+                        {pickupDetails.preferredTime && (
+                          <p className="text-[11px] text-blue-600 font-medium">
+                            Preferred time: {new Date(pickupDetails.preferredTime).toLocaleString("th-TH", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </p>
                         )}
                       </div>
