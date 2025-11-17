@@ -54,6 +54,7 @@ interface OrderData {
       lat: number;
       lng: number;
     };
+    preferredTime?: string;
   };
   createdAt?: string;
 }
