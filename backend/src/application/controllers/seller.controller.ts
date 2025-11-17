@@ -117,6 +117,10 @@ export default class SellerController {
             rejectedAt: order.rejectedAt,
             rejectionReason: order.rejectionReason,
             completedAt: order.completedAt,
+            buyerReceived: order.buyerReceived,
+            buyerReceivedAt: order.buyerReceivedAt,
+            sellerDelivered: order.sellerDelivered,
+            sellerDeliveredAt: order.sellerDeliveredAt,
             createdAt: order.createdAt,
             updatedAt: order.updatedAt,
           };
@@ -190,6 +194,10 @@ export default class SellerController {
           rejectedAt: order.rejectedAt,
           rejectionReason: order.rejectionReason,
           completedAt: order.completedAt,
+          buyerReceived: order.buyerReceived,
+          buyerReceivedAt: order.buyerReceivedAt,
+          sellerDelivered: order.sellerDelivered,
+          sellerDeliveredAt: order.sellerDeliveredAt,
           createdAt: order.createdAt,
           updatedAt: order.updatedAt,
         },
@@ -453,6 +461,100 @@ export default class SellerController {
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to update item status";
+      return res.status(500).json({ error: message });
+    }
+  };
+
+  /**
+   * POST /api/seller/orders/:orderId/delivered - Seller confirms they delivered the product
+   */
+  markDelivered = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+    try {
+      const userId = req.user?.id;
+      const { orderId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      // Get shop
+      const shop = await Shop.findOne({ owner: userId, shopStatus: "approved" });
+      if (!shop) {
+        return res.status(404).json({ error: "No approved shop found" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return res.status(400).json({ error: "Invalid order ID" });
+      }
+
+      const order = await Order.findById(orderId);
+
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+
+      if (order.seller.toString() !== userId) {
+        return res.status(403).json({ error: "Access denied. This order does not belong to you." });
+      }
+
+      if (order.status !== "confirmed") {
+        return res.status(400).json({
+          error: `Cannot mark as delivered. Order status must be confirmed. Current status: ${order.status}`,
+        });
+      }
+
+      if (order.deliveryMethod !== "pickup") {
+        return res.status(400).json({
+          error: "This feature is only available for pickup orders",
+        });
+      }
+
+      if (order.sellerDelivered) {
+        return res.status(400).json({
+          error: "You have already confirmed delivering this order",
+        });
+      }
+
+      order.sellerDelivered = true;
+      order.sellerDeliveredAt = new Date();
+
+      // If both buyer and seller confirmed, complete the order
+      if (order.buyerReceived && order.sellerDelivered) {
+        order.status = "completed";
+        order.completedAt = new Date();
+
+        // Notify both parties
+        await createNotification(
+          order.buyer,
+          "order",
+          "Order Completed",
+          "Your order has been completed!",
+          `/order/${order._id}`
+        );
+        await createNotification(
+          order.seller,
+          "order",
+          "Order Completed",
+          "The order has been completed!",
+          `/seller/orders/${order._id}`
+        );
+      }
+
+      await order.save();
+
+      return res.json({
+        message: "Order marked as delivered",
+        order: {
+          id: order._id,
+          sellerDelivered: order.sellerDelivered,
+          sellerDeliveredAt: order.sellerDeliveredAt,
+          status: order.status,
+          completedAt: order.completedAt,
+        },
+      });
+    } catch (error) {
+      console.error("Seller delivered error:", error);
+      const message = error instanceof Error ? error.message : "Server error";
       return res.status(500).json({ error: message });
     }
   };

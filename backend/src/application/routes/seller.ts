@@ -16,6 +16,7 @@ router.get("/orders", sellerController.getOrders);
 router.get("/orders/:orderId", sellerController.getOrderDetail);
 router.patch("/orders/:orderId/confirm", sellerController.confirmOrder);
 router.patch("/orders/:orderId/reject", sellerController.rejectOrder);
+router.post("/orders/:orderId/delivered", sellerController.markDelivered);
 
 // Items management
 router.get("/items", sellerController.getItems);
