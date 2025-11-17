@@ -146,7 +146,7 @@ export default function NewItemPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: LIGHT }}>
+    <div className="min-h-screen" style={{ background: '#F6F2E5' }}>
       {/* Top bar */}
       <motion.div
         {...{ initial: { opacity: 0 }, animate: { opacity: 1 } }}

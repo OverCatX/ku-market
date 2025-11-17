@@ -195,7 +195,7 @@ export default function MarketPage() {
   ].filter(Boolean) as { key: string; label: string }[];
 
   return (
-    <div className="min-h-screen" style={{ background: LIGHT }}>
+    <div className="min-h-screen" style={{ background: '#F6F2E5' }}>
       {/* Top bar */}
       <div className="w-full" style={{ background: GREEN }}>
         <div className="mx-auto max-w-6xl px-6 py-4 text-white font-medium">

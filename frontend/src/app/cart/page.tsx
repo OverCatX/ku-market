@@ -59,7 +59,7 @@ export default function CartPage() {
   // Show loading state during SSR
   if (!isMounted || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
@@ -80,7 +80,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen py-12" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -102,7 +102,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>

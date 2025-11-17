@@ -355,7 +355,7 @@ export default function Page() {
 
   if (loading) {
     return (
-      <div className="min-h-screen" style={{ background: LIGHT }}>
+      <div className="min-h-screen" style={{ background: '#F6F2E5' }}>
         <div className="w-full" style={{ background: GREEN }}>
           <div className="mx-auto max-w-6xl px-6 py-4 text-white font-medium">
             Item Detail
@@ -409,7 +409,7 @@ export default function Page() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: LIGHT }}>
+    <div className="min-h-screen" style={{ background: '#F6F2E5' }}>
       <div className="w-full" style={{ background: GREEN }}>
         <div className="mx-auto max-w-6xl px-6 py-4 text-white font-medium">
           Item Detail

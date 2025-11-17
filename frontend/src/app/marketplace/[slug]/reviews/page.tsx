@@ -149,7 +149,7 @@ export default function ReviewsPage() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: LIGHT }}
+        style={{ background: '#F6F2E5' }}
       >
         Loading...
       </div>
@@ -157,7 +157,7 @@ export default function ReviewsPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: LIGHT }}>
+    <div className="min-h-screen" style={{ background: '#F6F2E5' }}>
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3 sm:py-4">

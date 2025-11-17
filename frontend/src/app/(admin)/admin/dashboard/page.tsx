@@ -91,7 +91,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       {/* Header */}
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">

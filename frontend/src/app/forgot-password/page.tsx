@@ -13,7 +13,7 @@ export default function ForgotPasswordPage() {
   return (
     <main
       className="min-h-screen w-full flex items-center justify-center"
-      style={{ backgroundColor: aboutColors.creamBg }}
+      style={{ backgroundColor: '#F6F2E5' }}
     >
       <Modal
         open={open}

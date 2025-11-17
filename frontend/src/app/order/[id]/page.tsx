@@ -508,7 +508,7 @@ export default function OrderDetailPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen py-12" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
           <div className="rounded-3xl bg-white p-8 shadow animate-pulse">
             <div className="h-8 w-40 rounded bg-gray-200" />
@@ -533,7 +533,7 @@ export default function OrderDetailPage({
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen py-12" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-3xl">
           <div className="rounded-3xl bg-white p-8 shadow text-center">
             <XCircle className="mx-auto h-12 w-12 text-red-500" />
@@ -567,7 +567,7 @@ export default function OrderDetailPage({
   const StatusIcon = meta.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5f8f1] via-white to-[#eef4e6] py-10">
+    <div className="min-h-screen py-10" style={{ backgroundColor: '#F6F2E5' }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
         <div className="mb-4">
           <Link

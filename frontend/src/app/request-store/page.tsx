@@ -368,7 +368,7 @@ export default function BecomeASeller() {
   // Show loading while checking authentication
   if (isChecking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
@@ -380,7 +380,7 @@ export default function BecomeASeller() {
   // Show status page if user has already applied
   if (shopStatus.status) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#F6F2E5' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -566,7 +566,7 @@ export default function BecomeASeller() {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50 p-2 sm:p-4 md:p-6">
+    <div className="min-h-screen flex items-center justify-center p-2 sm:p-4 md:p-6" style={{ backgroundColor: '#F6F2E5' }}>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

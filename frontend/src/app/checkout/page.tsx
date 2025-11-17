@@ -330,7 +330,7 @@ export default function CheckoutPage() {
   // Show loading state during SSR, initial mount, or auth check
   if (!isMounted || isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
@@ -434,7 +434,7 @@ export default function CheckoutPage() {
   // Show verification required page if not verified
   if (!isVerified) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-2xl">
           <div className="bg-white rounded-lg shadow-sm p-8 md:p-12 text-center">
             <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -489,7 +489,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
 

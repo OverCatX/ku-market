@@ -213,7 +213,7 @@ export default function NotificationsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
           <div className="animate-pulse">
             <div className="h-10 bg-gray-200 rounded w-1/3 mb-8"></div>
@@ -229,7 +229,7 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
         {/* Header */}
         <div className="mb-8">

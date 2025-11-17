@@ -61,7 +61,8 @@ export default function MyReportsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', paddingTop: '2rem', paddingBottom: '2rem' }}>
+      <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-6">
         <Link
           href="/profile"
@@ -189,6 +190,7 @@ export default function MyReportsPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

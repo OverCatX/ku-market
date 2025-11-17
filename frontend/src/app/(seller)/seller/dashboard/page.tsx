@@ -134,7 +134,7 @@ export default function SellerDashboard() {
   }
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

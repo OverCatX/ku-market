@@ -444,7 +444,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5f8f1] via-white to-[#eef4e6] py-10">
+    <div className="min-h-screen py-10" style={{ backgroundColor: '#F6F2E5' }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
         <section className="rounded-3xl bg-white/90 border border-[#e4ecd7] shadow-xl shadow-[#c8d3ba]/30 p-6 sm:p-8 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

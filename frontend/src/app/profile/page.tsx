@@ -150,11 +150,12 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-3xl mx-auto p-8 mt-12 bg-white rounded-2xl shadow-lg border border-gray-100"
-    >
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', paddingTop: '3rem', paddingBottom: '3rem' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-3xl mx-auto p-8 bg-white rounded-2xl shadow-lg border border-gray-100"
+      >
       <ProfileHeader name={user.name} role={user.role} />
 
       <ProfileForm
@@ -385,6 +386,7 @@ export default function ProfilePage() {
       </div>
 
       <LogoutButton />
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
