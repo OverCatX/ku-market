@@ -616,7 +616,7 @@ export default function CheckoutPage() {
                                       lng: preset.lng,
                                     },
                                     locationName: preset.locationName,
-                                    address: preset.address,
+                                    address: preset.address || "",
                                   }));
                                   toast.success(`Pinned ${preset.label}`, {
                                     icon: "📍",
@@ -715,7 +715,7 @@ export default function CheckoutPage() {
                               className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
                             />
                             <p className="mt-1 text-xs text-gray-500">
-                              Select when you'd like to meet up with the seller
+                              Select when you&apos;d like to meet up with the seller
                             </p>
                           </div>
                         </div>

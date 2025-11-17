@@ -8,7 +8,6 @@ import {
   Trash2,
   RefreshCw,
   X,
-  Check,
   AlertCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -648,7 +647,7 @@ export default function MeetupPresetsPage() {
               <h3 className="text-lg font-bold text-gray-900">Delete Preset</h3>
             </div>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to delete "{deletingPreset.label}"? This action
+              Are you sure you want to delete &quot;{deletingPreset.label}&quot;? This action
               cannot be undone.
             </p>
             <div className="flex gap-3">
