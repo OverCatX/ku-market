@@ -17,6 +17,7 @@ import reviewRoutes from "./application/routes/review";
 import reportRoutes from "./application/routes/report";
 import healthRoutes from "./application/routes/health";
 import checkoutRoutes from "./application/routes/checkout";
+import meetupPresetRoutes from "./application/routes/meetup-preset";
 
 const app: Application = express();
 
@@ -49,5 +50,6 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/checkout", checkoutRoutes);
+app.use("/api/meetup-presets", meetupPresetRoutes);
 
 export default app;

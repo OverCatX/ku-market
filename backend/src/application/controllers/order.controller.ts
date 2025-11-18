@@ -187,6 +187,7 @@ export default class OrderController {
               address?: string;
               note?: string;
               coordinates?: { lat: number; lng: number };
+              preferredTime?: Date;
             }
           | undefined;
 
@@ -228,11 +229,24 @@ export default class OrderController {
             coordinates = { lat, lng };
           }
 
+          let preferredTime: Date | undefined;
+          if (pickupDetails.preferredTime) {
+            const time = new Date(pickupDetails.preferredTime);
+            if (isNaN(time.getTime())) {
+              return res.status(400).json({
+                success: false,
+                error: "Preferred time must be a valid date",
+              });
+            }
+            preferredTime = time;
+          }
+
           normalizedPickupDetails = {
             locationName,
             address: locationAddress || undefined,
             note: note || undefined,
             coordinates,
+            preferredTime,
           };
         }
 
@@ -336,6 +350,10 @@ export default class OrderController {
           rejectedAt: order.rejectedAt,
           rejectionReason: order.rejectionReason,
           completedAt: order.completedAt,
+          buyerReceived: order.buyerReceived,
+          buyerReceivedAt: order.buyerReceivedAt,
+          sellerDelivered: order.sellerDelivered,
+          sellerDeliveredAt: order.sellerDeliveredAt,
           createdAt: order.createdAt,
           updatedAt: order.updatedAt,
         })),
@@ -412,6 +430,10 @@ export default class OrderController {
           rejectionReason: order.rejectionReason,
           completedAt: order.completedAt,
           paymentSubmittedAt: order.paymentSubmittedAt,
+          buyerReceived: order.buyerReceived,
+          buyerReceivedAt: order.buyerReceivedAt,
+          sellerDelivered: order.sellerDelivered,
+          sellerDeliveredAt: order.sellerDeliveredAt,
           createdAt: order.createdAt,
           updatedAt: order.updatedAt,
         },
@@ -492,6 +514,100 @@ export default class OrderController {
       });
     } catch (error) {
       console.error("Submit payment notification error:", error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Server error",
+      });
+    }
+  };
+
+  /**
+   * POST /api/orders/:id/buyer-received - Buyer confirms they received the product
+   */
+  buyerReceived = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+    try {
+      const userId = req.user?.id;
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid order ID" });
+      }
+
+      const order = await Order.findById(id);
+
+      if (!order) {
+        return res.status(404).json({ success: false, error: "Order not found" });
+      }
+
+      if (order.buyer.toString() !== userId) {
+        return res.status(403).json({ success: false, error: "Access denied" });
+      }
+
+      if (order.status !== "confirmed") {
+        return res.status(400).json({
+          success: false,
+          error: `Cannot mark as received. Order status must be confirmed. Current status: ${order.status}`,
+        });
+      }
+
+      if (order.deliveryMethod !== "pickup") {
+        return res.status(400).json({
+          success: false,
+          error: "This feature is only available for pickup orders",
+        });
+      }
+
+      if (order.buyerReceived) {
+        return res.status(400).json({
+          success: false,
+          error: "You have already confirmed receiving this order",
+        });
+      }
+
+      order.buyerReceived = true;
+      order.buyerReceivedAt = new Date();
+
+      // If both buyer and seller confirmed, complete the order
+      if (order.buyerReceived && order.sellerDelivered) {
+        order.status = "completed";
+        order.completedAt = new Date();
+
+        // Notify both parties
+        await createNotification(
+          order.buyer,
+          "order",
+          "Order Completed",
+          "Your order has been completed!",
+          `/order/${order._id}`
+        );
+        await createNotification(
+          order.seller,
+          "order",
+          "Order Completed",
+          "The order has been completed!",
+          `/seller/orders/${order._id}`
+        );
+      }
+
+      await order.save();
+
+      return res.json({
+        success: true,
+        message: "Order marked as received",
+        order: {
+          id: order._id,
+          buyerReceived: order.buyerReceived,
+          buyerReceivedAt: order.buyerReceivedAt,
+          status: order.status,
+          completedAt: order.completedAt,
+        },
+      });
+    } catch (error) {
+      console.error("Buyer received error:", error);
       return res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : "Server error",

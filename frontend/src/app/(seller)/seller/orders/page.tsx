@@ -8,6 +8,7 @@ import {
   Clock,
   RefreshCw,
   Printer,
+  MapPin,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -43,10 +44,24 @@ interface OrderData {
     city: string;
     postalCode: string;
   };
+  pickupDetails?: {
+    locationName: string;
+    address?: string;
+    note?: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+    preferredTime?: string;
+  };
   createdAt: string;
   confirmedAt?: string;
   rejectedAt?: string;
   rejectionReason?: string;
+  buyerReceived?: boolean;
+  buyerReceivedAt?: string;
+  sellerDelivered?: boolean;
+  sellerDeliveredAt?: string;
 }
 
 export default function SellerOrders() {
@@ -152,6 +167,35 @@ export default function SellerOrders() {
     } catch (error) {
       console.error("Failed to reject order:", error);
       toast.error(error instanceof Error ? error.message : "Failed to reject order");
+    }
+  };
+
+  const handleMarkDelivered = async (orderId: string): Promise<void> => {
+    try {
+      const token = localStorage.getItem("authentication");
+      if (!token) {
+        toast.error("Please login first");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/api/seller/orders/${orderId}/delivered`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to mark as delivered");
+      }
+
+      toast.success("Order marked as delivered!");
+      await loadOrders();
+    } catch (error) {
+      console.error("Failed to mark as delivered:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to mark as delivered");
     }
   };
 
@@ -316,6 +360,42 @@ export default function SellerOrders() {
                       </p>
                     </div>
                   )}
+                  {order.deliveryMethod === "pickup" && order.pickupDetails && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <p className="font-medium flex items-center gap-1 text-green-700">
+                        <MapPin size={14} />
+                        Meetup Point
+                      </p>
+                      <div className="mt-1 space-y-1 text-gray-700">
+                        <p className="font-semibold">{order.pickupDetails.locationName}</p>
+                        {order.pickupDetails.address && (
+                          <p className="text-sm">{order.pickupDetails.address}</p>
+                        )}
+                        {order.pickupDetails.preferredTime && (
+                          <p className="text-sm text-blue-600">
+                            <Clock size={12} className="inline mr-1" />
+                            Preferred time: {new Date(order.pickupDetails.preferredTime).toLocaleString("th-TH", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        )}
+                        {order.pickupDetails.coordinates && (
+                          <p className="text-xs text-gray-500">
+                            📍 {order.pickupDetails.coordinates.lat.toFixed(5)}, {order.pickupDetails.coordinates.lng.toFixed(5)}
+                          </p>
+                        )}
+                        {order.pickupDetails.note && (
+                          <p className="text-sm text-gray-600 italic">
+                            Note: {order.pickupDetails.note}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   <p>
                     <span className="font-medium">Payment:</span>{" "}
                     {order.paymentMethod === "cash" ? "Cash" : "Transfer"}
@@ -393,6 +473,35 @@ export default function SellerOrders() {
                     <XCircle size={18} className="inline mr-2" />
                     Reject Order
                   </button>
+                </div>
+              )}
+              {order.status === "confirmed" &&
+                order.deliveryMethod === "pickup" &&
+                !order.sellerDelivered && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => handleMarkDelivered(order.id)}
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      <CheckCircle size={18} className="inline mr-2" />
+                      Mark as delivered
+                    </button>
+                  </div>
+                )}
+              {order.sellerDelivered && (
+                <div className="mt-4">
+                  <div className="w-full px-4 py-2 bg-green-100 text-green-700 rounded-lg font-medium text-center">
+                    <CheckCircle size={18} className="inline mr-2" />
+                    You have confirmed delivery
+                  </div>
+                </div>
+              )}
+              {order.buyerReceived && order.sellerDelivered && (
+                <div className="mt-2">
+                  <div className="w-full px-4 py-2 bg-green-200 text-green-800 rounded-lg font-medium text-center">
+                    <CheckCircle size={18} className="inline mr-2" />
+                    Both parties confirmed - Order completed
+                  </div>
                 </div>
               )}
             </div>

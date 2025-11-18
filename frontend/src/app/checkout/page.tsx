@@ -2,7 +2,7 @@
 
 import { useCart } from "@/contexts/CartContext";
 import { getVerificationStatus } from "@/config/verification";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Wallet,
@@ -19,7 +19,7 @@ import Image from "next/image";
 import type { UserData } from "@/config/auth";
 import { API_BASE } from "@/config/constants";
 import toast from "react-hot-toast";
-import type { Dispatch, MouseEvent, SetStateAction } from "react";
+import dynamic from "next/dynamic";
 
 type PaymentMethod = "cash" | "promptpay";
 type DeliveryMethod = "pickup" | "delivery";
@@ -36,15 +36,17 @@ interface PickupDetailsState {
   locationName: string;
   address: string;
   note: string;
-  marker?: {
-    percentX: number;
-    percentY: number;
-  };
+  preferredTime?: string;
   coordinates?: {
     lat: number;
     lng: number;
   };
 }
+
+const MeetupLeafletMap = dynamic(
+  () => import("@/components/maps/MeetupLeafletMap"),
+  { ssr: false }
+);
 
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart, refreshCart } = useCart();
@@ -77,23 +79,58 @@ export default function CheckoutPage() {
     setIsMounted(true);
   }, []);
 
+  const CAMPUS_CENTER = useMemo(
+    () => ({
+      lat: 13.8495,
+      lng: 100.571,
+    }),
+    []
+  );
+
+  const [pickupPresets, setPickupPresets] = useState<
+    Array<{
+      label: string;
+      lat: number;
+      lng: number;
+      locationName: string;
+      address?: string;
+    }>
+  >([]);
+
+  // Load presets from API
+  useEffect(() => {
+    const loadPresets = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/meetup-presets`);
+        if (response.ok) {
+          const data = await response.json();
+          setPickupPresets(data.presets || []);
+        }
+      } catch (error) {
+        console.error("Failed to load meetup presets:", error);
+        // Fallback to empty array if API fails
+        setPickupPresets([]);
+      }
+    };
+    loadPresets();
+  }, []);
+
   useEffect(() => {
     if (deliveryMethod !== "pickup") {
       return;
     }
     setPickupDetails((prev) => {
-      if (prev.marker && prev.coordinates && prev.locationName) {
+      if (prev.coordinates && prev.locationName.trim()) {
         return prev;
       }
       return {
         ...prev,
-        marker: prev.marker ?? { percentX: 0.5, percentY: 0.5 },
-        coordinates: prev.coordinates ?? { lat: 13.736717, lng: 100.523186 },
+        coordinates: prev.coordinates ?? CAMPUS_CENTER,
         locationName:
-          prev.locationName || "Kasetsart University front entrance",
+          prev.locationName.trim() || "Kasetsart University front entrance",
       };
     });
-  }, [deliveryMethod]);
+  }, [deliveryMethod, CAMPUS_CENTER]);
 
   // Check authentication and verification status
   useEffect(() => {
@@ -251,6 +288,7 @@ export default function CheckoutPage() {
           address?: string;
           note?: string;
           coordinates?: { lat: number; lng: number };
+          preferredTime?: string;
         };
       } = {
         deliveryMethod,
@@ -273,6 +311,7 @@ export default function CheckoutPage() {
           address: pickupDetails.address.trim() || undefined,
           note: pickupDetails.note.trim() || undefined,
           coordinates: pickupDetails.coordinates,
+          preferredTime: pickupDetails.preferredTime || undefined,
         };
       }
 
@@ -343,88 +382,6 @@ export default function CheckoutPage() {
                 <div className="bg-white rounded-lg shadow-sm p-6 h-96"></div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  type FakeMapProps = {
-    pickupDetails: PickupDetailsState;
-    onChange: Dispatch<SetStateAction<PickupDetailsState>>;
-  };
-
-  function FakeMap({ pickupDetails, onChange }: FakeMapProps) {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-
-    const handleClick = (event: MouseEvent<HTMLDivElement>) => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) {
-        return;
-      }
-      const relativeX = event.clientX - rect.left;
-      const relativeY = event.clientY - rect.top;
-      const percentX = Math.min(Math.max(relativeX / rect.width, 0), 1);
-      const percentY = Math.min(Math.max(relativeY / rect.height, 0), 1);
-
-      const latBase = 13.736717;
-      const lngBase = 100.523186;
-      const lat = latBase + 0.02 * (0.5 - percentY);
-      const lng = lngBase + 0.02 * (percentX - 0.5);
-
-      onChange((prev) => ({
-        ...prev,
-        marker: { percentX, percentY },
-        coordinates: {
-          lat: Number(lat.toFixed(6)),
-          lng: Number(lng.toFixed(6)),
-        },
-        locationName: prev.locationName.trim() || "Custom pick-up spot",
-      }));
-    };
-
-    return (
-      <div className="space-y-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-700">
-              Tap on the map to drop a pin
-            </p>
-            <p className="text-xs text-gray-500">
-              This lightweight mock map helps you communicate the meetup point
-              to the seller.
-            </p>
-          </div>
-          <span className="rounded-full bg-[#eef5df] px-3 py-1 text-xs font-semibold text-[#4c5c2f]">
-            Demo map
-          </span>
-        </div>
-        <div
-          ref={containerRef}
-          onClick={handleClick}
-          className="group relative h-64 cursor-crosshair overflow-hidden rounded-2xl border-2 border-dashed border-[#cbd9b5] focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-          style={{
-            backgroundImage:
-              "linear-gradient(90deg, rgba(132,176,103,0.08) 1px, transparent 1px), linear-gradient(180deg, rgba(132,176,103,0.08) 1px, transparent 1px)",
-            backgroundSize: "32px 32px",
-            backgroundColor: "#f5f9ef",
-          }}
-        >
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#f4f9ed] via-[#fbfff5] to-[#e2f0d1]" />
-          {pickupDetails.marker && (
-            <span
-              className="absolute -translate-x-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-[#84B067] text-xs font-semibold text-white shadow-lg ring-2 ring-white"
-              style={{
-                left: `${pickupDetails.marker.percentX * 100}%`,
-                top: `${pickupDetails.marker.percentY * 100}%`,
-              }}
-            >
-              ●
-            </span>
-          )}
-          <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100">
-            <div className="absolute left-1/2 top-0 h-full w-px bg-[#84B067]/40" />
-            <div className="absolute left-0 top-1/2 h-px w-full bg-[#84B067]/40" />
           </div>
         </div>
       </div>
@@ -567,80 +524,268 @@ export default function CheckoutPage() {
                 </div>
               </div>
               {deliveryMethod === "pickup" && (
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <MapPin className="w-5 h-5 text-[#84B067]" />
-                    <h2 className="text-xl font-bold text-gray-900">
-                      Pickup spot preview
-                    </h2>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Location name *
-                        </label>
-                        <input
-                          type="text"
-                          value={pickupDetails.locationName}
-                          onChange={(e) =>
+                <section className="rounded-3xl border border-[#dfe7cf] bg-white shadow-sm">
+                  <div className="flex flex-col gap-5 p-6 lg:p-8">
+                    <header className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ecf4da]">
+                          <MapPin className="h-5 w-5 text-[#5a6b2f]" />
+                        </span>
+                        <div>
+                          <h2 className="text-lg font-semibold text-[#2f3b11]">
+                            Choose your meetup point
+                          </h2>
+                          <p className="text-sm text-[#516029]">
+                            Drop a pin inside KU Bangkhen or pick one of the
+                            preset spots.
+                          </p>
+                        </div>
+                      </div>
+                      <span className="rounded-full border border-[#dbe7cb] bg-[#f6faef] px-3 py-1 text-xs font-semibold text-[#556629]">
+                        Self pickup
+                      </span>
+                    </header>
+
+                    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_300px] xl:grid-cols-[minmax(0,1.6fr)_340px] 2xl:grid-cols-[minmax(0,1.9fr)_380px]">
+                      <div className="relative h-[380px] sm:h-[430px] xl:h-[500px] overflow-hidden rounded-3xl border border-[#dfe7cf] bg-white">
+                        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-between p-4 text-[11px] font-medium text-[#4c5c2f]">
+                          <span className="rounded-full bg-white/92 px-3 py-1 shadow">
+                            Tap inside campus to drop the pin
+                          </span>
+                          <span className="hidden rounded-full bg-white/92 px-3 py-1 shadow sm:block">
+                            Scroll to zoom · drag to explore
+                          </span>
+                        </div>
+
+                        <MeetupLeafletMap
+                          position={
+                            pickupDetails.coordinates
+                              ? [
+                                  pickupDetails.coordinates.lat,
+                                  pickupDetails.coordinates.lng,
+                                ]
+                              : null
+                          }
+                          onPositionChange={(coords) => {
+                            if (!coords) return;
                             setPickupDetails((prev) => ({
                               ...prev,
-                              locationName: e.target.value,
-                            }))
-                          }
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                          placeholder="Building A - Gate 3"
+                              coordinates: coords,
+                              locationName:
+                                prev.locationName.trim() ||
+                                "Custom meetup point",
+                            }));
+                            toast.success("Updated meetup location", {
+                              icon: "📍",
+                            });
+                          }}
                         />
+
+                        <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/5" />
+
+                        <div className="pointer-events-none absolute bottom-3 left-3 flex flex-wrap gap-2">
+                          <span className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-[#3d4a1f] shadow">
+                            Kasetsart University · Bangkhen
+                          </span>
+                          {pickupDetails.locationName && (
+                            <span className="rounded-full bg-[#ecf4da]/95 px-3 py-1 text-[11px] font-semibold text-[#3d4a1f] shadow">
+                              {pickupDetails.locationName}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Address / landmark (optional)
-                        </label>
-                        <input
-                          type="text"
-                          value={pickupDetails.address}
-                          onChange={(e) =>
-                            setPickupDetails((prev) => ({
-                              ...prev,
-                              address: e.target.value,
-                            }))
-                          }
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                          placeholder="Near KU Library"
-                        />
-                      </div>
+
+                      <aside className="space-y-4">
+                        <div className="rounded-2xl border border-[#dfe7cf] bg-[#f9fcef] p-4">
+                          <h3 className="text-sm font-semibold text-[#3d4a29]">
+                            Quick anchors
+                          </h3>
+                          <p className="mt-1 text-xs text-[#566533]">
+                            Jump to a popular campus spot instantly.
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {pickupPresets.map((preset) => (
+                              <button
+                                key={preset.label}
+                                type="button"
+                                onClick={() => {
+                                  setPickupDetails((prev) => ({
+                                    ...prev,
+                                    coordinates: {
+                                      lat: preset.lat,
+                                      lng: preset.lng,
+                                    },
+                                    locationName: preset.locationName,
+                                    address: preset.address || "",
+                                  }));
+                                  toast.success(`Pinned ${preset.label}`, {
+                                    icon: "📍",
+                                  });
+                                }}
+                                className="rounded-full border border-[#c8d9b0] bg-white px-3 py-1 text-xs font-medium text-[#3f4e24] hover:border-[#9fb97b] hover:bg-[#edf5da]"
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  coordinates: CAMPUS_CENTER,
+                                  locationName:
+                                    "Kasetsart University front entrance",
+                                  address: "",
+                                  note: "",
+                                }))
+                              }
+                              className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                            >
+                              Reset pin
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-[#dfe7cf] bg-white/95 p-4 space-y-3">
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Meetup title *
+                            </label>
+                            <input
+                              type="text"
+                              value={pickupDetails.locationName}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  locationName: e.target.value,
+                                }))
+                              }
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                              placeholder="e.g. KU Avenue Plaza entrance"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Landmark or details (optional)
+                            </label>
+                            <textarea
+                              value={pickupDetails.address}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  address: e.target.value,
+                                }))
+                              }
+                              rows={2}
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                              placeholder="Near Central Library fountain"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Note for seller (optional)
+                            </label>
+                            <textarea
+                              value={pickupDetails.note}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  note: e.target.value,
+                                }))
+                              }
+                              rows={2}
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                              placeholder="I'll wear a green jacket and wait by the fountain."
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Preferred meetup time (optional)
+                            </label>
+                            <input
+                              type="datetime-local"
+                              value={pickupDetails.preferredTime || ""}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  preferredTime: e.target.value,
+                                }))
+                              }
+                              min={new Date().toISOString().slice(0, 16)}
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                              Select when you&apos;d like to meet up with the seller
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-[#dfe7cf] bg-white/90 p-4">
+                          <p className="text-sm font-semibold text-[#3d4a29]">
+                            Current meetup summary
+                          </p>
+                          <dl className="mt-3 space-y-2 text-sm text-[#364019]">
+                            <div className="flex items-start justify-between gap-3">
+                              <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                Title
+                              </span>
+                              <span className="font-medium text-right">
+                                {pickupDetails.locationName || "—"}
+                              </span>
+                            </div>
+                            {pickupDetails.address && (
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                  Detail
+                                </span>
+                                <span className="max-w-[180px] text-right">
+                                  {pickupDetails.address}
+                                </span>
+                              </div>
+                            )}
+                            {pickupDetails.note && (
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                  Note
+                                </span>
+                                <span className="max-w-[180px] text-right">
+                                  {pickupDetails.note}
+                                </span>
+                              </div>
+                            )}
+                            {pickupDetails.coordinates && (
+                              <div className="flex items-start justify-between gap-3 text-xs font-mono text-[#2f3b11]">
+                                <span className="uppercase tracking-wide text-[#7a8f54]">
+                                  Coords
+                                </span>
+                                <span className="text-right">
+                                  {pickupDetails.coordinates.lat.toFixed(6)},{" "}
+                                  {pickupDetails.coordinates.lng.toFixed(6)}
+                                </span>
+                              </div>
+                            )}
+                            {pickupDetails.preferredTime && (
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                  Preferred Time
+                                </span>
+                                <span className="text-right text-sm font-medium text-blue-600">
+                                  {new Date(pickupDetails.preferredTime).toLocaleString("th-TH", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                              </div>
+                            )}
+                          </dl>
+                        </div>
+                      </aside>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Note for seller (optional)
-                      </label>
-                      <textarea
-                        value={pickupDetails.note}
-                        onChange={(e) =>
-                          setPickupDetails((prev) => ({
-                            ...prev,
-                            note: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                        rows={2}
-                        placeholder="I'm wearing a green jacket, will arrive about 10 minutes early."
-                      />
-                    </div>
-                    <FakeMap
-                      pickupDetails={pickupDetails}
-                      onChange={setPickupDetails}
-                    />
-                    {pickupDetails.coordinates && (
-                      <p className="text-xs text-gray-500">
-                        Selected coordinates:{" "}
-                        {pickupDetails.coordinates.lat.toFixed(5)},{" "}
-                        {pickupDetails.coordinates.lng.toFixed(5)}
-                      </p>
-                    )}
                   </div>
-                </div>
+                </section>
               )}
 
               {/* Contact Information */}
@@ -974,6 +1119,18 @@ export default function CheckoutPage() {
                           {pickupDetails.note}
                         </p>
                       )}
+                      {deliveryMethod === "pickup" && pickupDetails.preferredTime && (
+                        <p className="mb-1 text-blue-600">
+                          <span className="font-medium">Preferred time:</span>{" "}
+                          {new Date(pickupDetails.preferredTime).toLocaleString("th-TH", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      )}
                       <p>
                         <span className="font-medium">Payment:</span>{" "}
                         {paymentMethod === "cash"
@@ -1088,6 +1245,17 @@ export default function CheckoutPage() {
                         {pickupDetails.note && (
                           <p className="text-[11px] text-gray-500">
                             Your note: {pickupDetails.note}
+                          </p>
+                        )}
+                        {pickupDetails.preferredTime && (
+                          <p className="text-[11px] text-blue-600 font-medium">
+                            Preferred time: {new Date(pickupDetails.preferredTime).toLocaleString("th-TH", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </p>
                         )}
                       </div>

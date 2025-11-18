@@ -24,6 +24,7 @@ export interface IPickupDetails {
   address?: string;
   note?: string;
   coordinates?: IPickupCoordinates;
+  preferredTime?: Date;
 }
 
 export type PaymentStatus =
@@ -53,6 +54,10 @@ export interface IOrder extends Document {
   rejectionReason?: string;
   completedAt?: Date;
   paymentSubmittedAt?: Date;
+  buyerReceived?: boolean;
+  buyerReceivedAt?: Date;
+  sellerDelivered?: boolean;
+  sellerDeliveredAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -103,6 +108,7 @@ const PickupDetailsSchema = new Schema<IPickupDetails>(
       lat: { type: Number },
       lng: { type: Number },
     },
+    preferredTime: { type: Date },
   },
   { _id: false }
 );
@@ -179,6 +185,20 @@ const OrderSchema = new Schema<IOrder>(
       type: Date,
     },
     paymentSubmittedAt: {
+      type: Date,
+    },
+    buyerReceived: {
+      type: Boolean,
+      default: false,
+    },
+    buyerReceivedAt: {
+      type: Date,
+    },
+    sellerDelivered: {
+      type: Boolean,
+      default: false,
+    },
+    sellerDeliveredAt: {
       type: Date,
     },
   },

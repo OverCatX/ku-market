@@ -75,12 +75,17 @@ interface OrderDetail {
       lat: number;
       lng: number;
     };
+    preferredTime?: string;
   };
   buyerContact: BuyerContact;
   confirmedAt?: string;
   rejectedAt?: string;
   rejectionReason?: string;
   completedAt?: string;
+  buyerReceived?: boolean;
+  buyerReceivedAt?: string;
+  sellerDelivered?: boolean;
+  sellerDeliveredAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -256,6 +261,7 @@ export default function OrderDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [submittingPayment, setSubmittingPayment] = useState(false);
   const [contactingSeller, setContactingSeller] = useState(false);
+  const [markingReceived, setMarkingReceived] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     setLoading(true);
@@ -370,6 +376,58 @@ export default function OrderDetailPage({
       );
     } finally {
       setSubmittingPayment(false);
+    }
+  }, [fetchOrder, order]);
+
+  const handleMarkReceived = useCallback(async () => {
+    if (!order) {
+      return;
+    }
+
+    if (!isAuthenticated()) {
+      toast.error("Please login first");
+      return;
+    }
+
+    const token = getAuthToken();
+    if (!token) {
+      clearAuthTokens();
+      toast.error("Please login first");
+      return;
+    }
+
+    setMarkingReceived(true);
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/orders/${order.id}/buyer-received`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        const message =
+          (payload as { error?: string }).error ||
+          (payload as { message?: string }).message ||
+          "Failed to mark as received";
+        throw new Error(message);
+      }
+
+      toast.success("Order marked as received!");
+      await fetchOrder();
+    } catch (err) {
+      console.error("Mark received error:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to mark as received"
+      );
+    } finally {
+      setMarkingReceived(false);
     }
   }, [fetchOrder, order]);
 
@@ -702,6 +760,18 @@ export default function OrderDetailPage({
                           Buyer note: {order.pickupDetails.note}
                         </p>
                       )}
+                      {order.pickupDetails.preferredTime && (
+                        <p className="text-[11px] text-blue-600 font-medium flex items-center gap-1">
+                          <Clock size={10} />
+                          Preferred time: {new Date(order.pickupDetails.preferredTime).toLocaleString("th-TH", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -749,6 +819,41 @@ export default function OrderDetailPage({
                   <CreditCard size={16} />
                   {submittingPayment ? "Submitting..." : "Make payment"}
                 </button>
+              )}
+              {normalizedStatus === "confirmed" &&
+                order.deliveryMethod === "pickup" &&
+                !order.buyerReceived && (
+                  <button
+                    type="button"
+                    onClick={handleMarkReceived}
+                    disabled={markingReceived}
+                    className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                      markingReceived
+                        ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
+                        : "bg-green-600 text-white hover:bg-green-700"
+                    }`}
+                  >
+                    <CheckCircle size={16} />
+                    {markingReceived ? "Saving..." : "I received the product"}
+                  </button>
+                )}
+              {order.buyerReceived && (
+                <div className="inline-flex items-center gap-2 rounded-xl bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
+                  <CheckCircle size={16} />
+                  You have confirmed receiving the product
+                </div>
+              )}
+              {order.sellerDelivered && !order.buyerReceived && (
+                <div className="inline-flex items-center gap-2 rounded-xl bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
+                  <CheckCircle size={16} />
+                  Seller has confirmed delivery - Please confirm receipt
+                </div>
+              )}
+              {order.buyerReceived && order.sellerDelivered && (
+                <div className="inline-flex items-center gap-2 rounded-xl bg-green-200 px-4 py-2 text-sm font-semibold text-green-800">
+                  <CheckCircle size={16} />
+                  Both parties confirmed - Order completed
+                </div>
               )}
               <Link
                 href="/orders"
