@@ -41,7 +41,7 @@ const features = [
 
 export default function AboutSection() {
   return (
-    <section className="py-20 px-6 md:px-20 bg-gray-50 border-t border-gray-200">
+    <section className="py-20 px-6 md:px-20 bg-[#F6F2E5] border-t border-gray-200">
       <motion.div
         initial="hidden"
         whileInView="visible"
@@ -53,7 +53,7 @@ export default function AboutSection() {
           <h2 className="font-header text-3xl md:text-4xl text-[#69773D] mb-4">
             What is KU Market?
           </h2>
-          <p className="font-body text-gray-700 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
+          <p className="font-body text-[#4A5130] text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
             KU Market is a campus marketplace where students can buy, sell, and
             trade items easily. Connect with fellow students, discover great
             deals, and enjoy a smarter way to shop on campus.
@@ -76,10 +76,10 @@ export default function AboutSection() {
               >
                 <feature.icon className="w-6 h-6 text-white" />
               </div>
-              <h3 className="font-semibold text-lg text-gray-900 mb-2">
+              <h3 className="font-semibold text-lg text-[#4A5130] mb-2">
                 {feature.title}
               </h3>
-              <p className="text-gray-600 text-sm">{feature.description}</p>
+              <p className="text-[#4A5130] text-sm">{feature.description}</p>
             </motion.div>
           ))}
         </div>

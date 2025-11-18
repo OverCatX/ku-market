@@ -75,7 +75,7 @@ export default function FeaturedProducts() {
   return (
     <section
       id="featured-products"
-      className="py-20 px-6 md:px-20 bg-white border-t border-gray-200"
+      className="py-20 px-6 md:px-20 bg-[#F6F2E5] border-t border-gray-200"
     >
       <motion.div
         initial="hidden"
@@ -88,7 +88,7 @@ export default function FeaturedProducts() {
           <h2 className="font-header text-3xl md:text-4xl text-[#69773D] mb-4">
             Featured Products
           </h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-[#4A5130] text-lg max-w-2xl mx-auto">
             Discover the latest items from fellow students
           </p>
         </div>
@@ -109,8 +109,8 @@ export default function FeaturedProducts() {
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-12">
-            <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">
+            <ShoppingBag className="w-16 h-16 text-[#4A5130] mx-auto mb-4" />
+            <p className="text-[#4A5130] text-lg">
               No featured products available yet.
             </p>
             <Link

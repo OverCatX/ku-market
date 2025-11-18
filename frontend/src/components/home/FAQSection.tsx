@@ -13,7 +13,7 @@ export default function FAQSection() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
   return (
-    <section className="py-20 px-6 md:px-20 bg-white">
+    <section className="py-20 px-6 md:px-20 bg-[#F6F2E5]">
       <motion.div
         initial="hidden"
         whileInView="visible"
@@ -29,7 +29,7 @@ export default function FAQSection() {
             <motion.div
               key={idx}
               layout
-              className="bg-gray-100 rounded-xl cursor-pointer overflow-hidden shadow-sm"
+              className="bg-white rounded-xl cursor-pointer overflow-hidden shadow-sm"
               onClick={() => setOpenFAQ(openFAQ === idx ? null : idx)}
               whileHover={{ scale: 1.02 }}
               transition={{ layout: { duration: 0.3, type: "spring" } }}
