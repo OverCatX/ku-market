@@ -84,7 +84,7 @@ export default function MyReportsPage() {
           type="button"
           onClick={handleRefresh}
           disabled={refreshing}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-blue-600 border border-blue-200 hover:bg-blue-50 transition disabled:opacity-60"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white border border-blue-200 hover:bg-blue-50 transition disabled:opacity-60"
         >
           <RefreshCcw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
           Refresh
@@ -118,7 +118,7 @@ export default function MyReportsPage() {
             >
               <header className="px-5 py-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <div className="rounded-full bg-red-100 text-red-600 p-2 mt-1">
+                  <div className="rounded-full bg-[#780606] text-white p-2 mt-1">
                     <Flag className="w-4 h-4" />
                   </div>
                   <div>

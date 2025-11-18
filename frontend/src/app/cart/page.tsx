@@ -181,7 +181,7 @@ export default function CartPage() {
                     <button
                       onClick={() => handleRemoveItem(item.id)}
                       disabled={actionLoading === item.id}
-                      className="text-red-600 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                      className="text-[#780606] hover:text-[#780606] p-2 hover:bg-[#780606] rounded-lg transition disabled:opacity-50"
                       aria-label="Remove item"
                     >
                       <Trash2 className="w-5 h-5" />

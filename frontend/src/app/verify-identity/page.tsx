@@ -169,7 +169,7 @@ export default function VerifyIdentityPage() {
         );
       case "rejected":
         return (
-          <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200">
+          <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-[#780606] text-[#780606] border border-[#780606]">
             <XCircle className="w-4 h-4 mr-2" />
             Rejected
           </span>
@@ -276,14 +276,14 @@ export default function VerifyIdentityPage() {
                     </span>
                   </div>
                   {verificationStatus.rejectionReason && (
-                    <div className="mt-3 p-4 bg-red-50 rounded-lg border border-red-200">
+                    <div className="mt-3 p-4 bg-[#780606] rounded-lg border border-[#780606]">
                       <div className="flex items-start gap-2">
-                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <AlertCircle className="w-5 h-5 text-[#780606] flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-medium text-red-800 mb-1">
+                          <p className="font-medium text-[#780606] mb-1">
                             Rejection Reason:
                           </p>
-                          <p className="text-red-700 text-sm">
+                          <p className="text-[#780606] text-sm">
                             {verificationStatus.rejectionReason}
                           </p>
                         </div>
@@ -454,7 +454,7 @@ export default function VerifyIdentityPage() {
                           setSelectedFile(null);
                           setPreview("");
                         }}
-                        className="text-red-600 hover:text-red-700 text-sm font-medium"
+                        className="text-[#780606] hover:text-[#780606] text-sm font-medium"
                       >
                         Remove
                       </button>

@@ -415,8 +415,8 @@ export default function BecomeASeller() {
             )}
             {shopStatus.status === "rejected" && (
               <>
-                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <XCircle className="w-10 h-10 text-red-600" />
+                <div className="w-20 h-20 bg-[#780606] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <XCircle className="w-10 h-10 text-[#780606]" />
                 </div>
                 <h2 className="text-3xl font-bold text-gray-800 mb-2">
                   Application Rejected
@@ -452,7 +452,7 @@ export default function BecomeASeller() {
             {shopStatus.rejectionReason && (
               <div className="pt-3 border-t border-gray-200">
                 <p className="text-gray-600 mb-2">Rejection Reason:</p>
-                <p className="text-red-600 font-medium">
+                <p className="text-[#780606] font-medium">
                   {shopStatus.rejectionReason}
                 </p>
               </div>
@@ -468,7 +468,7 @@ export default function BecomeASeller() {
                 className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
                   loading
                     ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg"
+                    : "bg-[#780606] hover:bg-[#780606] text-white shadow-md hover:shadow-lg"
                 }`}
               >
                 {loading ? "Canceling..." : "Cancel & Apply Again"}
@@ -554,9 +554,9 @@ export default function BecomeASeller() {
               <button
                 type="button"
                 onClick={() => removeFile(name)}
-                className="p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-all"
+                className="p-2 bg-white rounded-full shadow-lg hover:bg-[#780606] transition-all"
               >
-                <X size={18} className="text-red-500" />
+                <X size={18} className="text-[#780606]" />
               </button>
             </div>
           </div>
@@ -670,7 +670,7 @@ export default function BecomeASeller() {
                       style={{ borderColor, backgroundColor: "white" }}
                     />
                     {errors.fullName && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.fullName}
                       </p>
                     )}
@@ -693,7 +693,7 @@ export default function BecomeASeller() {
                       style={{ borderColor, backgroundColor: "white" }}
                     />
                     {errors.email && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.email}
                       </p>
                     )}
@@ -716,7 +716,7 @@ export default function BecomeASeller() {
                       style={{ borderColor, backgroundColor: "white" }}
                     />
                     {errors.phone && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.phone}
                       </p>
                     )}
@@ -743,7 +743,7 @@ export default function BecomeASeller() {
                       style={{ borderColor, backgroundColor: "white" }}
                     />
                     {errors.businessName && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.businessName}
                       </p>
                     )}
@@ -770,7 +770,7 @@ export default function BecomeASeller() {
                       <option value="Brand">Brand/Manufacturer</option>
                     </select>
                     {errors.businessType && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.businessType}
                       </p>
                     )}
@@ -801,7 +801,7 @@ export default function BecomeASeller() {
                       <option value="Others">Others</option>
                     </select>
                     {errors.productCategory && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.productCategory}
                       </p>
                     )}
@@ -824,7 +824,7 @@ export default function BecomeASeller() {
                       style={{ borderColor, backgroundColor: "white" }}
                     />
                     {errors.businessDescription && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.businessDescription}
                       </p>
                     )}
@@ -852,7 +852,7 @@ export default function BecomeASeller() {
                       style={{ borderColor, backgroundColor: "white" }}
                     />
                     {errors.whySell && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.whySell}
                       </p>
                     )}
@@ -866,7 +866,7 @@ export default function BecomeASeller() {
                       icon={Store}
                     />
                     {errors.profileImage && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.profileImage}
                       </p>
                     )}
@@ -911,7 +911,7 @@ export default function BecomeASeller() {
                       </span>
                     </label>
                     {errors.agreeToTerms && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-2 ml-8">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-2 ml-8">
                         {errors.agreeToTerms}
                       </p>
                     )}
@@ -1100,7 +1100,7 @@ export default function BecomeASeller() {
                       </span>
                     </label>
                     {errors.confirmed && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-2 ml-8">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-2 ml-8">
                         {errors.confirmed}
                       </p>
                     )}

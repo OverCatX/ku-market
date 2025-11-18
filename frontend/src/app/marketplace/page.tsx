@@ -330,11 +330,11 @@ export default function MarketPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+          <div className="mb-6 p-4 bg-[#780606]/10 border border-[#780606]/30 rounded-xl text-[#780606]">
             {error}
             <button
               onClick={fetchItems}
-              className="ml-2 underline hover:no-underline"
+              className="ml-2 underline hover:no-underline text-[#780606]"
             >
               Retry
             </button>

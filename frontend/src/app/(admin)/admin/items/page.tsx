@@ -53,7 +53,7 @@ const StatusBadge = memo(function StatusBadge({ status }: StatusBadgeProps) {
       label: "Approved",
     },
     rejected: {
-      className: "bg-red-100 text-red-800 border-red-200",
+      className: "bg-[#780606] text-[#780606] border-[#780606]",
       icon: XCircle,
       label: "Rejected",
     },
@@ -272,7 +272,7 @@ const ItemCard = memo(function ItemCard({
                 {formatDate(item.createdAt)}
               </p>
               {item.rejectionReason && (
-                <p className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-800">
+                <p className="mt-2 p-2 bg-[#780606] border border-[#780606] rounded text-xs text-[#780606]">
                   <span className="font-medium">Rejection Reason:</span> {item.rejectionReason}
                 </p>
               )}
@@ -353,7 +353,7 @@ const ItemCard = memo(function ItemCard({
                 <button
                   onClick={() => setShowRejectModal(true)}
                   disabled={processing}
-                  className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                  className="flex-1 px-3 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#780606] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
                 >
                   <XCircle size={14} className="inline mr-1" />
                   Reject
@@ -371,7 +371,7 @@ const ItemCard = memo(function ItemCard({
             <button
               onClick={() => setShowDeleteConfirm(true)}
               disabled={processing}
-              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              className="px-3 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#780606] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
               title="Delete item"
             >
               <Trash2 size={14} className="inline" />
@@ -576,7 +576,7 @@ const ItemCard = memo(function ItemCard({
                               );
                             }
                           }}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-2"
+                          className="p-2 text-[#780606] hover:bg-[#780606] rounded-lg transition-colors ml-2"
                           title="Delete review"
                         >
                           <Trash2 size={16} />

@@ -64,7 +64,7 @@ const TableRow = memo(function TableRow({
               ? "bg-yellow-100 text-yellow-800"
               : shop.status === "approved"
               ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
+              : "bg-[#780606] text-[#780606]"
           }`}
         >
           {shop.status}
@@ -88,7 +88,7 @@ const TableRow = memo(function TableRow({
               <button
                 onClick={() => onReject(shop.id)}
                 disabled={isLoading}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                className="p-2 text-[#780606] hover:bg-[#780606] rounded-lg transition-colors disabled:opacity-50"
                 title="Reject"
               >
                 <XCircle size={18} />

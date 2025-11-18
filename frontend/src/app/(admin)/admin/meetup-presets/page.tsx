@@ -179,13 +179,13 @@ const PresetModal = memo(function PresetModal({
               onChange={(e) => setLabel(e.target.value)}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                 errors.label
-                  ? "border-red-500 focus:ring-red-500"
+                  ? "border-[#780606] focus:ring-red-500"
                   : "border-gray-300 focus:ring-blue-500"
               }`}
               placeholder="e.g. Main Gate"
             />
             {errors.label && (
-              <p className="mt-1 text-sm text-red-600">{errors.label}</p>
+              <p className="mt-1 text-sm text-[#780606]">{errors.label}</p>
             )}
           </div>
 
@@ -199,13 +199,13 @@ const PresetModal = memo(function PresetModal({
               onChange={(e) => setLocationName(e.target.value)}
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                 errors.locationName
-                  ? "border-red-500 focus:ring-red-500"
+                  ? "border-[#780606] focus:ring-red-500"
                   : "border-gray-300 focus:ring-blue-500"
               }`}
               placeholder="e.g. Main Gate (Ngamwongwan)"
             />
             {errors.locationName && (
-              <p className="mt-1 text-sm text-red-600">{errors.locationName}</p>
+              <p className="mt-1 text-sm text-[#780606]">{errors.locationName}</p>
             )}
           </div>
 
@@ -234,13 +234,13 @@ const PresetModal = memo(function PresetModal({
                 onChange={(e) => setLat(e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                   errors.lat
-                    ? "border-red-500 focus:ring-red-500"
+                    ? "border-[#780606] focus:ring-red-500"
                     : "border-gray-300 focus:ring-blue-500"
                 }`}
                 placeholder="e.g. 13.846995"
               />
               {errors.lat && (
-                <p className="mt-1 text-sm text-red-600">{errors.lat}</p>
+                <p className="mt-1 text-sm text-[#780606]">{errors.lat}</p>
               )}
             </div>
 
@@ -255,13 +255,13 @@ const PresetModal = memo(function PresetModal({
                 onChange={(e) => setLng(e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                   errors.lng
-                    ? "border-red-500 focus:ring-red-500"
+                    ? "border-[#780606] focus:ring-red-500"
                     : "border-gray-300 focus:ring-blue-500"
                 }`}
                 placeholder="e.g. 100.568308"
               />
               {errors.lng && (
-                <p className="mt-1 text-sm text-red-600">{errors.lng}</p>
+                <p className="mt-1 text-sm text-[#780606]">{errors.lng}</p>
               )}
             </div>
           </div>
@@ -615,7 +615,7 @@ export default function MeetupPresetsPage() {
                       </button>
                       <button
                         onClick={() => setDeletingPreset(preset)}
-                        className="text-red-600 hover:text-red-900 transition-colors"
+                        className="text-[#780606] hover:text-[#780606] transition-colors"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -643,7 +643,7 @@ export default function MeetupPresetsPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-center gap-3 mb-4">
-              <AlertCircle className="text-red-600" size={24} />
+              <AlertCircle className="text-[#780606]" size={24} />
               <h3 className="text-lg font-bold text-gray-900">Delete Preset</h3>
             </div>
             <p className="text-gray-600 mb-6">
@@ -659,7 +659,7 @@ export default function MeetupPresetsPage() {
               </button>
               <button
                 onClick={handleDelete}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#780606] transition-colors"
               >
                 Delete
               </button>

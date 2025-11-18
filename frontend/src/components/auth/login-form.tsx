@@ -140,7 +140,7 @@ export function LoginForm() {
             required
           />
           {errors.email && (
-            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+            <p className="text-[#780606] text-xs mt-1">{errors.email}</p>
           )}
         </div>
 
@@ -161,7 +161,7 @@ export function LoginForm() {
             required
           />
           {errors.password && (
-            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+            <p className="text-[#780606] text-xs mt-1">{errors.password}</p>
           )}
         </div>
 
@@ -177,7 +177,9 @@ export function LoginForm() {
         </div>
 
         {apiError && (
-          <p className="text-red-500 text-center text-sm mt-1">{apiError}</p>
+          <div className="p-3 bg-[#780606]/10 border border-[#780606]/30 rounded-lg text-[#780606] text-center text-sm mt-1">
+            {apiError}
+          </div>
         )}
 
         <button

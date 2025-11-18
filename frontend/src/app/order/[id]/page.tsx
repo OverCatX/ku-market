@@ -115,7 +115,7 @@ const statusStyles: Record<
   },
   rejected: {
     label: "Rejected",
-    badge: "bg-red-100 text-red-700",
+    badge: "bg-[#780606] text-[#780606]",
     icon: XCircle,
   },
   cancelled: {
@@ -594,7 +594,7 @@ export default function OrderDetailPage({
       <div className="min-h-screen py-12" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-3xl">
           <div className="rounded-3xl bg-white p-8 shadow text-center">
-            <XCircle className="mx-auto h-12 w-12 text-red-500" />
+            <XCircle className="mx-auto h-12 w-12 text-[#780606]" />
             <h1 className="mt-4 text-2xl font-bold text-gray-900">Oops!</h1>
             <p className="mt-2 text-gray-600">
               {error || "We couldn’t find this order."}
@@ -657,7 +657,7 @@ export default function OrderDetailPage({
                 {statusTips[normalizedStatus]}
               </p>
               {order.rejectionReason && (
-                <p className="mt-2 text-sm font-semibold text-red-600">
+                <p className="mt-2 text-sm font-semibold text-[#780606]">
                   Reason: {order.rejectionReason}
                 </p>
               )}

@@ -166,7 +166,7 @@ export function SignUpForm() {
               required
             />
             {errors[field] && (
-              <p className="text-red-500 text-xs mt-1">{errors[field]}</p>
+              <p className="text-[#780606] text-xs mt-1">{errors[field]}</p>
             )}
           </div>
         ))}
@@ -184,7 +184,7 @@ export function SignUpForm() {
         </button>
 
         {apiError && (
-          <p className="text-red-500 text-center text-sm mt-1">{apiError}</p>
+          <p className="text-[#780606] text-center text-sm mt-1">{apiError}</p>
         )}
 
         <div className="text-center text-sm text-gray-500">

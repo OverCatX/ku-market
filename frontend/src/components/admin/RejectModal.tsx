@@ -53,8 +53,8 @@ export default function RejectModal({
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-full">
-                <AlertTriangle className="text-red-600" size={20} />
+              <div className="p-2 bg-[#780606] rounded-full">
+                <AlertTriangle className="text-[#780606]" size={20} />
               </div>
               <h2 className="text-xl font-bold text-gray-900">Reject Item</h2>
             </div>
@@ -87,7 +87,7 @@ export default function RejectModal({
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Please provide a reason for rejection..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-[#780606] resize-none"
                 rows={4}
                 maxLength={500}
               />
@@ -109,7 +109,7 @@ export default function RejectModal({
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                className="flex-1 px-4 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#780606] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
                 {submitting ? "Rejecting..." : "Reject Item"}
               </button>

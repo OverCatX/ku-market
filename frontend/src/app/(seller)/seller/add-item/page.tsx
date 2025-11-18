@@ -250,7 +250,7 @@ export default function AddItemPage() {
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                      className="absolute top-1 right-1 p-1 bg-[#780606] text-white rounded-full hover:bg-[#780606] transition-colors shadow-lg"
                       aria-label={`Remove image ${index + 1}`}
                     >
                       <X size={14} />

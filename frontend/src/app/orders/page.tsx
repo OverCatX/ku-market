@@ -373,7 +373,7 @@ export default function OrdersPage() {
       },
       rejected: {
         label: "Rejected",
-        className: "bg-red-100 text-red-700",
+        className: "bg-[#780606] text-[#780606]",
         Icon: XCircle,
       },
       cancelled: {

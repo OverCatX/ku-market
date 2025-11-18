@@ -84,7 +84,8 @@ export default function ReportForm() {
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
             <label
               htmlFor="category"
-              className="block text-sm font-medium mb-1 text-slate-800"
+              className="block text-sm font-medium mb-1"
+              style={{ color: aboutColors.oliveDark }}
             >
               Type of Issue
             </label>
@@ -111,7 +112,8 @@ export default function ReportForm() {
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
             <label
               htmlFor="details"
-              className="block text-sm font-medium mb-1 text-slate-800"
+              className="block text-sm font-medium mb-1"
+              style={{ color: aboutColors.oliveDark }}
             >
               Details
             </label>
@@ -134,7 +136,8 @@ export default function ReportForm() {
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
             <label
               htmlFor="contact"
-              className="block text-sm font-medium mb-1 text-slate-800"
+              className="block text-sm font-medium mb-1"
+              style={{ color: aboutColors.oliveDark }}
             >
               Your Contact (optional)
             </label>

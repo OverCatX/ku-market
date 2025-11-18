@@ -137,7 +137,7 @@ const CategoryModal = memo(function CategoryModal({
                 }}
                 className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                   errors.name
-                    ? "border-red-300 focus:ring-red-500"
+                    ? "border-[#780606] focus:ring-red-500"
                     : "border-gray-300 focus:ring-blue-500"
                 }`}
                 placeholder="e.g., Electronics"
@@ -145,7 +145,7 @@ const CategoryModal = memo(function CategoryModal({
                 maxLength={50}
               />
               {errors.name && (
-                <p className="text-xs text-red-600 mt-1">{errors.name}</p>
+                <p className="text-xs text-[#780606] mt-1">{errors.name}</p>
               )}
               <p className="text-xs text-gray-500 mt-1">
                 {name.length}/50 characters (minimum 2 characters)
@@ -164,7 +164,7 @@ const CategoryModal = memo(function CategoryModal({
                 }}
                 className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                   errors.description
-                    ? "border-red-300 focus:ring-red-500"
+                    ? "border-[#780606] focus:ring-red-500"
                     : "border-gray-300 focus:ring-blue-500"
                 }`}
                 placeholder="Optional description"
@@ -172,7 +172,7 @@ const CategoryModal = memo(function CategoryModal({
                 maxLength={500}
               />
               {errors.description && (
-                <p className="text-xs text-red-600 mt-1">{errors.description}</p>
+                <p className="text-xs text-[#780606] mt-1">{errors.description}</p>
               )}
               <p className="text-xs text-gray-500 mt-1">
                 {description.length}/500 characters (optional)
@@ -432,7 +432,7 @@ export default function CategoriesPage() {
                         </button>
                         <button
                           onClick={() => handleDelete(cat.id, cat.name)}
-                          className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs"
+                          className="px-3 py-1 bg-[#780606] text-white rounded-lg hover:bg-[#780606] transition-colors text-xs"
                         >
                           <Trash2 size={14} className="inline mr-1" />
                           Delete

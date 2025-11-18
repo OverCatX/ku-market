@@ -129,7 +129,7 @@ export default function MeetupSandboxPage() {
                     setSelectedPoint(null);
                     toast("Marker cleared");
                   }}
-                  className="rounded-full border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition"
+                  className="rounded-full border border-[#780606] px-3 py-1 text-xs font-medium text-[#780606] hover:bg-[#780606] transition"
                 >
                   Clear marker
                 </button>

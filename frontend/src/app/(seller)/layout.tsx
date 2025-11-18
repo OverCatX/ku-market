@@ -197,7 +197,7 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
           )}
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-3 w-full px-4 py-2.5 text-red-100 hover:bg-red-500/20 hover:text-red-50 rounded-xl transition-all border border-red-400/20 hover:border-red-400/40 ${
+            className={`flex items-center gap-3 w-full px-4 py-2.5 text-[#780606] hover:bg-[#780606]/20 hover:text-[#780606] rounded-xl transition-all border border-[#780606]/20 hover:border-[#780606]/40 ${
               !sidebarOpen && !isMobile ? "justify-center" : ""
             }`}
             title={!sidebarOpen && !isMobile ? "Logout" : undefined}

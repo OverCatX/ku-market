@@ -168,7 +168,7 @@ export default function ProfilePage() {
       />
 
       {/* Verification Section */}
-      <div className="mt-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+      <div className="mt-8 p-6 bg-[#EEB43F] rounded-xl border border-[#F9E5BD]">
         <div className="flex items-start justify-between gap-4 flex-col sm:flex-row">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
@@ -184,7 +184,7 @@ export default function ProfilePage() {
 
             {user.isVerified ? (
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#4E781A]/20 text-[#4E781A] border border-[#4E781A]/30">
                   <ShieldCheck className="w-4 h-4 mr-1" />
                   Verified
                 </span>
@@ -211,7 +211,7 @@ export default function ProfilePage() {
           {!user.isVerified && (
             <button
               onClick={handleVerifyIdentity}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 whitespace-nowrap"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#364C91] text-white rounded-lg hover:bg-[#2d3d75] shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 whitespace-nowrap"
             >
               <ShieldCheck className="w-5 h-5" />
               Verify Identity
@@ -298,11 +298,11 @@ export default function ProfilePage() {
             </div>
           </div>
         ) : shopStatus === "rejected" ? (
-          <div className="p-6 bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-100">
+          <div className="p-6 bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-[#780606]">
             <div className="flex items-start justify-between gap-4 flex-col sm:flex-row">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-3">
-                  <Store className="w-6 h-6 text-red-600" />
+                  <Store className="w-6 h-6 text-[#780606]" />
                   <h3 className="text-lg font-semibold text-gray-800">
                     Application Rejected
                   </h3>
@@ -331,7 +331,7 @@ export default function ProfilePage() {
                         <span className="font-medium text-gray-700">
                           Reason:
                         </span>
-                        <span className="text-red-600">
+                        <span className="text-[#780606]">
                           {shopDetails.rejectionReason}
                         </span>
                       </div>
@@ -341,7 +341,7 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={() => router.push("/request-store")}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 shadow-md hover:shadow-lg transition-all duration-300 whitespace-nowrap"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#780606] text-white rounded-lg hover:bg-[#780606] shadow-md hover:shadow-lg transition-all duration-300 whitespace-nowrap"
               >
                 View Details & Reapply
               </button>
@@ -362,9 +362,9 @@ export default function ProfilePage() {
 
       <OrderHistory />
 
-      <div className="mt-8 p-6 bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mt-8 p-6 bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-[#780606] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="rounded-full bg-red-100 text-red-600 p-2 mt-0.5">
+          <div className="rounded-full bg-[#780606] text-white p-2 mt-0.5">
             <Flag className="w-5 h-5" />
           </div>
           <div>
@@ -378,7 +378,7 @@ export default function ProfilePage() {
         </div>
         <button
           onClick={() => router.push("/profile/reports")}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-500 via-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 shadow-md hover:shadow-lg transition-all duration-300 whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#780606] text-white rounded-lg hover:bg-[#5c0505] shadow-md hover:shadow-lg transition-all duration-300 whitespace-nowrap"
         >
           <Flag className="w-4 h-4" />
           View my reports

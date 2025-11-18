@@ -203,7 +203,7 @@ export default function SellerOrders() {
     const styles: Record<string, string> = {
       pending_seller_confirmation: "bg-yellow-100 text-yellow-800",
       confirmed: "bg-blue-100 text-blue-800",
-      rejected: "bg-red-100 text-red-800",
+      rejected: "bg-[#780606] text-[#780606]",
       completed: "bg-green-100 text-green-800",
       cancelled: "bg-gray-100 text-gray-800",
     };
@@ -401,7 +401,7 @@ export default function SellerOrders() {
                     {order.paymentMethod === "cash" ? "Cash" : "Transfer"}
                   </p>
                   {order.rejectionReason && (
-                    <p className="text-red-600 mt-2">
+                    <p className="text-[#780606] mt-2">
                       <span className="font-medium">Rejection Reason:</span>{" "}
                       {order.rejectionReason}
                     </p>
@@ -468,7 +468,7 @@ export default function SellerOrders() {
                   </button>
                   <button
                     onClick={() => handleRejectOrder(order.id)}
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                    className="flex-1 px-4 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#780606] transition-colors font-medium"
                   >
                     <XCircle size={18} className="inline mr-2" />
                     Reject Order

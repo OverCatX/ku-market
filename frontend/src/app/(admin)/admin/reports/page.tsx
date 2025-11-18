@@ -75,7 +75,7 @@ function ReportCard({ report, onUpdate, updating }: ReportCardProps) {
     <article className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-5 py-4 border-b border-gray-100">
         <div className="flex items-start gap-3">
-          <div className="mt-1 rounded-full bg-red-100 text-red-600 p-2">
+          <div className="mt-1 rounded-full bg-[#780606] text-[#780606] p-2">
             <Flag className="w-4 h-4" />
           </div>
           <div>

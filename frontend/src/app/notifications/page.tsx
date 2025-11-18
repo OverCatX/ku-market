@@ -299,7 +299,7 @@ export default function NotificationsPage() {
               {notifications.length > 0 && (
                 <button
                   onClick={handleClearAll}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-[#780606] hover:bg-[#780606] rounded-lg transition"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span className="hidden sm:inline">Clear all</span>
@@ -379,7 +379,7 @@ export default function NotificationsPage() {
                             e.stopPropagation();
                             handleDeleteNotification(notification.id);
                           }}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                          className="p-2 text-[#780606] hover:bg-[#780606] rounded-lg transition"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />

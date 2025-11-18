@@ -218,7 +218,7 @@ export default function ReviewForm({
       {/* Rating */}
       <div className="mb-3 sm:mb-4">
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-          Your Rating <span className="text-red-500">*</span>
+          Your Rating <span className="text-[#780606]">*</span>
         </label>
         <StarRating
           rating={rating}
@@ -265,7 +265,7 @@ export default function ReviewForm({
           htmlFor="review-comment"
           className="block text-xs sm:text-sm font-medium text-gray-700 mb-2"
         >
-          Your Review <span className="text-red-500">*</span>
+          Your Review <span className="text-[#780606]">*</span>
         </label>
         <textarea
           id="review-comment"
@@ -287,7 +287,7 @@ export default function ReviewForm({
         <p className="text-xs text-gray-500 mt-1">
           {comment.length}/2000 characters
           {comment.length < 10 && comment.length > 0 && (
-            <span className="text-red-500 ml-2">
+            <span className="text-[#780606] ml-2">
               (Minimum 10 characters required)
             </span>
           )}

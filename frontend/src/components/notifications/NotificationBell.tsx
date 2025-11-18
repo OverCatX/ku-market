@@ -213,7 +213,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
               {notifications.length > 0 && (
                 <button
                   onClick={handleClearAll}
-                  className="text-xs text-red-600 hover:text-red-700 font-medium"
+                  className="text-xs text-[#780606] hover:text-[#780606] font-medium"
                   title="Clear all"
                 >
                   Clear All

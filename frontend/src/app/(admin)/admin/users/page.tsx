@@ -118,7 +118,7 @@ const TableRow = memo(function TableRow({
             <button
               onClick={() => onDelete(user.id, user.name)}
               disabled={isLoading}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+              className="p-2 text-[#780606] hover:bg-[#780606] rounded-lg transition-colors disabled:opacity-50"
               title="Delete User"
             >
               <Trash2 size={18} />

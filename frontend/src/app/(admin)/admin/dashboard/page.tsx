@@ -214,9 +214,9 @@ export default function AdminDashboard() {
 
           <Link
             href="/admin/reports"
-            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all"
+            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#780606] hover:bg-[#780606] transition-all"
           >
-            <Flag className="text-red-600" size={24} />
+            <Flag className="text-[#780606]" size={24} />
             <div>
               <div className="font-semibold text-gray-900">Review Reports</div>
               <div className="text-sm text-gray-600">

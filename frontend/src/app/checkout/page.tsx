@@ -639,7 +639,7 @@ export default function CheckoutPage() {
                                   note: "",
                                 }))
                               }
-                              className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                              className="rounded-full border border-[#780606] bg-white px-3 py-1 text-xs font-medium text-[#780606] hover:bg-[#780606]"
                             >
                               Reset pin
                             </button>

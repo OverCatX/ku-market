@@ -176,7 +176,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           )}
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-3 w-full px-4 py-2 text-red-400 hover:bg-red-900/30 hover:text-red-300 rounded-lg transition-colors ${
+            className={`flex items-center gap-3 w-full px-4 py-2 text-[#780606] hover:bg-[#780606]/30 hover:text-[#780606] rounded-lg transition-colors ${
               !sidebarOpen && !isMobile ? "justify-center" : ""
             }`}
             title={!sidebarOpen && !isMobile ? "Logout" : undefined}

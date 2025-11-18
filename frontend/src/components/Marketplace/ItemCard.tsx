@@ -36,9 +36,9 @@ export default function ItemCard({
       label: "Reserved",
     },
     sold: {
-      text: "text-red-700",
-      bg: "bg-red-50",
-      border: "border-red-200",
+      text: "text-[#780606]",
+      bg: "bg-[#780606]",
+      border: "border-[#780606]",
       label: "Sold",
     },
   } as const;

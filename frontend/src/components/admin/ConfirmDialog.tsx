@@ -28,7 +28,7 @@ export function ConfirmDialog({
   if (!isOpen) return null;
 
   const variantStyles = {
-    danger: "bg-red-600 hover:bg-red-700",
+    danger: "bg-[#780606] hover:bg-[#780606]",
     warning: "bg-orange-600 hover:bg-orange-700",
     primary: "bg-blue-600 hover:bg-blue-700",
   };
