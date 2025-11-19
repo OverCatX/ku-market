@@ -80,6 +80,7 @@ export default function CheckoutPage() {
     address: "",
     note: "",
   });
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   // Wait for client-side mount
   useEffect(() => {
@@ -93,6 +94,36 @@ export default function CheckoutPage() {
     }),
     []
   );
+
+  // Real-time validation
+  const isValidPhone = useMemo(() => {
+    if (!shippingInfo.phone) return null;
+    const phone = shippingInfo.phone.replace(/\D/g, "");
+    return /^0\d{9}$/.test(phone);
+  }, [shippingInfo.phone]);
+
+  const isValidAddress = useMemo(() => {
+    if (!shippingInfo.address) return null;
+    return shippingInfo.address.trim().length >= 5;
+  }, [shippingInfo.address]);
+
+  const isValidCity = useMemo(() => {
+    if (!shippingInfo.city) return null;
+    return shippingInfo.city.trim().length >= 2;
+  }, [shippingInfo.city]);
+
+  const isValidPostalCode = useMemo(() => {
+    if (!shippingInfo.postalCode) return null;
+    const postal = shippingInfo.postalCode.trim();
+    const thPostal = /^\d{5}$/;
+    const intlPostal = /^\w[\w\s-]{2,9}$/;
+    return thPostal.test(postal) || intlPostal.test(postal);
+  }, [shippingInfo.postalCode]);
+
+  const isValidLocationName = useMemo(() => {
+    if (!pickupDetails.locationName) return null;
+    return pickupDetails.locationName.trim().length > 0;
+  }, [pickupDetails.locationName]);
 
   const [pickupPresets, setPickupPresets] = useState<
     Array<{
@@ -554,8 +585,8 @@ export default function CheckoutPage() {
                     </header>
 
                     <div className="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_300px] xl:grid-cols-[minmax(0,1.6fr)_340px] 2xl:grid-cols-[minmax(0,1.9fr)_380px]">
-                      <div className="relative h-[380px] sm:h-[430px] xl:h-[500px] overflow-hidden rounded-3xl border border-[#dfe7cf] bg-white">
-                        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-between p-4 text-[11px] font-medium text-[#4c5c2f]">
+                      <div className="relative h-[380px] sm:h-[430px] xl:h-[500px] overflow-hidden rounded-3xl border border-[#dfe7cf] bg-white z-0">
+                        <div className="pointer-events-none absolute inset-x-0 top-0 z-[8] flex justify-between p-4 text-[11px] font-medium text-[#4c5c2f]">
                           <span className="rounded-full bg-white/92 px-3 py-1 shadow">
                             Tap inside campus to drop the pin
                           </span>
@@ -658,18 +689,47 @@ export default function CheckoutPage() {
                             <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
                               Meetup title *
                             </label>
-                            <input
-                              type="text"
-                              value={pickupDetails.locationName}
-                              onChange={(e) =>
-                                setPickupDetails((prev) => ({
-                                  ...prev,
-                                  locationName: e.target.value,
-                                }))
-                              }
-                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
-                              placeholder="e.g. KU Avenue Plaza entrance"
-                            />
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={pickupDetails.locationName}
+                                onChange={(e) =>
+                                  setPickupDetails((prev) => ({
+                                    ...prev,
+                                    locationName: e.target.value,
+                                  }))
+                                }
+                                onFocus={() => setFocusedField("locationName")}
+                                onBlur={() => setFocusedField(null)}
+                                className={`w-full rounded-xl ${
+                                  isValidLocationName ? "pr-10" : ""
+                                } border bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#7da757] ${
+                                  focusedField === "locationName" ? "shadow-sm" : ""
+                                } ${
+                                  isValidLocationName === true
+                                    ? "border-green-500"
+                                    : isValidLocationName === false && pickupDetails.locationName
+                                    ? "border-red-400"
+                                    : "border-[#dfe7cf]"
+                                }`}
+                                placeholder="e.g. KU Avenue Plaza entrance"
+                              />
+                              {isValidLocationName && (
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                  <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                            {pickupDetails.locationName && isValidLocationName === false && (
+                              <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                                Please enter a meetup location name
+                              </p>
+                            )}
                           </div>
                           <div>
                             <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
@@ -812,38 +872,90 @@ export default function CheckoutPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Full Name *
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={shippingInfo.fullName}
-                      onChange={(e) =>
-                        setShippingInfo({
-                          ...shippingInfo,
-                          fullName: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                      placeholder="John Doe"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        value={shippingInfo.fullName}
+                        onChange={(e) =>
+                          setShippingInfo({
+                            ...shippingInfo,
+                            fullName: e.target.value,
+                          })
+                        }
+                        onFocus={() => setFocusedField("fullName")}
+                        onBlur={() => setFocusedField(null)}
+                        className={`w-full px-4 py-2 ${
+                          shippingInfo.fullName.trim() ? "pr-10" : ""
+                        } border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
+                          focusedField === "fullName" ? "shadow-sm" : ""
+                        } ${
+                          shippingInfo.fullName.trim()
+                            ? "border-green-500"
+                            : "border-gray-300"
+                        }`}
+                        placeholder="John Doe"
+                      />
+                      {shippingInfo.fullName.trim() && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Phone Number *
                     </label>
-                    <input
-                      type="tel"
-                      required
-                      value={shippingInfo.phone}
-                      onChange={(e) =>
-                        setShippingInfo({
-                          ...shippingInfo,
-                          phone: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                      placeholder="081-234-5678"
-                    />
+                    <div className="relative">
+                      <input
+                        type="tel"
+                        required
+                        value={shippingInfo.phone}
+                        onChange={(e) =>
+                          setShippingInfo({
+                            ...shippingInfo,
+                            phone: e.target.value,
+                          })
+                        }
+                        onFocus={() => setFocusedField("phone")}
+                        onBlur={() => setFocusedField(null)}
+                        className={`w-full px-4 py-2 pr-10 border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
+                          focusedField === "phone" ? "shadow-sm" : ""
+                        } ${
+                          isValidPhone === true
+                            ? "border-green-500"
+                            : isValidPhone === false && shippingInfo.phone
+                            ? "border-red-400"
+                            : "border-gray-300"
+                        }`}
+                        placeholder="081-234-5678"
+                      />
+                      {shippingInfo.phone && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          {isValidPhone ? (
+                            <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5 text-red-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {shippingInfo.phone && isValidPhone === false && (
+                      <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Please enter a valid 10-digit Thai phone number (starts with 0)
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -863,19 +975,48 @@ export default function CheckoutPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Address *
                       </label>
-                      <textarea
-                        required
-                        value={shippingInfo.address}
-                        onChange={(e) =>
-                          setShippingInfo({
-                            ...shippingInfo,
-                            address: e.target.value,
-                          })
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                        rows={3}
-                        placeholder="123 Main Street, Apt 4B"
-                      />
+                      <div className="relative">
+                        <textarea
+                          required
+                          value={shippingInfo.address}
+                          onChange={(e) =>
+                            setShippingInfo({
+                              ...shippingInfo,
+                              address: e.target.value,
+                            })
+                          }
+                          onFocus={() => setFocusedField("address")}
+                          onBlur={() => setFocusedField(null)}
+                          className={`w-full px-4 py-2 ${
+                            isValidAddress ? "pr-10" : ""
+                          } border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
+                            focusedField === "address" ? "shadow-sm" : ""
+                          } ${
+                            isValidAddress === true
+                              ? "border-green-500"
+                              : isValidAddress === false && shippingInfo.address
+                              ? "border-red-400"
+                              : "border-gray-300"
+                          }`}
+                          rows={3}
+                          placeholder="123 Main Street, Apt 4B"
+                        />
+                        {isValidAddress && (
+                          <div className="absolute bottom-3 right-3">
+                            <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {shippingInfo.address && isValidAddress === false && (
+                        <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          Address must be at least 5 characters
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -883,38 +1024,100 @@ export default function CheckoutPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           City *
                         </label>
-                        <input
-                          type="text"
-                          required
-                          value={shippingInfo.city}
-                          onChange={(e) =>
-                            setShippingInfo({
-                              ...shippingInfo,
-                              city: e.target.value,
-                            })
-                          }
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                          placeholder="Bangkok"
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            required
+                            value={shippingInfo.city}
+                            onChange={(e) =>
+                              setShippingInfo({
+                                ...shippingInfo,
+                                city: e.target.value,
+                              })
+                            }
+                            onFocus={() => setFocusedField("city")}
+                            onBlur={() => setFocusedField(null)}
+                            className={`w-full px-4 py-2 ${
+                              isValidCity ? "pr-10" : ""
+                            } border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
+                              focusedField === "city" ? "shadow-sm" : ""
+                            } ${
+                              isValidCity === true
+                                ? "border-green-500"
+                                : isValidCity === false && shippingInfo.city
+                                ? "border-red-400"
+                                : "border-gray-300"
+                            }`}
+                            placeholder="Bangkok"
+                          />
+                          {isValidCity && (
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        {shippingInfo.city && isValidCity === false && (
+                          <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            City must be at least 2 characters
+                          </p>
+                        )}
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Postal Code *
                         </label>
-                        <input
-                          type="text"
-                          required
-                          value={shippingInfo.postalCode}
-                          onChange={(e) =>
-                            setShippingInfo({
-                              ...shippingInfo,
-                              postalCode: e.target.value,
-                            })
-                          }
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                          placeholder="10110"
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            required
+                            value={shippingInfo.postalCode}
+                            onChange={(e) =>
+                              setShippingInfo({
+                                ...shippingInfo,
+                                postalCode: e.target.value,
+                              })
+                            }
+                            onFocus={() => setFocusedField("postalCode")}
+                            onBlur={() => setFocusedField(null)}
+                            className={`w-full px-4 py-2 pr-10 border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
+                              focusedField === "postalCode" ? "shadow-sm" : ""
+                            } ${
+                              isValidPostalCode === true
+                                ? "border-green-500"
+                                : isValidPostalCode === false && shippingInfo.postalCode
+                                ? "border-red-400"
+                                : "border-gray-300"
+                            }`}
+                            placeholder="10110"
+                          />
+                          {shippingInfo.postalCode && (
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              {isValidPostalCode ? (
+                                <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                              ) : (
+                                <svg className="w-5 h-5 text-red-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        {shippingInfo.postalCode && isValidPostalCode === false && (
+                          <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            Please enter a valid postal code (5 digits for Thailand)
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

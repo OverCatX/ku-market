@@ -75,3 +75,53 @@ body {
 .animate-shake {
   animation: shake 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Leaflet Map z-index fix - ensure navbar stays above map */
+.leaflet-container {
+  z-index: 0 !important;
+}
+
+.leaflet-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-tile-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-overlay-pane {
+  z-index: 2 !important;
+}
+
+.leaflet-shadow-pane {
+  z-index: 3 !important;
+}
+
+.leaflet-marker-pane {
+  z-index: 4 !important;
+}
+
+.leaflet-tooltip-pane {
+  z-index: 5 !important;
+}
+
+.leaflet-popup-pane {
+  z-index: 6 !important;
+}
+
+.leaflet-map-pane canvas {
+  z-index: 1 !important;
+}
+
+.leaflet-map-pane svg {
+  z-index: 2 !important;
+}
+
+.leaflet-control {
+  z-index: 7 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 7 !important;
+}

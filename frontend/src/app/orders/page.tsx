@@ -147,7 +147,7 @@ function PickupLocationSection({
         </div>
       </div>
       {showMap && pickupDetails.coordinates && (
-        <div className="mt-2">
+        <div className="mt-2 relative z-0">
           <StaticMap
             position={{
               lat: pickupDetails.coordinates.lat,
