@@ -240,7 +240,7 @@ export default function SellerOrders() {
         <button
           onClick={loadOrders}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[#562c1e] text-white rounded-lg hover:bg-[#4a2518] disabled:opacity-50 transition-colors"
         >
           <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
           Refresh
@@ -260,7 +260,7 @@ export default function SellerOrders() {
             onClick={() => setFilter(f.value)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === f.value
-                ? "bg-green-600 text-white"
+                ? "bg-[#562c1e] text-white"
                 : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
           >
@@ -461,7 +461,7 @@ export default function SellerOrders() {
                 <div className="flex gap-2 mt-4">
                   <button
                     onClick={() => handleConfirmOrder(order.id)}
-                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    className="flex-1 px-4 py-2 bg-[#562c1e] text-white rounded-lg hover:bg-[#4a2518] transition-colors font-medium"
                   >
                     <CheckCircle size={18} className="inline mr-2" />
                     Confirm Order

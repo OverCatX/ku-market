@@ -129,13 +129,13 @@ export default function SellerItems() {
           <button
             onClick={loadItems}
             disabled={loading}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 bg-[#F6F2E5] text-gray-700 rounded-lg hover:bg-[#E8E0D0] disabled:opacity-50 transition-colors"
           >
-            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+            <RefreshCw size={18} className={`${loading ? "animate-spin" : ""} text-[#724a24]`} />
           </button>
           <Link
             href="/seller/add-item"
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+            className="px-4 py-2 bg-[#724a24] text-white rounded-lg hover:bg-[#5d3b1c] transition-colors font-medium"
           >
             + Add Item
           </Link>
@@ -151,7 +151,7 @@ export default function SellerItems() {
           <p className="text-gray-600 mb-4">Start by adding your first item</p>
           <Link
             href="/seller/add-item"
-            className="inline-block px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+            className="inline-block px-6 py-3 bg-[#724a24] text-white rounded-lg hover:bg-[#5d3b1c] transition-colors font-medium"
           >
             Add Item
           </Link>

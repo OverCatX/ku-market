@@ -12,6 +12,6 @@ export const aboutColors = {
     // champagne:"#f3cea2"
     russet:"#421404",
     philippine:"#562c1e",
-    maxyellow:"#903500",
+    maxyellow:"#724a24",
     champagne:"#8c522f"
   };
