@@ -6,10 +6,6 @@ export const aboutColors = {
     borderSoft: "#C7A484",
     red : "#780606",
     yellowBright: "#e0cd95",
-    // russet:"#4d2308",
-    // philippine:"#c48414",
-    // maxyellow:"#f1b93d",
-    // champagne:"#f3cea2"
     russet:"#421404",
     philippine:"#562c1e",
     maxyellow:"#724a24",
