@@ -23,28 +23,20 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name_here
 CLOUDINARY_API_KEY=your_api_key_here
 CLOUDINARY_API_SECRET=your_api_secret_here
 
-# SMTP Configuration (for email sending - forgot password, etc.)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
+# SMTP Email (Gmail)
+SMTP_EMAIL=your-email@gmail.com
+SMTP_PASSWORD=your-16-character-app-password
+
 FRONTEND_URL=http://localhost:3000
 ```
 
-### SMTP Setup (Gmail Example)
+### SMTP Setup (Gmail)
 
 1. **Enable 2-Step Verification** on your Google Account
 2. **Generate App Password**:
-   - Go to [Google Account Settings](https://myaccount.google.com/)
-   - Security → 2-Step Verification → App passwords
-   - Generate a new app password for "Mail"
-   - Use this 16-character password as `SMTP_PASS`
-
-3. **Alternative Email Services**:
-   - **SendGrid**: Use `smtp.sendgrid.net`, port `587`
-   - **Mailgun**: Use `smtp.mailgun.org`, port `587`
-   - **Outlook**: Use `smtp-mail.outlook.com`, port `587`
+   - Go to [App Passwords](https://myaccount.google.com/apppasswords)
+   - Select "Mail" → "Other" → Enter "KU Market"
+   - Copy 16-character password → Use as `SMTP_PASSWORD`
 
 ⚠️ **Security:** Never commit `.env` files! Generate secure secret: `openssl rand -base64 32`
 

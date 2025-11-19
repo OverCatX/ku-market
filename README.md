@@ -11,57 +11,56 @@ An online marketplace platform for Kasetsart University students to buy and sell
 
 ## 🎯 Features
 
-### 🔐 Security & Authentication
-
-- **Smart Email Validation** - Strict domain enforcement (@ku.th for users, @ku.ac.th for admins)
-- **OTP Password Reset** - Secure 60-second OTP verification via email
-- **Identity Verification** - Multi-document support (Student ID / National ID) with admin approval
-
-### 🛒 Marketplace & Commerce
-
-- **Full-Featured Marketplace** - Browse, search, and filter thousands of items
-- **Seller Shops** - Create your own branded shop with custom categories
-- **Smart Cart System** - Real-time inventory management and quantity controls
-- **Advanced Order Management** - Two-step confirmation workflow for secure transactions
-
-### 💳 Payment & Delivery
-
-- **Multiple Payment Methods** - Cash, PromptPay QR code, Bank Transfer
-- **QR Code Integration** - Instant PromptPay QR generation for seamless payments
-- **Flexible Delivery** - Pickup at predefined meetup points or home delivery
-- **Interactive Maps** - Visual location picker with static map display
-
-### 👥 User Experience
-
-- **Real-time Notifications** - Instant updates for orders, messages, and verifications
-- **Live Chat System** - Direct messaging between buyers and sellers
-- **Order Tracking** - Complete order lifecycle with status updates
-- **Profile Management** - Comprehensive user dashboard with order history
-
-### ⚙️ Admin Power Tools
-
-- **Centralized Dashboard** - System-wide statistics and analytics
-- **Verification Management** - Streamlined document review and approval
-- **Shop Moderation** - Complete shop application workflow
-- **Meetup Preset Manager** - CRUD operations for pickup locations
-- **User Management** - Role-based access control and user administration
+- **Authentication** - Email validation (@ku.th users, @ku.ac.th admins), OTP password reset, identity verification
+- **Marketplace** - Browse, search, filter items. Create branded shops with custom categories
+- **Payments** - Cash, PromptPay QR, Bank Transfer with instant QR generation
+- **Delivery** - Pickup at meetup points or home delivery with interactive maps
+- **Communication** - Real-time notifications, live chat between buyers/sellers
+- **Orders** - Two-step confirmation workflow, complete order tracking
+- **Admin Panel** - Dashboard, verification management, shop moderation, meetup preset manager
 
 ## 🚀 Quick Start
 
+### Docker (Recommended)
+
 ```bash
-# Clone repository
+git clone https://github.com/OverCatX/ku-market.git
+cd ku-market
+
+# Setup environment
+cp .env.example backend/.env
+cp .env.example frontend/.env.local
+# Edit backend/.env (Backend section) and frontend/.env.local (Frontend section) with your credentials
+
+# Start services
+docker-compose up -d
+
+# Create admin account
+docker exec -it ku-market-backend npm run bootstrap-admin
+```
+
+**Access:** Frontend http://localhost:3000 | Backend http://localhost:8080
+
+### Manual Installation
+
+```bash
 git clone https://github.com/OverCatX/ku-market.git
 cd ku-market
 
 # Backend
-cd backend && npm install && npm run dev
+cd backend && cp ../.env.example .env
+# Edit .env (Backend section) with your credentials
+npm install && npm run dev
 
-# Frontend (in new terminal)
-cd frontend && npm install && npm run dev
+# Frontend (new terminal)
+cd frontend && cp ../.env.example .env.local
+# Edit .env.local (Frontend section) with your credentials
+npm install && npm run dev
 ```
 
-**Frontend:** http://localhost:3000  
-**Backend:** http://localhost:8080
+**Access:** Frontend http://localhost:3000 | Backend http://localhost:8080
+
+📖 **Full setup guide:** [Installation Guide](docs/INSTALLATION.md)
 
 ## 📚 Documentation
 

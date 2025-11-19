@@ -9,28 +9,28 @@ interface SendEmailOptions {
 export async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<void> {
   try {
     // Verify transporter configuration
-    const smtpUser = process.env.SMTP_USER?.trim();
-    const smtpPass = process.env.SMTP_PASS?.trim();
+    const smtpEmail = process.env.SMTP_EMAIL?.trim() || process.env.SMTP_USER?.trim();
+    const smtpPassword = process.env.SMTP_PASSWORD?.trim() || process.env.SMTP_PASS?.trim();
     
-    if (!smtpUser || !smtpPass) {
+    if (!smtpEmail || !smtpPassword) {
       console.warn("SMTP credentials not configured. Email will not be sent.");
       console.log("Email that would be sent:", { to, subject });
       return;
     }
     
-    // Create transporter with trimmed credentials
+    // Create transporter with Gmail defaults
     const emailTransporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.gmail.com",
-      port: parseInt(process.env.SMTP_PORT || "587"),
-      secure: process.env.SMTP_SECURE === "true",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
       auth: {
-        user: smtpUser,
-        pass: smtpPass,
+        user: smtpEmail,
+        pass: smtpPassword,
       },
     });
 
     const info = await emailTransporter.sendMail({
-      from: `"KU Market" <${smtpUser}>`,
+      from: `"KU Market" <${smtpEmail}>`,
       to,
       subject,
       html,
