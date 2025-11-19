@@ -704,11 +704,14 @@ export default function CheckoutPage() {
                                 className={`w-full rounded-xl ${
                                   isValidLocationName ? "pr-10" : ""
                                 } border bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#7da757] ${
-                                  focusedField === "locationName" ? "shadow-sm" : ""
+                                  focusedField === "locationName"
+                                    ? "shadow-sm"
+                                    : ""
                                 } ${
                                   isValidLocationName === true
                                     ? "border-green-500"
-                                    : isValidLocationName === false && pickupDetails.locationName
+                                    : isValidLocationName === false &&
+                                      pickupDetails.locationName
                                     ? "border-red-400"
                                     : "border-[#dfe7cf]"
                                 }`}
@@ -716,20 +719,37 @@ export default function CheckoutPage() {
                               />
                               {isValidLocationName && (
                                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                  <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  <svg
+                                    className="w-5 h-5 text-green-500 animate-fade-in"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                      clipRule="evenodd"
+                                    />
                                   </svg>
                                 </div>
                               )}
                             </div>
-                            {pickupDetails.locationName && isValidLocationName === false && (
-                              <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
-                                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                </svg>
-                                Please enter a meetup location name
-                              </p>
-                            )}
+                            {pickupDetails.locationName &&
+                              isValidLocationName === false && (
+                                <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                                  <svg
+                                    className="w-4 h-4 mr-1"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  Please enter a meetup location name
+                                </p>
+                              )}
                           </div>
                           <div>
                             <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
@@ -898,8 +918,16 @@ export default function CheckoutPage() {
                       />
                       {shippingInfo.fullName.trim() && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                          <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          <svg
+                            className="w-5 h-5 text-green-500 animate-fade-in"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                         </div>
                       )}
@@ -937,12 +965,28 @@ export default function CheckoutPage() {
                       {shippingInfo.phone && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           {isValidPhone ? (
-                            <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            <svg
+                              className="w-5 h-5 text-green-500 animate-fade-in"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           ) : (
-                            <svg className="w-5 h-5 text-red-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            <svg
+                              className="w-5 h-5 text-red-500 animate-fade-in"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           )}
                         </div>
@@ -950,10 +994,19 @@ export default function CheckoutPage() {
                     </div>
                     {shippingInfo.phone && isValidPhone === false && (
                       <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
-                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
                         </svg>
-                        Please enter a valid 10-digit Thai phone number (starts with 0)
+                        Please enter a valid 10-digit Thai phone number (starts
+                        with 0)
                       </p>
                     )}
                   </div>
@@ -1003,16 +1056,32 @@ export default function CheckoutPage() {
                         />
                         {isValidAddress && (
                           <div className="absolute bottom-3 right-3">
-                            <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            <svg
+                              className="w-5 h-5 text-green-500 animate-fade-in"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           </div>
                         )}
                       </div>
                       {shippingInfo.address && isValidAddress === false && (
                         <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
-                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           Address must be at least 5 characters
                         </p>
@@ -1052,16 +1121,32 @@ export default function CheckoutPage() {
                           />
                           {isValidCity && (
                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                              <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              <svg
+                                className="w-5 h-5 text-green-500 animate-fade-in"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                  clipRule="evenodd"
+                                />
                               </svg>
                             </div>
                           )}
                         </div>
                         {shippingInfo.city && isValidCity === false && (
                           <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
-                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            <svg
+                              className="w-4 h-4 mr-1"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                             City must be at least 2 characters
                           </p>
@@ -1090,7 +1175,8 @@ export default function CheckoutPage() {
                             } ${
                               isValidPostalCode === true
                                 ? "border-green-500"
-                                : isValidPostalCode === false && shippingInfo.postalCode
+                                : isValidPostalCode === false &&
+                                  shippingInfo.postalCode
                                 ? "border-red-400"
                                 : "border-gray-300"
                             }`}
@@ -1099,25 +1185,51 @@ export default function CheckoutPage() {
                           {shippingInfo.postalCode && (
                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                               {isValidPostalCode ? (
-                                <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                <svg
+                                  className="w-5 h-5 text-green-500 animate-fade-in"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clipRule="evenodd"
+                                  />
                                 </svg>
                               ) : (
-                                <svg className="w-5 h-5 text-red-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                <svg
+                                  className="w-5 h-5 text-red-500 animate-fade-in"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clipRule="evenodd"
+                                  />
                                 </svg>
                               )}
                             </div>
                           )}
                         </div>
-                        {shippingInfo.postalCode && isValidPostalCode === false && (
-                          <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
-                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                            Please enter a valid postal code (5 digits for Thailand)
-                          </p>
-                        )}
+                        {shippingInfo.postalCode &&
+                          isValidPostalCode === false && (
+                            <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                              <svg
+                                className="w-4 h-4 mr-1"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                              Please enter a valid postal code (5 digits for
+                              Thailand)
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>
