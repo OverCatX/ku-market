@@ -66,6 +66,7 @@ export default function ReviewsPage() {
     rating: number;
     title?: string;
     comment: string;
+    images?: File[];
   }) => {
     // Authentication check is done in createReview API function
     // It will automatically handle expired tokens
@@ -135,6 +136,28 @@ export default function ReviewsPage() {
 
       toast.success(currentHasVoted ? "Removed helpful vote" : "Thank you for your feedback!");
       return result;
+    } catch (error) {
+      // Error handling is done in ReviewItem component
+      throw error;
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string): Promise<void> => {
+    try {
+      const { deleteReview, getReviewSummary } = await import("@/config/reviews");
+      await deleteReview(reviewId);
+      
+      // Remove review from list
+      setReviews((prev) =>
+        prev.filter((review) => {
+          const reviewIdValue = review._id || (review as { id?: string }).id || "";
+          return reviewIdValue !== reviewId;
+        })
+      );
+
+      // Fetch updated summary
+      const updatedSummary = await getReviewSummary(String(slug));
+      setReviewSummary(updatedSummary);
     } catch (error) {
       // Error handling is done in ReviewItem component
       throw error;
@@ -233,6 +256,7 @@ export default function ReviewsPage() {
               summary={reviewSummary}
               onSubmitReview={handleSubmitReview}
               onHelpful={handleHelpful}
+              onDelete={handleDeleteReview}
             />
           </div>
         </div>

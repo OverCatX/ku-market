@@ -1,7 +1,7 @@
 export interface Review {
   _id: string;
   itemId: string;
-  userId: string;
+  userId: string | { _id: string | { toString?: () => string } | unknown; name?: string; kuEmail?: string }; // Can be string or populated user object
   userName: string;
   userAvatar?: string;
   rating: number; // 1-5

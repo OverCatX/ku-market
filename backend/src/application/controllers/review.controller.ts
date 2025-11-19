@@ -7,6 +7,7 @@ import Order from "../../data/models/Order";
 import HelpfulVote from "../../data/models/HelpfulVote";
 import { AuthenticatedRequest } from "../middlewares/authentication";
 import { createNotification } from "../../lib/notifications";
+import { uploadToCloudinary } from "../../lib/cloudinary";
 
 export default class ReviewController {
   // POST /api/reviews - Create a review
@@ -37,6 +38,31 @@ export default class ReviewController {
           success: false,
           error: "itemId, rating, and comment are required",
         });
+      }
+
+      // Handle image uploads if files are provided
+      let imageUrls: string[] = [];
+      if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+        const files = req.files as Express.Multer.File[];
+        if (files.length > 5) {
+          return res.status(400).json({
+            success: false,
+            error: "Maximum 5 images allowed",
+          });
+        }
+
+        for (const file of files) {
+          try {
+            const imageUrl = await uploadToCloudinary(file.buffer, "reviews");
+            imageUrls.push(imageUrl);
+          } catch (uploadError) {
+            console.error("Failed to upload review image:", uploadError);
+            return res.status(500).json({
+              success: false,
+              error: "Failed to upload image",
+            });
+          }
+        }
       }
 
       if (!mongoose.Types.ObjectId.isValid(itemId)) {
@@ -90,6 +116,7 @@ export default class ReviewController {
         rating,
         title: title?.trim() || undefined,
         comment: comment.trim(),
+        images: imageUrls.length > 0 ? imageUrls : undefined,
         verified: hasPurchased || false,
       });
 
@@ -120,12 +147,13 @@ export default class ReviewController {
         review: {
           id: review._id,
           itemId: review.item,
-          userId: review.user,
+          userId: String(review.user),
           userName: populatedUser.name || "Anonymous",
           userAvatar: undefined,
           rating: review.rating,
           title: review.title,
           comment: review.comment,
+          images: review.images || [],
           helpful: review.helpful,
           verified: review.verified,
           createdAt: (review as unknown as { createdAt?: Date }).createdAt || review.createAt,
@@ -155,8 +183,10 @@ export default class ReviewController {
       }
 
       const reviews = await Review.find({ item: itemId })
-        .populate("user", "name kuEmail")
         .sort({ createAt: -1 });
+      
+      // Populate user separately to ensure we get the user ID as string
+      await Promise.all(reviews.map(review => review.populate("user", "name kuEmail")));
 
       // Get helpful votes for current user if authenticated
       let userVotes: mongoose.Types.ObjectId[] = [];
@@ -180,15 +210,26 @@ export default class ReviewController {
           const populatedUser = review.user as unknown as PopulatedUser;
           const reviewId = review._id as mongoose.Types.ObjectId;
           const hasVoted = userId ? userVotes.some((vid) => vid.toString() === reviewId.toString()) : false;
+          
+          // Get user ID - if populated, use _id, otherwise use the ObjectId directly
+          let userIdString: string;
+          if (populatedUser && populatedUser._id) {
+            userIdString = String(populatedUser._id);
+          } else {
+            // Fallback to review.user if not populated
+            userIdString = String(review.user);
+          }
+          
           return {
             id: review._id,
             itemId: review.item,
-            userId: review.user,
+            userId: userIdString,
             userName: populatedUser.name || "Anonymous",
             userAvatar: undefined,
             rating: review.rating,
             title: review.title,
             comment: review.comment,
+            images: review.images || [],
             helpful: review.helpful,
             verified: review.verified,
             hasVoted: hasVoted,

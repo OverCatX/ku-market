@@ -36,18 +36,31 @@ export async function createReview(
     throw new Error("Title must not exceed 200 characters");
   }
 
+  // Handle image uploads
+  const formData = new FormData();
+  formData.append("itemId", itemId);
+  formData.append("rating", String(data.rating));
+  formData.append("comment", data.comment.trim());
+  if (data.title?.trim()) {
+    formData.append("title", data.title.trim());
+  }
+  
+  if (data.images && data.images.length > 0) {
+    if (data.images.length > 5) {
+      throw new Error("Maximum 5 images allowed");
+    }
+    data.images.forEach((file) => {
+      formData.append("images", file);
+    });
+  }
+
   const response = await fetch(`${API_BASE}/api/reviews`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
+      // Don't set Content-Type - browser will set it with boundary for FormData
     },
-    body: JSON.stringify({
-      itemId,
-      rating: data.rating,
-      title: data.title?.trim() || undefined,
-      comment: data.comment.trim(),
-    }),
+    body: formData,
   });
 
   if (!response.ok) {

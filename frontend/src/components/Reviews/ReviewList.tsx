@@ -12,8 +12,9 @@ import { isAuthenticated as checkAuth, getAuthUser } from "@/lib/auth";
 interface ReviewListProps {
   reviews: Review[];
   summary: ReviewSummaryType;
-  onSubmitReview: (data: { rating: number; title?: string; comment: string }) => Promise<void>;
+  onSubmitReview: (data: { rating: number; title?: string; comment: string; images?: File[] }) => Promise<void>;
   onHelpful?: (reviewId: string, currentHasVoted: boolean) => Promise<{ helpful: number; hasVoted: boolean }>;
+  onDelete?: (reviewId: string) => Promise<void>;
 }
 
 export default function ReviewList({
@@ -21,10 +22,12 @@ export default function ReviewList({
   summary,
   onSubmitReview,
   onHelpful,
+  onDelete,
 }: ReviewListProps) {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [sortBy, setSortBy] = useState<"recent" | "helpful" | "rating">("recent");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
 
   // Check authentication on mount and listen for changes
   useEffect(() => {
@@ -130,6 +133,7 @@ export default function ReviewList({
                 key={review._id || `review-${index}`}
                 review={review}
                 onHelpful={onHelpful}
+                onDelete={onDelete}
               />
             ))
           ) : (
