@@ -19,10 +19,9 @@ import toast from "react-hot-toast";
 import { ComponentType } from "react";
 import { clearAuthTokens, getAuthToken, isAuthenticated } from "@/lib/auth";
 
-const StaticMap = dynamic(
-  () => import("@/components/maps/StaticMap"),
-  { ssr: false }
-);
+const StaticMap = dynamic(() => import("@/components/maps/StaticMap"), {
+  ssr: false,
+});
 
 interface OrderItem {
   itemId: string;
@@ -119,10 +118,7 @@ function PickupLocationSection({
     <div className="mt-4 space-y-3">
       <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex items-start gap-2">
-          <MapPin
-            size={16}
-            className="mt-0.5 text-gray-500 flex-shrink-0"
-          />
+          <MapPin size={16} className="mt-0.5 text-gray-500 flex-shrink-0" />
           <div className="text-sm flex-1">
             <p className="font-medium text-gray-900">
               {pickupDetails.locationName}
@@ -683,7 +679,9 @@ export default function OrdersPage() {
                             {order.deliveryMethod}
                           </span>
                           <span className="text-gray-300">•</span>
-                          <span>{formatPaymentMethod(order.paymentMethod)}</span>
+                          <span>
+                            {formatPaymentMethod(order.paymentMethod)}
+                          </span>
                           <span className="text-gray-300">•</span>
                           <span className="text-gray-500">
                             {formatDate(order.createdAt)}

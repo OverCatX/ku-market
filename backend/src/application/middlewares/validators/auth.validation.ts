@@ -22,10 +22,10 @@ export const userSignup = (req: Request, res: Response, next: NextFunction) => {
                 return value;
             })
             .messages({
-                "string.empty": "KU email is required",
+            "string.empty": "KU email is required",
                 "string.email": "Please enter a valid email address",
                 "string.pattern.base": "Email must be a valid @ku.th email address"
-            }),
+        }),
         password: Joi.string().required().min(6).messages({
             "string.empty": "Password is required",
             "string.min": "Password must be at least 6 characters"
@@ -72,10 +72,10 @@ export const userLogin = (req: Request, res: Response, next: NextFunction) => {
             .email()
             .pattern(/^[^\s@]+@(ku\.th|ku\.ac\.th)$/)
             .messages({
-                "string.empty": "KU email is required",
+            "string.empty": "KU email is required",
                 "string.email": "Please enter a valid email address",
                 "string.pattern.base": "Email must be a valid @ku.th or @ku.ac.th email address"
-            }),
+        }),
         password: Joi.string().required().messages({
             "string.empty": "Password is required",
         })
