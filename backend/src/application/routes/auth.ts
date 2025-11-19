@@ -1,6 +1,7 @@
 import { Router} from "express";
 import AuthController from "../controllers/auth.controller";
 import {userSignup, userLogin, forgotPassword, verifyOtp, resetPassword} from "../middlewares/validators/auth.validation";
+import passport from "passport";
 
 const router = Router();
 const authController = new AuthController();
@@ -20,4 +21,8 @@ router.post("/verify-otp", verifyOtp, authController.verifyOtp)
 // Reset password
 router.post("/reset-password", resetPassword, authController.resetPassword)
 
+//Google auth
+router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+
+router.get("/google/callback", passport.authenticate("google", { failureRedirect: "/login", session: false }),authController.googleOAuth);
 export default router;
