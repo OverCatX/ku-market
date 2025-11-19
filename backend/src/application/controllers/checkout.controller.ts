@@ -28,12 +28,14 @@ export class CheckoutController {
             quantity: item.quantity,
         }));
 
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        
         const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card', 'promptpay'],
         mode: 'payment',
         line_items,
-        success_url: 'http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url: 'http://localhost:3000/cancel',
+        success_url: `${frontendUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${frontendUrl}/cancel`,
         locale: 'th',
         submit_type: 'pay',
         });

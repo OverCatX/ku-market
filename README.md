@@ -11,12 +11,16 @@ An online marketplace platform for Kasetsart University students to buy and sell
 
 ## 🎯 Features
 
-- **Authentication** - KU email required (@ku.th)
+- **Authentication** - KU email required (@ku.th for users, @ku.ac.th for admins)
+- **Password Reset** - OTP-based password reset via email
 - **Identity Verification** - Student ID or national ID verification
 - **Marketplace** - Buy and sell items within campus
 - **Seller Shops** - Create and manage your own shop
+- **Order Management** - Two-step confirmation for pickup orders
+- **Payment Methods** - Cash, PromptPay with QR code
+- **Meetup Points** - Predefined locations for order pickup
 - **User Profiles** - Manage personal information and orders
-- **Admin Panel** - Approve verifications and shops
+- **Admin Panel** - Approve verifications, shops, and manage meetup presets
 
 ## 🚀 Quick Start
 
@@ -44,9 +48,9 @@ cd frontend && npm install && npm run dev
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS  
-- **Backend:** Node.js, Express, TypeScript, MongoDB  
-- **Auth:** JWT, bcrypt  
+- **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend:** Node.js, Express, TypeScript, MongoDB
+- **Auth:** JWT, bcrypt
 - **Storage:** Cloudinary
 
 ## Project Structure
@@ -61,9 +65,10 @@ ku-market/
 
 ## Important Notes
 
-- Email must be `@ku.th`
+- Email must be `@ku.th` for regular users, `@ku.ac.th` for admins
 - Identity verification required before checkout
 - Admin account creation: `npm run bootstrap-admin`
+- Password reset uses OTP sent via email (60 seconds expiry)
 
 ## Testing
 

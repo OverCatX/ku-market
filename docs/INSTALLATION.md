@@ -29,6 +29,14 @@ JWT_SECRET=your-super-secret-jwt-key-change-this
 CLOUDINARY_CLOUD_NAME=your_cloud_name_here
 CLOUDINARY_API_KEY=your_api_key_here
 CLOUDINARY_API_SECRET=your_api_secret_here
+
+# SMTP Configuration (for email sending - forgot password, etc.)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+FRONTEND_URL=http://localhost:3000
 ```
 
 ⚠️ **Security:**
@@ -36,6 +44,15 @@ CLOUDINARY_API_SECRET=your_api_secret_here
 - Never commit `.env` files
 - Use strong secrets for production
 - Generate JWT secret: `openssl rand -base64 32`
+
+### SMTP Setup (Gmail Example)
+
+1. **Enable 2-Step Verification** on your Google Account
+2. **Generate App Password**:
+   - Go to [Google Account Settings](https://myaccount.google.com/)
+   - Security → 2-Step Verification → App passwords
+   - Generate a new app password for "Mail"
+   - Use this 16-character password as `SMTP_PASS`
 
 ### 3. Start Backend
 

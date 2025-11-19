@@ -74,6 +74,78 @@ POST /api/auth/login
 }
 ```
 
+### Forgot Password
+
+```
+POST /api/auth/forgot-password
+```
+
+**Body:**
+
+```json
+{
+  "email": "john.d@ku.th"
+}
+```
+
+**Response:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "OTP has been sent to your email. Please check your inbox."
+}
+```
+
+### Verify OTP
+
+```
+POST /api/auth/verify-otp
+```
+
+**Body:**
+
+```json
+{
+  "email": "john.d@ku.th",
+  "otp": "123456"
+}
+```
+
+**Response:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "OTP verified successfully",
+  "resetToken": "reset.token.here"
+}
+```
+
+### Reset Password
+
+```
+POST /api/auth/reset-password
+```
+
+**Body:**
+
+```json
+{
+  "token": "reset.token.here",
+  "new_password": "newpassword123"
+}
+```
+
+**Response:** `200 OK`
+
+```json
+{
+  "success": true,
+  "message": "Password has been reset successfully"
+}
+```
+
 ---
 
 ## Profile Endpoints

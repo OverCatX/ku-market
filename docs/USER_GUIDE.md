@@ -18,11 +18,19 @@ How to use KU Market platform.
 2. Fill in your information:
    - Name
    - KU Email (@ku.th required)
-   - Password
+   - Password (minimum 6 characters)
    - Faculty
-   - Phone number
+   - Phone number (10 digits, starting with 0)
 3. Click "Sign Up"
 4. Login with your credentials
+
+### Forgot Password
+
+1. Go to `/forgot-password`
+2. Enter your KU email address
+3. Check your email for 6-digit OTP (expires in 60 seconds)
+4. Go to `/verify-otp` and enter the OTP
+5. Set your new password
 
 ### 2. Verify Identity
 
@@ -57,16 +65,29 @@ How to use KU Market platform.
 
 1. Go to `/checkout`
 2. Choose delivery method:
-   - **Self Pick-up** - Meet seller at agreed location
+   - **Pickup** - Select meetup location from presets
    - **Delivery** - Provide shipping address
 3. Select payment method:
-   - Cash on delivery/pickup
-   - PromptPay
+   - **Cash** - Only available for pickup
+   - **PromptPay** - QR code payment
+   - **Transfer** - Bank transfer
 4. Review order details
 5. Confirm order
 6. Wait for seller confirmation
 
-### 6. Manage Profile
+### 6. Order Management
+
+1. Go to `/orders` to view your orders
+2. For **PromptPay/Transfer** orders:
+   - After seller confirms, click "Show QR Code" to pay
+   - Submit payment notification
+3. For **Pickup** orders:
+   - After payment (if applicable), click "I received the product"
+   - Wait for seller to confirm delivery
+   - Order completes when both parties confirm
+4. View order details and pickup location on map
+
+### 7. Manage Profile
 
 1. Go to `/profile`
 2. View/edit personal information
@@ -124,11 +145,14 @@ After approval:
 
 1. Go to `/seller/orders`
 2. View customer orders:
-   - Pending - Awaiting your approval
-   - Confirmed - Approved by you
-   - Completed - Order finished
+   - **Pending** - Awaiting your approval
+   - **Confirmed** - Approved by you, waiting for payment/buyer
+   - **Completed** - Order finished
 3. Approve or reject orders
-4. Contact buyer for meetup details
+4. For **Pickup** orders:
+   - After buyer confirms receipt, click "Mark as delivered"
+   - Order completes when both parties confirm
+5. View order details and contact buyer
 
 ---
 
@@ -170,19 +194,30 @@ After approval:
    - Shop photo
 4. Approve or reject with reason
 
-### 5. Manage Users
+### 5. Manage Meetup Presets
+
+1. Go to `/admin/meetup-presets`
+2. View all predefined meetup locations
+3. Actions:
+   - **Add** - Create new meetup location
+   - **Edit** - Update location details (label, address, coordinates)
+   - **Delete** - Remove location
+   - **Toggle Active** - Enable/disable location
+4. Set location order for display
+
+### 6. Manage Users
 
 1. Go to `/admin/users`
 2. View all users
 3. Filter by role
 4. Actions:
-   - Promote to admin
+   - Promote to admin (requires @ku.ac.th email)
    - Demote from admin
    - Delete user
 
 ⚠️ **Cannot delete or demote yourself!**
 
-### 6. Admin Best Practices
+### 7. Admin Best Practices
 
 - ✅ Verify documents carefully
 - ✅ Check shop information completeness
