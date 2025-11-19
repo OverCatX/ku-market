@@ -57,7 +57,7 @@ beforeEach(async () => {
   // Create a test admin user
   const adminUser = new User({
     name: "Test Admin",
-    kuEmail: "admin@ku.th",
+    kuEmail: "admin@ku.ac.th",
     password: "password123",
     role: "admin",
     faculty: "Engineering",
