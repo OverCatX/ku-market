@@ -6,7 +6,7 @@ Online marketplace platform for Kasetsart University students.
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 
-## Features
+##✨ Features
 
 - **Authentication** - Email validation (@ku.th users, @ku.ac.th admins), OTP password reset, identity verification
 - **Marketplace** - Browse, search, filter items. Create branded shops with custom categories
