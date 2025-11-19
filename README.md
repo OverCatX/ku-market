@@ -11,16 +11,40 @@ An online marketplace platform for Kasetsart University students to buy and sell
 
 ## 🎯 Features
 
-- **Authentication** - KU email required (@ku.th for users, @ku.ac.th for admins)
-- **Password Reset** - OTP-based password reset via email
-- **Identity Verification** - Student ID or national ID verification
-- **Marketplace** - Buy and sell items within campus
-- **Seller Shops** - Create and manage your own shop
-- **Order Management** - Two-step confirmation for pickup orders
-- **Payment Methods** - Cash, PromptPay with QR code
-- **Meetup Points** - Predefined locations for order pickup
-- **User Profiles** - Manage personal information and orders
-- **Admin Panel** - Approve verifications, shops, and manage meetup presets
+### 🔐 Security & Authentication
+
+- **Smart Email Validation** - Strict domain enforcement (@ku.th for users, @ku.ac.th for admins)
+- **OTP Password Reset** - Secure 60-second OTP verification via email
+- **Identity Verification** - Multi-document support (Student ID / National ID) with admin approval
+
+### 🛒 Marketplace & Commerce
+
+- **Full-Featured Marketplace** - Browse, search, and filter thousands of items
+- **Seller Shops** - Create your own branded shop with custom categories
+- **Smart Cart System** - Real-time inventory management and quantity controls
+- **Advanced Order Management** - Two-step confirmation workflow for secure transactions
+
+### 💳 Payment & Delivery
+
+- **Multiple Payment Methods** - Cash, PromptPay QR code, Bank Transfer
+- **QR Code Integration** - Instant PromptPay QR generation for seamless payments
+- **Flexible Delivery** - Pickup at predefined meetup points or home delivery
+- **Interactive Maps** - Visual location picker with static map display
+
+### 👥 User Experience
+
+- **Real-time Notifications** - Instant updates for orders, messages, and verifications
+- **Live Chat System** - Direct messaging between buyers and sellers
+- **Order Tracking** - Complete order lifecycle with status updates
+- **Profile Management** - Comprehensive user dashboard with order history
+
+### ⚙️ Admin Power Tools
+
+- **Centralized Dashboard** - System-wide statistics and analytics
+- **Verification Management** - Streamlined document review and approval
+- **Shop Moderation** - Complete shop application workflow
+- **Meetup Preset Manager** - CRUD operations for pickup locations
+- **User Management** - Role-based access control and user administration
 
 ## 🚀 Quick Start
 
