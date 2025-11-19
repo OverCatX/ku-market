@@ -82,6 +82,46 @@ export default class AuthController {
         }
     }
 
+    googleOAuth = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const profile = req.user as any;
+
+            if (!profile || !profile.kuEmail) {
+                return res.status(400).json({ error: "No email found from Google account" });
+            }
+
+            // Create JWT token
+            const tokenPayload = {
+                id: profile._id,
+                email: profile.kuEmail,
+                role: profile.role,
+                isVerified: profile.isVerified || false,
+            };
+
+            const token = jwt.sign(tokenPayload, process.env.JWT_SECRET || "secret", { expiresIn: "1h" });
+
+            // Prepare user data for frontend
+            const userData = {
+                id: profile._id,
+                name: profile.name,
+                email: profile.kuEmail,
+                faculty: profile.faculty,
+                contact: profile.contact,
+                role: profile.role,
+                isVerified: profile.isVerified || false,
+            };
+
+            return res.status(200).json({
+                token,
+                user: userData,
+            });
+
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
+        }
+    }
+
     forgotPassword = async (req: Request, res: Response): Promise<Response> => {
         const { email } = req.body;
 
