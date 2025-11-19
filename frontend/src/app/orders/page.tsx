@@ -580,13 +580,13 @@ export default function OrdersPage() {
                   <div>
                     <p className="text-xs text-gray-500 mb-1">{label}</p>
                     <p className={`text-2xl font-bold ${color}`}>{value}</p>
-                  </div>
+                </div>
                   <Icon size={20} className={`${color} opacity-60`} />
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
         {/* Filter Tabs */}
         <div className="flex flex-wrap gap-2 mb-6">
@@ -666,7 +666,7 @@ export default function OrdersPage() {
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          {statusBadge(displayStatus)}
+                        {statusBadge(displayStatus)}
                           {paymentStatusBadge(
                             normalizedPaymentStatus ?? undefined
                           )}
@@ -701,27 +701,27 @@ export default function OrdersPage() {
                   {/* Order Items */}
                   <div className="p-5">
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-                      {order.items.slice(0, 3).map((it, idx) => (
-                        <div
-                          key={`${order.id}-${idx}`}
+                    {order.items.slice(0, 3).map((it, idx) => (
+                      <div
+                        key={`${order.id}-${idx}`}
                           className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={it.image || "/placeholder.png"}
-                            alt={it.title}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={it.image || "/placeholder.png"}
+                          alt={it.title}
                             className="w-14 h-14 rounded-md object-cover border border-gray-200"
-                          />
+                        />
                           <div className="min-w-0 flex-1">
-                            <div className="text-sm font-medium text-gray-900 truncate">
-                              {it.title}
-                            </div>
-                            <div className="text-xs text-gray-500">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {it.title}
+                          </div>
+                          <div className="text-xs text-gray-500">
                               {it.quantity} × {it.price.toLocaleString()} THB
-                            </div>
                           </div>
                         </div>
-                      ))}
+                      </div>
+                    ))}
                     </div>
 
                     {order.items.length > 3 && (

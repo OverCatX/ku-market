@@ -133,10 +133,10 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
             : "w-20"
         } ${
           isMobile ? "w-64" : ""
-        } bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white transition-transform duration-300 ease-in-out md:transition-all flex flex-col fixed md:relative z-50 h-full shadow-2xl md:shadow-lg print:hidden`}
+        } bg-gradient-to-br from-[#A0704F] via-[#8a5f3f] to-[#7a5235] text-white transition-transform duration-300 ease-in-out md:transition-all flex flex-col fixed md:relative z-50 h-full shadow-2xl md:shadow-lg print:hidden`}
       >
         {/* Header */}
-        <div className="p-5 flex items-center justify-between border-b border-emerald-500/30 min-h-[70px] bg-emerald-700/50 backdrop-blur-sm">
+        <div className="p-5 flex items-center justify-between border-b border-[#A0704F]/30 min-h-[70px] bg-[#8a5f3f]/50 backdrop-blur-sm">
           {(sidebarOpen || isMobile) && (
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
@@ -144,7 +144,7 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
               </div>
               <div>
                 <h1 className="text-lg font-bold truncate">Seller Panel</h1>
-                <p className="text-xs text-emerald-100/80 truncate">Dashboard</p>
+                <p className="text-xs text-white/80 truncate">Dashboard</p>
               </div>
             </div>
           )}
@@ -170,7 +170,7 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   isActive
                     ? "bg-white/20 text-white shadow-lg backdrop-blur-sm border border-white/20 scale-[1.02]"
-                    : "text-emerald-50/90 hover:bg-white/10 hover:text-white hover:scale-[1.01]"
+                    : "text-white/90 hover:bg-white/10 hover:text-white hover:scale-[1.01]"
                 } ${!sidebarOpen && !isMobile ? "justify-center" : ""}`}
                 title={!sidebarOpen && !isMobile ? item.label : undefined}
               >
@@ -184,25 +184,25 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-emerald-500/30 p-4 bg-emerald-800/30 backdrop-blur-sm">
+        <div className="border-t border-[#A0704F]/30 p-4 bg-[#7a5235]/30 backdrop-blur-sm">
           {(sidebarOpen || isMobile) && (shopName || sellerName) && (
-            <div className="mb-3 px-3 py-2 bg-white/5 rounded-lg border border-white/10">
-              <div className="text-xs uppercase tracking-wider mb-1 text-emerald-200/70 font-semibold">
+            <div className="mb-3 px-3 py-2 bg-[#F6F2E5] rounded-lg border border-[#F6F2E5]/10">
+              <div className="text-xs uppercase tracking-wider mb-1 text-[#A0704F] font-semibold">
                 {shopName ? "Shop" : "Seller"}
               </div>
-              <div className="text-white font-semibold truncate">
+              <div className="text-[#A0704F] font-semibold truncate">
                 {shopName || sellerName}
               </div>
             </div>
           )}
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-3 w-full px-4 py-2.5 text-[#780606] hover:bg-[#780606]/20 hover:text-[#780606] rounded-xl transition-all border border-[#780606]/20 hover:border-[#780606]/40 ${
+            className={`flex items-center gap-3 w-full px-4 py-2.5 bg-[#780606] text-[#F6F2E5] hover:bg-[#5c0505] hover:text-[#F6F2E5] rounded-xl transition-all border border-[#780606] hover:border-[#5c0505] ${
               !sidebarOpen && !isMobile ? "justify-center" : ""
             }`}
             title={!sidebarOpen && !isMobile ? "Logout" : undefined}
           >
-            <LogOut size={18} className="flex-shrink-0" />
+            <LogOut size={18} className="flex-shrink-0 text-[#F6F2E5]" />
             {(sidebarOpen || isMobile) && <span className="font-medium">Logout</span>}
           </button>
         </div>
