@@ -2,12 +2,7 @@ import { Request, Response } from "express";
 import Cart from "../../data/models/Cart";
 import Item from "../../data/models/Item";
 import mongoose from "mongoose";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 interface PopulatedCartItem {
   itemId: {

@@ -3,12 +3,7 @@ import Shop, { IShop } from "../../data/models/Shop";
 import User, { IUser } from "../../data/models/User";
 import { uploadToCloudinary } from "../../lib/cloudinary";
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 export default class ShopController {
     userRequestShop = async(req: Request, res: Response) => {

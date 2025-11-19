@@ -2,12 +2,7 @@ import { Request, Response } from "express";
 import Verification from "../../data/models/Verification";
 import { uploadToCloudinary } from "../../lib/cloudinary";
 import mongoose from "mongoose";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 export default class VerificationController {
     userRequestVerification = async(req: Request, res: Response) => {

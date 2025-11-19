@@ -3,10 +3,7 @@ import ChatThread from "../../data/models/ChatThread";
 import ChatMessage from "../../data/models/ChatMessage";
 import User from "../../data/models/User";
 import mongoose from "mongoose";
-
-interface AuthenticatedRequest extends Request {
-  userId: string;
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 // Types for populated documents
 interface PopulatedUser {
@@ -19,7 +16,7 @@ export default class ChatController {
   // Get all threads for the authenticated user
   getThreads = async (req: Request, res: Response) => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).userId || (req as AuthenticatedRequest).user?.id;
 
       const rawThreads = await ChatThread.find({
         $or: [{ buyer: userId }, { seller: userId }],
@@ -96,7 +93,7 @@ export default class ChatController {
   // Get or create a thread
   getOrCreateThread = async (req: Request, res: Response) => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).userId || (req as AuthenticatedRequest).user?.id;
       const { sellerId } = req.body;
 
       if (!sellerId) {
@@ -165,7 +162,7 @@ export default class ChatController {
   // Get messages for a thread
   getMessages = async (req: Request, res: Response) => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).userId || (req as AuthenticatedRequest).user?.id;
       const { threadId } = req.params;
 
       // Verify user is part of this thread
@@ -223,7 +220,7 @@ export default class ChatController {
   // Mark thread as read
   markThreadRead = async (req: Request, res: Response) => {
     try {
-      const userId = (req as AuthenticatedRequest).userId;
+      const userId = (req as AuthenticatedRequest).userId || (req as AuthenticatedRequest).user?.id;
       const { threadId } = req.params;
 
       const thread = await ChatThread.findOne({

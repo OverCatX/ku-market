@@ -1,11 +1,6 @@
 import { Request, Response } from "express";
 import User from "../../data/models/User";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 export default class ProfileController {
     userView = async (req: Request, res: Response) =>{

@@ -2,12 +2,7 @@ import {Request, Response } from "express";
 import { uploadToCloudinary } from "../../lib/cloudinary";
 import Item, { IItem } from "../../data/models/Item"
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
-
-interface AuthenticatedRequest extends Request {
-    user?: {
-        id: string;
-    };
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 export default class ItemController {
     userUpload = async(req: Request, res: Response) => {
