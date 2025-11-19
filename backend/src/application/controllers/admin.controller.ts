@@ -355,7 +355,7 @@ export default class AdminController {
   };
 
   // POST /api/admin/users/:userId/promote - Promote user to admin
-  promoteToAdmin = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  promoteToAdmin = async (req: Request, res: Response): Promise<Response> => {
     try {
       const { userId } = req.params;
 
