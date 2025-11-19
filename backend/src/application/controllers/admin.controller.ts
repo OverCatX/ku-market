@@ -355,7 +355,7 @@ export default class AdminController {
   };
 
   // POST /api/admin/users/:userId/promote - Promote user to admin
-  promoteToAdmin = async (req: Request, res: Response): Promise<Response> => {
+  promoteToAdmin = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
     try {
       const { userId } = req.params;
 
@@ -370,6 +370,14 @@ export default class AdminController {
 
       if (user.role === "admin") {
         return res.status(400).json({ success: false, error: "User is already an admin" });
+      }
+
+      // Check if user email is @ku.ac.th (required for admin)
+      if (!/.+@ku\.ac\.th$/.test(user.kuEmail)) {
+        return res.status(400).json({
+          success: false,
+          error: "Cannot promote user. Admin must use @ku.ac.th email address. Current email: " + user.kuEmail,
+        });
       }
 
       user.role = "admin";
@@ -472,6 +480,14 @@ export default class AdminController {
         return res.status(400).json({
           success: false,
           error: "All fields are required (name, email, password, faculty, contact)",
+        });
+      }
+
+      // Validate admin email must be @ku.ac.th
+      if (!/.+@ku\.ac\.th$/.test(email)) {
+        return res.status(400).json({
+          success: false,
+          error: "Admin email must be @ku.ac.th",
         });
       }
 

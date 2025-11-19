@@ -27,7 +27,7 @@ POST /api/auth/signup
 ```json
 {
   "name": "John Doe",
-  "kuEmail": "john.d@ku.ac.th",
+  "kuEmail": "john.d@ku.th",
   "password": "password123",
   "confirmPassword": "password123",
   "faculty": "Engineering",
@@ -54,7 +54,7 @@ POST /api/auth/login
 
 ```json
 {
-  "kuEmail": "john.d@ku.ac.th",
+  "kuEmail": "john.d@ku.th",
   "password": "password123"
 }
 ```
@@ -67,7 +67,7 @@ POST /api/auth/login
   "user": {
     "id": "...",
     "name": "John Doe",
-    "email": "john.d@ku.ac.th",
+    "email": "john.d@ku.th",
     "role": "buyer",
     "isVerified": false
   }
@@ -92,7 +92,7 @@ Auth: Required
   "success": true,
   "user": {
     "name": "John Doe",
-    "kuEmail": "john.d@ku.ac.th",
+    "kuEmail": "john.d@ku.th",
     "faculty": "Engineering",
     "contact": "0812345678",
     "role": "buyer",

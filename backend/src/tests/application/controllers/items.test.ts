@@ -20,7 +20,7 @@ let createdItemId: string;
 
 const TestName = {
     "name": "dgsydgsyd", 
-    "kuEmail": "test@ku.ac.th", 
+    "kuEmail": "test@ku.th", 
     "password": "123456",
     "confirm_password": "123456", 
     "faculty": "en", 

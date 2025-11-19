@@ -614,5 +614,84 @@ export default class OrderController {
       });
     }
   };
+
+  /**
+   * GET /api/orders/:id/payment-qr - Get QR code data for PromptPay payment
+   */
+  getPaymentQr = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+    try {
+      const userId = req.user?.id;
+      const { id } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Unauthorized" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid order ID" });
+      }
+
+      const order = await Order.findById(id);
+
+      if (!order) {
+        return res.status(404).json({ success: false, error: "Order not found" });
+      }
+
+      if (order.buyer.toString() !== userId) {
+        return res.status(403).json({ success: false, error: "Access denied" });
+      }
+
+      if (order.paymentMethod !== "promptpay") {
+        return res.status(400).json({
+          success: false,
+          error: "QR code is only available for PromptPay orders",
+        });
+      }
+
+      if (order.status !== "confirmed") {
+        return res.status(400).json({
+          success: false,
+          error: `Cannot generate QR code. Order status must be confirmed. Current status: ${order.status}`,
+        });
+      }
+
+      if (order.paymentStatus === "paid") {
+        return res.status(400).json({
+          success: false,
+          error: "Payment has already been completed for this order",
+        });
+      }
+
+      // Generate PromptPay QR code data
+      // Format: 00020101021229370016A00000067701011101130066xxxxxxxx5303764540{amount}5802TH6304{checksum}
+      // For simplicity, we'll return the order info and let frontend generate QR code
+      // Or use a QR code generation library
+      
+      const qrData = {
+        orderId: String(order._id),
+        amount: order.totalPrice,
+        currency: "THB",
+        // PromptPay QR format: You can use a library like 'qrcode' to generate the actual QR code
+        // For now, return data that frontend can use to generate QR
+        promptpayData: `00020101021229370016A00000067701011101130066${String(order._id).slice(-10)}5303764540${(order.totalPrice * 100).toFixed(0)}5802TH6304`,
+      };
+
+      return res.json({
+        success: true,
+        qrData: qrData,
+        order: {
+          id: String(order._id),
+          totalPrice: order.totalPrice,
+          paymentMethod: order.paymentMethod,
+        },
+      });
+    } catch (error) {
+      console.error("Get payment QR error:", error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Server error",
+      });
+    }
+  };
 }
 

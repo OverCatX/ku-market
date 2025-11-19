@@ -8,7 +8,7 @@ let mongo: MongoMemoryServer;
 
 const TestName = {
     "name": "dgsydgsyd", 
-    "kuEmail": "test@ku.ac.th", 
+    "kuEmail": "test@ku.th", 
     "password": "123456", 
     "confirm_password": "123456",
     "faculty": "en", 
@@ -47,7 +47,7 @@ describe("Profile api", ()=>{
             const res = await request(app).get("/api/profile/view").set("Authorization", `Bearer ${token}`);
 
             expect(res.statusCode).toBe(200);
-            expect(res.body).toHaveProperty("kuEmail", "test@ku.ac.th");
+            expect(res.body).toHaveProperty("kuEmail", "test@ku.th");
         });
     })
 
