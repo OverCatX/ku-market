@@ -119,11 +119,11 @@ export default function SellerItems() {
   }
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Items</h1>
-          <p className="text-gray-600 mt-1">Manage your listed products</p>
+          <h1 className="text-3xl font-bold text-[#421404]">My Items</h1>
+          <p className="text-[#8c522f] mt-1">Manage your listed products</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -135,7 +135,7 @@ export default function SellerItems() {
           </button>
           <Link
             href="/seller/add-item"
-            className="px-4 py-2 bg-[#724a24] text-white rounded-lg hover:bg-[#5d3b1c] transition-colors font-medium"
+            className="px-4 py-2 bg-[#8c522f] text-white rounded-lg hover:bg-[#7a4526] transition-colors font-medium"
           >
             + Add Item
           </Link>
@@ -144,14 +144,14 @@ export default function SellerItems() {
 
       {items.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-          <Package size={48} className="mx-auto text-gray-400 mb-4" />
+          <Package size={48} className="mx-auto text-[#8c522f] mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             No items yet
           </h3>
-          <p className="text-gray-600 mb-4">Start by adding your first item</p>
+          <p className="text-[#8c522f] mb-4">Start by adding your first item</p>
           <Link
             href="/seller/add-item"
-            className="inline-block px-6 py-3 bg-[#724a24] text-white rounded-lg hover:bg-[#5d3b1c] transition-colors font-medium"
+            className="inline-block px-6 py-3 bg-[#8c522f] text-white rounded-lg hover:bg-[#7a4526] transition-colors font-medium"
           >
             Add Item
           </Link>
@@ -179,7 +179,7 @@ export default function SellerItems() {
               </div>
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-gray-900 flex-1 text-sm md:text-base">
+                  <h3 className="font-bold text-[#421404] flex-1 text-sm md:text-base">
                     {item.title}
                   </h3>
                   <span
@@ -245,7 +245,7 @@ export default function SellerItems() {
                   {item.description}
                 </p>
                 <div className="flex flex-wrap justify-between items-center mb-4 gap-3">
-                  <span className="text-lg font-bold text-green-600">
+                  <span className="text-lg font-bold text-[#724a24]">
                     ฿{item.price.toLocaleString()}
                   </span>
                   <div className="flex items-center gap-2">
@@ -261,7 +261,7 @@ export default function SellerItems() {
                         )
                       }
                       disabled={updatingStatusId === item.id}
-                      className="text-xs px-2 py-1 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#84B067]"
+                      className="text-xs px-2 py-1 rounded-lg border border-[#8c522f] focus:outline-none focus:ring-1 focus:ring-[#8c522f]"
                     >
                       <option value="available">available</option>
                       <option value="reserved">reserved</option>
