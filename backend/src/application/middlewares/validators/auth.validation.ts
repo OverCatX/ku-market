@@ -8,11 +8,24 @@ export const userSignup = (req: Request, res: Response, next: NextFunction) => {
             "string.min": "Name must be at least 2 characters",
             "string.max": "Name must not exceed 100 characters"
         }),
-        kuEmail: Joi.string().required().trim().email().pattern(/.+@ku\.ac\.th$/).messages({
-            "string.empty": "KU email is required",
-            "string.email": "Please enter a valid email address",
-            "string.pattern.base": "Email must be a valid @ku.ac.th email address"
-        }),
+        kuEmail: Joi.string()
+            .required()
+            .trim()
+            .email()
+            .pattern(/^[^\s@]+@(ku\.th|ku\.ac\.th)$/)
+            .custom((value, helpers) => {
+                // Regular users (buyer/seller) must use @ku.th
+                // Admin uses @ku.ac.th but admin signup is not allowed through this endpoint
+                if (!/.+@ku\.th$/.test(value)) {
+                    return helpers.error("string.pattern.base");
+                }
+                return value;
+            })
+            .messages({
+                "string.empty": "KU email is required",
+                "string.email": "Please enter a valid email address",
+                "string.pattern.base": "Email must be a valid @ku.th email address"
+            }),
         password: Joi.string().required().min(6).messages({
             "string.empty": "Password is required",
             "string.min": "Password must be at least 6 characters"
@@ -53,11 +66,16 @@ export const userSignup = (req: Request, res: Response, next: NextFunction) => {
 
 export const userLogin = (req: Request, res: Response, next: NextFunction) => {
     const scheme = Joi.object({
-        kuEmail: Joi.string().required().trim().email().pattern(/.+@ku\.ac\.th$/).messages({
-            "string.empty": "KU email is required",
-            "string.email": "Please enter a valid email address",
-            "string.pattern.base": "Email must be a valid @ku.ac.th email address"
-        }),
+        kuEmail: Joi.string()
+            .required()
+            .trim()
+            .email()
+            .pattern(/^[^\s@]+@(ku\.th|ku\.ac\.th)$/)
+            .messages({
+                "string.empty": "KU email is required",
+                "string.email": "Please enter a valid email address",
+                "string.pattern.base": "Email must be a valid @ku.th or @ku.ac.th email address"
+            }),
         password: Joi.string().required().messages({
             "string.empty": "Password is required",
         })

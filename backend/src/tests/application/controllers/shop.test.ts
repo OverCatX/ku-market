@@ -41,7 +41,7 @@ beforeEach(async () => {
   // Create a test seller user
   const testUser = new User({
     name: "Test Seller",
-    kuEmail: "seller@ku.ac.th",
+    kuEmail: "seller@ku.th",
     password: "password123",
     role: "seller",
     faculty: "Engineering",
@@ -57,7 +57,7 @@ beforeEach(async () => {
   // Create a test admin user
   const adminUser = new User({
     name: "Test Admin",
-    kuEmail: "admin@ku.ac.th",
+    kuEmail: "admin@ku.th",
     password: "password123",
     role: "admin",
     faculty: "Engineering",
@@ -282,7 +282,7 @@ describe("Shop Controller", () => {
       // Create a new user without a shop
       const newUser = new User({
         name: "New User",
-        kuEmail: "newuser@ku.ac.th",
+        kuEmail: "newuser@ku.th",
         password: "password123",
         role: "seller",
         faculty: "Engineering",

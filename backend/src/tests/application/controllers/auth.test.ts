@@ -18,7 +18,7 @@ afterAll(async() =>{
 
 const TestName = {
     "name": "dgsydgsyd", 
-    "kuEmail": "test@ku.ac.th", 
+    "kuEmail": "test@ku.th", 
     "password": "123456", 
     "confirm_password": "123456",
     "faculty": "en", 
@@ -27,7 +27,7 @@ const TestName = {
 
 const TestName2 = {
     "name": "dgsydgsyd", 
-    "kuEmail": "gg@ku.ac.th", 
+    "kuEmail": "gg@ku.th", 
     "password": "123456", 
     "confirm_password": "123456",
     "faculty": "en", 
@@ -82,7 +82,7 @@ describe("Auth api", ()=>{
         });
 
         it("Should not able to login because invalid user", async()=> {
-            const res = await request(app).post("/api/auth/login").send({kuEmail: "yy@ku.ac.th", password : TestName.password});
+            const res = await request(app).post("/api/auth/login").send({kuEmail: "yy@ku.th", password : TestName.password});
 
             expect(res.statusCode).toBe(404);
             expect(res.body).toHaveProperty("error", "Email is not found")
