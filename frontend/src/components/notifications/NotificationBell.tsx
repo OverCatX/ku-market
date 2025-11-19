@@ -186,9 +186,9 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
         className="relative flex items-center justify-center w-full h-full transition-all duration-300 group"
         aria-label="Notifications"
       >
-        <Bell className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] transition-all duration-300" />
+        <Bell className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] transition-all duration-300 relative z-10" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-gradient-to-br from-yellow-400 to-yellow-500 text-black text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-gradient-to-br from-yellow-400 to-yellow-500 text-black text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white z-20">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
