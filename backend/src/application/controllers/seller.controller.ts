@@ -109,12 +109,18 @@ export default class SellerController {
             status: order.status,
             deliveryMethod: order.deliveryMethod,
             shippingAddress: order.shippingAddress,
+            pickupDetails: order.pickupDetails,
             paymentMethod: order.paymentMethod,
+            paymentStatus: order.paymentStatus,
             buyerContact: order.buyerContact,
             confirmedAt: order.confirmedAt,
             rejectedAt: order.rejectedAt,
             rejectionReason: order.rejectionReason,
             completedAt: order.completedAt,
+            buyerReceived: order.buyerReceived,
+            buyerReceivedAt: order.buyerReceivedAt,
+            sellerDelivered: order.sellerDelivered,
+            sellerDeliveredAt: order.sellerDeliveredAt,
             createdAt: order.createdAt,
             updatedAt: order.updatedAt,
           };
@@ -155,7 +161,11 @@ export default class SellerController {
         return res.status(404).json({ error: "Order not found" });
       }
 
-      if (order.seller.toString() !== userId) {
+      const sellerId = order.seller instanceof mongoose.Types.ObjectId
+        ? order.seller.toString()
+        : ((order.seller as unknown as { _id: mongoose.Types.ObjectId })._id.toString());
+
+      if (sellerId !== userId) {
         return res.status(403).json({ error: "Access denied. This order does not belong to you." });
       }
 
@@ -176,12 +186,18 @@ export default class SellerController {
           status: order.status,
           deliveryMethod: order.deliveryMethod,
           shippingAddress: order.shippingAddress,
+          pickupDetails: order.pickupDetails,
           paymentMethod: order.paymentMethod,
+          paymentStatus: order.paymentStatus,
           buyerContact: order.buyerContact,
           confirmedAt: order.confirmedAt,
           rejectedAt: order.rejectedAt,
           rejectionReason: order.rejectionReason,
           completedAt: order.completedAt,
+          buyerReceived: order.buyerReceived,
+          buyerReceivedAt: order.buyerReceivedAt,
+          sellerDelivered: order.sellerDelivered,
+          sellerDeliveredAt: order.sellerDeliveredAt,
           createdAt: order.createdAt,
           updatedAt: order.updatedAt,
         },
@@ -192,7 +208,7 @@ export default class SellerController {
           phone: order.buyerContact.phone,
         },
         seller: {
-          id: order.seller,
+          id: sellerId,
           name: sellerUser?.name,
           email: sellerUser?.kuEmail,
           phone: sellerUser?.contact,
@@ -249,14 +265,12 @@ export default class SellerController {
       // Update order status
       order.status = "confirmed";
       order.confirmedAt = new Date();
-      await order.save();
-
-      // Update item statuses to reserved
-      for (const orderItem of order.items) {
-        await Item.findByIdAndUpdate(orderItem.itemId, {
-          status: "reserved",
-        });
+      if (order.paymentMethod === "transfer" || order.paymentMethod === "promptpay") {
+        order.paymentStatus = "awaiting_payment";
+      } else {
+        order.paymentStatus = "not_required";
       }
+      await order.save();
 
       // Notify buyer that order is confirmed
       await createNotification(
@@ -395,6 +409,152 @@ export default class SellerController {
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to get items";
+      return res.status(500).json({ error: message });
+    }
+  };
+
+  /**
+   * Update item availability status
+   */
+  updateItemStatus = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+    try {
+      const userId = req.user?.id;
+      const { itemId } = req.params;
+      const { status } = req.body as { status?: string };
+
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      if (!itemId || !mongoose.Types.ObjectId.isValid(itemId)) {
+        return res.status(400).json({ error: "Invalid item ID" });
+      }
+
+      const allowedStatuses = ["available", "reserved", "sold"] as const;
+      if (!status || !allowedStatuses.includes(status as typeof allowedStatuses[number])) {
+        return res.status(400).json({ error: "Invalid status value" });
+      }
+
+      const shop = await Shop.findOne({ owner: userId, shopStatus: "approved" });
+      if (!shop) {
+        return res.status(404).json({ error: "No approved shop found" });
+      }
+
+      const item = await Item.findOne({ _id: itemId, owner: userId });
+      if (!item) {
+        return res.status(404).json({ error: "Item not found" });
+      }
+
+      item.status = status as typeof allowedStatuses[number];
+      await item.save();
+
+      return res.json({
+        message: "Item status updated successfully",
+        item: {
+          id: item._id,
+          status: item.status,
+          updatedAt:
+            (item as unknown as { updatedAt?: Date }).updatedAt ||
+            item.updateAt ||
+            new Date(),
+        },
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to update item status";
+      return res.status(500).json({ error: message });
+    }
+  };
+
+  /**
+   * POST /api/seller/orders/:orderId/delivered - Seller confirms they delivered the product
+   */
+  markDelivered = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+    try {
+      const userId = req.user?.id;
+      const { orderId } = req.params;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      // Get shop
+      const shop = await Shop.findOne({ owner: userId, shopStatus: "approved" });
+      if (!shop) {
+        return res.status(404).json({ error: "No approved shop found" });
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return res.status(400).json({ error: "Invalid order ID" });
+      }
+
+      const order = await Order.findById(orderId);
+
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+
+      if (order.seller.toString() !== userId) {
+        return res.status(403).json({ error: "Access denied. This order does not belong to you." });
+      }
+
+      if (order.status !== "confirmed") {
+        return res.status(400).json({
+          error: `Cannot mark as delivered. Order status must be confirmed. Current status: ${order.status}`,
+        });
+      }
+
+      if (order.deliveryMethod !== "pickup") {
+        return res.status(400).json({
+          error: "This feature is only available for pickup orders",
+        });
+      }
+
+      if (order.sellerDelivered) {
+        return res.status(400).json({
+          error: "You have already confirmed delivering this order",
+        });
+      }
+
+      order.sellerDelivered = true;
+      order.sellerDeliveredAt = new Date();
+
+      // If both buyer and seller confirmed, complete the order
+      if (order.buyerReceived && order.sellerDelivered) {
+        order.status = "completed";
+        order.completedAt = new Date();
+
+        // Notify both parties
+        await createNotification(
+          order.buyer,
+          "order",
+          "Order Completed",
+          "Your order has been completed!",
+          `/order/${order._id}`
+        );
+        await createNotification(
+          order.seller,
+          "order",
+          "Order Completed",
+          "The order has been completed!",
+          `/seller/orders/${order._id}`
+        );
+      }
+
+      await order.save();
+
+      return res.json({
+        message: "Order marked as delivered",
+        order: {
+          id: order._id,
+          sellerDelivered: order.sellerDelivered,
+          sellerDeliveredAt: order.sellerDeliveredAt,
+          status: order.status,
+          completedAt: order.completedAt,
+        },
+      });
+    } catch (error) {
+      console.error("Seller delivered error:", error);
+      const message = error instanceof Error ? error.message : "Server error";
       return res.status(500).json({ error: message });
     }
   };

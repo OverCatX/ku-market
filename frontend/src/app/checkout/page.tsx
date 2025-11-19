@@ -1,7 +1,8 @@
 "use client";
 
 import { useCart } from "@/contexts/CartContext";
-import { useState, useEffect } from "react";
+import { getVerificationStatus } from "@/config/verification";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Wallet,
@@ -16,8 +17,11 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import type { UserData } from "@/config/auth";
+import { API_BASE } from "@/config/constants";
+import toast from "react-hot-toast";
+import dynamic from "next/dynamic";
 
-type PaymentMethod = "cash" | "promptpay";
+type PaymentMethod = "cash" | "promptpay" | "transfer";
 type DeliveryMethod = "pickup" | "delivery";
 
 interface ShippingInfo {
@@ -28,8 +32,24 @@ interface ShippingInfo {
   postalCode: string;
 }
 
+interface PickupDetailsState {
+  locationName: string;
+  address: string;
+  note: string;
+  preferredTime?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+}
+
+const MeetupLeafletMap = dynamic(
+  () => import("@/components/maps/MeetupLeafletMap"),
+  { ssr: false }
+);
+
 export default function CheckoutPage() {
-  const { items, getTotalPrice, clearCart } = useCart();
+  const { items, getTotalPrice, clearCart, refreshCart } = useCart();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -41,6 +61,13 @@ export default function CheckoutPage() {
     useState<DeliveryMethod>("pickup");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
 
+  // Auto-change payment method when delivery method changes
+  useEffect(() => {
+    if (deliveryMethod === "delivery" && paymentMethod === "cash") {
+      setPaymentMethod("promptpay");
+    }
+  }, [deliveryMethod, paymentMethod]);
+
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
     fullName: "",
     phone: "",
@@ -48,11 +75,69 @@ export default function CheckoutPage() {
     city: "",
     postalCode: "",
   });
+  const [pickupDetails, setPickupDetails] = useState<PickupDetailsState>({
+    locationName: "",
+    address: "",
+    note: "",
+  });
 
   // Wait for client-side mount
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const CAMPUS_CENTER = useMemo(
+    () => ({
+      lat: 13.8495,
+      lng: 100.571,
+    }),
+    []
+  );
+
+  const [pickupPresets, setPickupPresets] = useState<
+    Array<{
+      label: string;
+      lat: number;
+      lng: number;
+      locationName: string;
+      address?: string;
+    }>
+  >([]);
+
+  // Load presets from API
+  useEffect(() => {
+    const loadPresets = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/meetup-presets`);
+        if (response.ok) {
+          const data = await response.json();
+          setPickupPresets(data.presets || []);
+        }
+      } catch (error) {
+        console.error("Failed to load meetup presets:", error);
+        // Fallback to empty array if API fails
+        setPickupPresets([]);
+      }
+    };
+    loadPresets();
+  }, []);
+
+  useEffect(() => {
+    if (deliveryMethod !== "pickup") {
+      return;
+    }
+    setPickupDetails((prev) => {
+      if (prev.coordinates && prev.locationName.trim()) {
+        return prev;
+      }
+      return {
+        ...prev,
+        coordinates: prev.coordinates ?? CAMPUS_CENTER,
+        locationName:
+          prev.locationName.trim() || "Kasetsart University front entrance",
+      };
+    });
+  }, [deliveryMethod, CAMPUS_CENTER]);
 
   // Check authentication and verification status
   useEffect(() => {
@@ -77,8 +162,35 @@ export default function CheckoutPage() {
           setShippingInfo((prev) => ({ ...prev, fullName: user.name }));
         }
       } else {
-        // Not verified - show verification required page
-        setIsVerified(false);
+        // Not verified - attempt to refresh verification status from server
+        (async () => {
+          try {
+            const statusRes = await getVerificationStatus();
+            const approved =
+              statusRes.success &&
+              statusRes.verification &&
+              (statusRes.verification as { status?: string }).status ===
+                "approved";
+            if (approved) {
+              setIsVerified(true);
+              // Update localStorage user to reflect verified status so other pages update immediately
+              try {
+                const latestUserStr = localStorage.getItem("user");
+                const latestUser = latestUserStr
+                  ? JSON.parse(latestUserStr)
+                  : user;
+                const updatedUser = { ...latestUser, isVerified: true };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+              } catch {
+                // ignore storage errors
+              }
+            } else {
+              setIsVerified(false);
+            }
+          } catch {
+            setIsVerified(false);
+          }
+        })();
       }
     } catch {
       // Invalid user data
@@ -99,7 +211,58 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Show confirmation dialog first
+    // Strong client-side validation
+    const name = (shippingInfo.fullName || "").trim();
+    const rawPhone = (shippingInfo.phone || "").trim();
+    const phone = rawPhone.replace(/\D/g, ""); // keep digits only
+    const address = (shippingInfo.address || "").trim();
+    const city = (shippingInfo.city || "").trim();
+    const postal = (shippingInfo.postalCode || "").trim();
+
+    // Basic required fields
+    if (!name) {
+      toast.error("Please enter your full name");
+      return;
+    }
+
+    // Thailand mobile format: exactly 10 digits and starts with 0
+    const thPhoneStrict = /^0\d{9}$/;
+    if (!thPhoneStrict.test(phone)) {
+      toast.error(
+        "Please enter a valid 10-digit Thai phone number (starts with 0)"
+      );
+      return;
+    }
+
+    if (deliveryMethod === "delivery") {
+      if (!address || address.length < 5) {
+        toast.error("Please enter a valid address (min 5 characters)");
+        return;
+      }
+      if (!city || city.length < 2) {
+        toast.error("Please enter a valid city");
+        return;
+      }
+      // Thailand postal code (5 digits) or allow 3-10 digits for international
+      const thPostal = /^\d{5}$/;
+      const intlPostal = /^\w[\w\s-]{2,9}$/;
+      if (!(thPostal.test(postal) || intlPostal.test(postal))) {
+        toast.error("Please enter a valid postal code");
+        return;
+      }
+    }
+
+    if (deliveryMethod === "pickup") {
+      if (!pickupDetails.locationName.trim()) {
+        toast.error("Please enter a pickup location name");
+        return;
+      }
+    }
+
+    // Inform buyer and show confirmation dialog before sending to seller
+    toast("Please confirm your order details before sending to seller", {
+      icon: "🧾",
+    });
     setShowConfirmation(true);
   };
 
@@ -107,39 +270,105 @@ export default function CheckoutPage() {
     setIsProcessing(true);
 
     try {
-      // Simulate sending order to sellers
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const token = localStorage.getItem("authentication");
+      if (!token) {
+        router.push("/login?redirect=/checkout");
+        return;
+      }
 
-      // Generate order ID
-      const orderId = `ORD-${Date.now()}`;
+      // Normalize and trim before sending
+      const normalizedInfo = {
+        fullName: (shippingInfo.fullName || "").trim(),
+        phone: (shippingInfo.phone || "").trim().replace(/\D/g, ""),
+        address: (shippingInfo.address || "").trim(),
+        city: (shippingInfo.city || "").trim(),
+        postalCode: (shippingInfo.postalCode || "").trim(),
+      };
 
-      // TODO: Send order to backend API
-      // const orderData = {
-      //   items,
-      //   contactInfo: {
-      //     fullName: shippingInfo.fullName,
-      //     phone: shippingInfo.phone,
-      //   },
-      //   deliveryMethod,
-      //   shippingAddress: deliveryMethod === "delivery" ? {
-      //     address: shippingInfo.address,
-      //     city: shippingInfo.city,
-      //     postalCode: shippingInfo.postalCode,
-      //   } : null,
-      //   paymentMethod,
-      //   total: getTotalPrice(),
-      //   status: "pending_seller_confirmation",
-      // };
-      // await createOrder(orderData);
+      const payload: {
+        deliveryMethod: DeliveryMethod;
+        paymentMethod: PaymentMethod;
+        buyerContact: { fullName: string; phone: string };
+        shippingAddress?: { address: string; city: string; postalCode: string };
+        pickupDetails?: {
+          locationName: string;
+          address?: string;
+          note?: string;
+          coordinates?: { lat: number; lng: number };
+          preferredTime?: string;
+        };
+      } = {
+        deliveryMethod,
+        paymentMethod,
+        buyerContact: {
+          fullName: normalizedInfo.fullName,
+          phone: normalizedInfo.phone,
+        },
+      };
 
-      // Clear cart
+      if (deliveryMethod === "delivery") {
+        payload.shippingAddress = {
+          address: normalizedInfo.address,
+          city: normalizedInfo.city,
+          postalCode: normalizedInfo.postalCode,
+        };
+      } else {
+        payload.pickupDetails = {
+          locationName: pickupDetails.locationName.trim(),
+          address: pickupDetails.address.trim() || undefined,
+          note: pickupDetails.note.trim() || undefined,
+          coordinates: pickupDetails.coordinates,
+          preferredTime: pickupDetails.preferredTime || undefined,
+        };
+      }
+
+      const response = await fetch(`${API_BASE}/api/orders/checkout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const message =
+          errorData.error || errorData.message || "Failed to place order";
+        if (
+          String(message).toLowerCase().includes("invalid") ||
+          String(message).toLowerCase().includes("no longer available")
+        ) {
+          toast.error(
+            "Some items are no longer available. We've updated your cart."
+          );
+          try {
+            await refreshCart();
+          } catch {}
+        }
+        throw new Error(message);
+      }
+
+      const data = await response.json();
+      const orderId = data?.orders?.[0]?.id;
+
       await clearCart();
 
-      // Redirect to order confirmation page
-      router.push(`/order/${orderId}`);
+      if (orderId) {
+        toast.success("Order placed! You can track the status in Orders.");
+        router.push(`/order/${orderId}`);
+      } else {
+        toast.success("Order placed! You can track the status in Orders.");
+        router.push("/orders");
+      }
     } catch (error) {
       console.error("Order failed:", error);
-      alert("Failed to place order. Please try again.");
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Failed to place order. Please try again.";
+      toast.error(msg);
       setIsProcessing(false);
     }
   };
@@ -225,7 +454,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-7xl">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
 
         <form onSubmit={handleSubmit}>
@@ -301,6 +530,273 @@ export default function CheckoutPage() {
                   </label>
                 </div>
               </div>
+              {deliveryMethod === "pickup" && (
+                <section className="rounded-3xl border border-[#dfe7cf] bg-white shadow-sm">
+                  <div className="flex flex-col gap-5 p-6 lg:p-8">
+                    <header className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ecf4da]">
+                          <MapPin className="h-5 w-5 text-[#5a6b2f]" />
+                        </span>
+                        <div>
+                          <h2 className="text-lg font-semibold text-[#2f3b11]">
+                            Choose your meetup point
+                          </h2>
+                          <p className="text-sm text-[#516029]">
+                            Drop a pin inside KU Bangkhen or pick one of the
+                            preset spots.
+                          </p>
+                        </div>
+                      </div>
+                      <span className="rounded-full border border-[#dbe7cb] bg-[#f6faef] px-3 py-1 text-xs font-semibold text-[#556629]">
+                        Self pickup
+                      </span>
+                    </header>
+
+                    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_300px] xl:grid-cols-[minmax(0,1.6fr)_340px] 2xl:grid-cols-[minmax(0,1.9fr)_380px]">
+                      <div className="relative h-[380px] sm:h-[430px] xl:h-[500px] overflow-hidden rounded-3xl border border-[#dfe7cf] bg-white">
+                        <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-between p-4 text-[11px] font-medium text-[#4c5c2f]">
+                          <span className="rounded-full bg-white/92 px-3 py-1 shadow">
+                            Tap inside campus to drop the pin
+                          </span>
+                          <span className="hidden rounded-full bg-white/92 px-3 py-1 shadow sm:block">
+                            Scroll to zoom · drag to explore
+                          </span>
+                        </div>
+
+                        <MeetupLeafletMap
+                          position={
+                            pickupDetails.coordinates
+                              ? [
+                                  pickupDetails.coordinates.lat,
+                                  pickupDetails.coordinates.lng,
+                                ]
+                              : null
+                          }
+                          onPositionChange={(coords) => {
+                            if (!coords) return;
+                            setPickupDetails((prev) => ({
+                              ...prev,
+                              coordinates: coords,
+                              locationName:
+                                prev.locationName.trim() ||
+                                "Custom meetup point",
+                            }));
+                            toast.success("Updated meetup location", {
+                              icon: "📍",
+                            });
+                          }}
+                        />
+
+                        <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/5" />
+
+                        <div className="pointer-events-none absolute bottom-3 left-3 flex flex-wrap gap-2">
+                          <span className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-[#3d4a1f] shadow">
+                            Kasetsart University · Bangkhen
+                          </span>
+                          {pickupDetails.locationName && (
+                            <span className="rounded-full bg-[#ecf4da]/95 px-3 py-1 text-[11px] font-semibold text-[#3d4a1f] shadow">
+                              {pickupDetails.locationName}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <aside className="space-y-4">
+                        <div className="rounded-2xl border border-[#dfe7cf] bg-[#f9fcef] p-4">
+                          <h3 className="text-sm font-semibold text-[#3d4a29]">
+                            Quick anchors
+                          </h3>
+                          <p className="mt-1 text-xs text-[#566533]">
+                            Jump to a popular campus spot instantly.
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {pickupPresets.map((preset) => (
+                              <button
+                                key={preset.label}
+                                type="button"
+                                onClick={() => {
+                                  setPickupDetails((prev) => ({
+                                    ...prev,
+                                    coordinates: {
+                                      lat: preset.lat,
+                                      lng: preset.lng,
+                                    },
+                                    locationName: preset.locationName,
+                                    address: preset.address || "",
+                                  }));
+                                  toast.success(`Pinned ${preset.label}`, {
+                                    icon: "📍",
+                                  });
+                                }}
+                                className="rounded-full border border-[#c8d9b0] bg-white px-3 py-1 text-xs font-medium text-[#3f4e24] hover:border-[#9fb97b] hover:bg-[#edf5da]"
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  coordinates: CAMPUS_CENTER,
+                                  locationName:
+                                    "Kasetsart University front entrance",
+                                  address: "",
+                                  note: "",
+                                }))
+                              }
+                              className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                            >
+                              Reset pin
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-[#dfe7cf] bg-white/95 p-4 space-y-3">
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Meetup title *
+                            </label>
+                            <input
+                              type="text"
+                              value={pickupDetails.locationName}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  locationName: e.target.value,
+                                }))
+                              }
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                              placeholder="e.g. KU Avenue Plaza entrance"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Landmark or details (optional)
+                            </label>
+                            <textarea
+                              value={pickupDetails.address}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  address: e.target.value,
+                                }))
+                              }
+                              rows={2}
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                              placeholder="Near Central Library fountain"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Note for seller (optional)
+                            </label>
+                            <textarea
+                              value={pickupDetails.note}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  note: e.target.value,
+                                }))
+                              }
+                              rows={2}
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                              placeholder="I'll wear a green jacket and wait by the fountain."
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Preferred meetup time (optional)
+                            </label>
+                            <input
+                              type="datetime-local"
+                              value={pickupDetails.preferredTime || ""}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  preferredTime: e.target.value,
+                                }))
+                              }
+                              min={new Date().toISOString().slice(0, 16)}
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                              Select when you&apos;d like to meet up with the
+                              seller
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-[#dfe7cf] bg-white/90 p-4">
+                          <p className="text-sm font-semibold text-[#3d4a29]">
+                            Current meetup summary
+                          </p>
+                          <dl className="mt-3 space-y-2 text-sm text-[#364019]">
+                            <div className="flex items-start justify-between gap-3">
+                              <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                Title
+                              </span>
+                              <span className="font-medium text-right">
+                                {pickupDetails.locationName || "—"}
+                              </span>
+                            </div>
+                            {pickupDetails.address && (
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                  Detail
+                                </span>
+                                <span className="max-w-[180px] text-right">
+                                  {pickupDetails.address}
+                                </span>
+                              </div>
+                            )}
+                            {pickupDetails.note && (
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                  Note
+                                </span>
+                                <span className="max-w-[180px] text-right">
+                                  {pickupDetails.note}
+                                </span>
+                              </div>
+                            )}
+                            {pickupDetails.coordinates && (
+                              <div className="flex items-start justify-between gap-3 text-xs font-mono text-[#2f3b11]">
+                                <span className="uppercase tracking-wide text-[#7a8f54]">
+                                  Coords
+                                </span>
+                                <span className="text-right">
+                                  {pickupDetails.coordinates.lat.toFixed(6)},{" "}
+                                  {pickupDetails.coordinates.lng.toFixed(6)}
+                                </span>
+                              </div>
+                            )}
+                            {pickupDetails.preferredTime && (
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                  Preferred Time
+                                </span>
+                                <span className="text-right text-sm font-medium text-blue-600">
+                                  {new Date(
+                                    pickupDetails.preferredTime
+                                  ).toLocaleString("th-TH", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                              </div>
+                            )}
+                          </dl>
+                        </div>
+                      </aside>
+                    </div>
+                  </div>
+                </section>
+              )}
 
               {/* Contact Information */}
               <div className="bg-white rounded-lg shadow-sm p-6">
@@ -435,32 +931,34 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-3">
-                  {/* Cash Payment */}
-                  <label
-                    className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
-                      paymentMethod === "cash"
-                        ? "border-[#84B067] bg-green-50"
-                        : "border-gray-300 hover:border-[#84B067]"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="cash"
-                      checked={paymentMethod === "cash"}
-                      onChange={(e) =>
-                        setPaymentMethod(e.target.value as PaymentMethod)
-                      }
-                      className="w-4 h-4 text-[#84B067]"
-                    />
-                    <Package className="w-5 h-5 text-[#84B067]" />
-                    <div className="flex-1">
-                      <div className="font-medium">Cash</div>
-                      <div className="text-sm text-gray-600">
-                        Pay when you receive the item
+                  {/* Cash Payment - Only show for pickup */}
+                  {deliveryMethod === "pickup" && (
+                    <label
+                      className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
+                        paymentMethod === "cash"
+                          ? "border-[#84B067] bg-green-50"
+                          : "border-gray-300 hover:border-[#84B067]"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        value="cash"
+                        checked={paymentMethod === "cash"}
+                        onChange={(e) =>
+                          setPaymentMethod(e.target.value as PaymentMethod)
+                        }
+                        className="w-4 h-4 text-[#84B067]"
+                      />
+                      <Package className="w-5 h-5 text-[#84B067]" />
+                      <div className="flex-1">
+                        <div className="font-medium">Cash</div>
+                        <div className="text-sm text-gray-600">
+                          Pay when you receive the item
+                        </div>
                       </div>
-                    </div>
-                  </label>
+                    </label>
+                  )}
 
                   {/* PromptPay Payment */}
                   <label
@@ -610,10 +1108,44 @@ export default function CheckoutPage() {
                       <p className="font-medium mb-1">Order Details:</p>
                       <p className="mb-1">
                         <span className="font-medium">Delivery:</span>{" "}
-                        {deliveryMethod === "pickup"
-                          ? "Self Pick-up (Meetup point will be arranged)"
-                          : "Delivery to your address"}
+                        {deliveryMethod === "pickup" ? (
+                          <>
+                            Self Pick-up{" "}
+                            {pickupDetails.locationName
+                              ? `– ${pickupDetails.locationName}`
+                              : "(Set meetup point before confirming)"}
+                          </>
+                        ) : (
+                          "Delivery to your address"
+                        )}
                       </p>
+                      {deliveryMethod === "pickup" && pickupDetails.address && (
+                        <p className="mb-1">
+                          <span className="font-medium">Meetup landmark:</span>{" "}
+                          {pickupDetails.address}
+                        </p>
+                      )}
+                      {deliveryMethod === "pickup" && pickupDetails.note && (
+                        <p className="mb-1">
+                          <span className="font-medium">Your note:</span>{" "}
+                          {pickupDetails.note}
+                        </p>
+                      )}
+                      {deliveryMethod === "pickup" &&
+                        pickupDetails.preferredTime && (
+                          <p className="mb-1 text-blue-600">
+                            <span className="font-medium">Preferred time:</span>{" "}
+                            {new Date(
+                              pickupDetails.preferredTime
+                            ).toLocaleString("th-TH", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        )}
                       <p>
                         <span className="font-medium">Payment:</span>{" "}
                         {paymentMethod === "cash"
@@ -707,12 +1239,43 @@ export default function CheckoutPage() {
                       </>
                     )}
                     {deliveryMethod === "pickup" && (
-                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-                        <p className="text-xs text-blue-800">
-                          <Store className="w-4 h-4 inline mr-1" />
-                          Meetup location will be arranged with seller after
-                          confirmation
+                      <div className="mt-2 space-y-1 rounded border border-[#d6e4c3] bg-[#f8fbef] p-3 text-xs text-[#3f4e24]">
+                        <p className="font-semibold text-[#2f3b11]">
+                          <Store className="mr-1 inline h-4 w-4 text-[#84B067]" />
+                          Pickup location
                         </p>
+                        <p className="font-medium">
+                          {pickupDetails.locationName || "Not specified yet"}
+                        </p>
+                        {pickupDetails.address && (
+                          <p>{pickupDetails.address}</p>
+                        )}
+                        {pickupDetails.coordinates && (
+                          <p className="text-[11px] text-gray-500">
+                            Coordinates:{" "}
+                            {pickupDetails.coordinates.lat.toFixed(5)},{" "}
+                            {pickupDetails.coordinates.lng.toFixed(5)}
+                          </p>
+                        )}
+                        {pickupDetails.note && (
+                          <p className="text-[11px] text-gray-500">
+                            Your note: {pickupDetails.note}
+                          </p>
+                        )}
+                        {pickupDetails.preferredTime && (
+                          <p className="text-[11px] text-blue-600 font-medium">
+                            Preferred time:{" "}
+                            {new Date(
+                              pickupDetails.preferredTime
+                            ).toLocaleString("th-TH", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -752,7 +1315,8 @@ export default function CheckoutPage() {
                       </li>
                       {deliveryMethod === "pickup" && (
                         <li className="text-orange-700 font-medium">
-                          Meetup point will be arranged after seller confirms
+                          You can adjust the meetup point anytime until the
+                          seller confirms
                         </li>
                       )}
                       {paymentMethod === "promptpay" && (

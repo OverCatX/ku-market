@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   X,
+  MapPin,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -32,6 +33,7 @@ const navItems: NavItem[] = [
   { label: "Shop Requests", path: "/admin/shops", icon: Store },
   { label: "Items", path: "/admin/items", icon: Package },
   { label: "Categories", path: "/admin/categories", icon: FolderTree },
+  { label: "Meetup Presets", path: "/admin/meetup-presets", icon: MapPin },
   { label: "Reports", path: "/admin/reports", icon: Flag },
   { label: "Users", path: "/admin/users", icon: Users },
 ];

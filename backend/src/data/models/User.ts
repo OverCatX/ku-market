@@ -19,7 +19,27 @@ export interface IUser extends Document {
 
 const userSchema: Schema<IUser> = new Schema({
   name: { type: String, required: true },
-  kuEmail: { type: String, required: true, unique: true, match: /.+@ku\.ac\.th$/ },
+  kuEmail: {
+    type: String,
+    required: true,
+    unique: true,
+    validate: {
+      validator: function (this: IUser, email: string) {
+        // Admin must use @ku.ac.th, others use @ku.th
+        if (this.role === "admin") {
+          return /.+@ku\.ac\.th$/.test(email);
+        }
+        return /.+@ku\.th$/.test(email);
+      },
+      message: function (props: { value: string; path: string; role?: string }) {
+        const role = props.role || "user";
+        if (role === "admin") {
+          return "Admin email must be @ku.ac.th";
+        }
+        return "Email must be @ku.th";
+      },
+    },
+  },
   password: { type: String, required: true },
   role: { type: String, default: "buyer" },
   sellerStatus: { type: String, default: undefined },

@@ -18,18 +18,18 @@ afterAll(async() =>{
 
 const TestName = {
     "name": "dgsydgsyd", 
-    "kuEmail": "test@ku.ac.th", 
-    "password": "1234", 
-    "confirm_password": "1234",
+    "kuEmail": "test@ku.th", 
+    "password": "123456", 
+    "confirm_password": "123456",
     "faculty": "en", 
     "contact": "0871111111"
 }
 
 const TestName2 = {
     "name": "dgsydgsyd", 
-    "kuEmail": "gg@ku.ac.th", 
-    "password": "1234", 
-    "confirm_password": "1234",
+    "kuEmail": "gg@ku.th", 
+    "password": "123456", 
+    "confirm_password": "123456",
     "faculty": "en", 
     "contact": "0871111111"
 }
@@ -40,7 +40,7 @@ describe("Auth api", ()=>{
         it ("Should not able to signup because password and confirm password do not match", async()=>{
             const res = await request(app).post("/api/auth/signup").send({...TestName, confirm_password: "wrongconfirm"});
 
-            expect(res.statusCode).toBe(406);
+            expect(res.statusCode).toBe(400);
             expect(res.body).toHaveProperty("error", "Passwords must match")
         });
 
@@ -82,7 +82,7 @@ describe("Auth api", ()=>{
         });
 
         it("Should not able to login because invalid user", async()=> {
-            const res = await request(app).post("/api/auth/login").send({kuEmail: "yy@ku.ac.th", password : TestName.password});
+            const res = await request(app).post("/api/auth/login").send({kuEmail: "yy@ku.th", password : TestName.password});
 
             expect(res.statusCode).toBe(404);
             expect(res.body).toHaveProperty("error", "Email is not found")

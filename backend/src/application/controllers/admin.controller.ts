@@ -4,6 +4,7 @@ import Shop from "../../data/models/Shop";
 import User from "../../data/models/User";
 import Item from "../../data/models/Item";
 import Review, { IReview } from "../../data/models/Review";
+import MeetupPreset from "../../data/models/MeetupPreset";
 import mongoose from "mongoose";
 import { createNotification } from "../../lib/notifications";
 
@@ -354,7 +355,7 @@ export default class AdminController {
   };
 
   // POST /api/admin/users/:userId/promote - Promote user to admin
-  promoteToAdmin = async (req: Request, res: Response): Promise<Response> => {
+  promoteToAdmin = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
     try {
       const { userId } = req.params;
 
@@ -369,6 +370,14 @@ export default class AdminController {
 
       if (user.role === "admin") {
         return res.status(400).json({ success: false, error: "User is already an admin" });
+      }
+
+      // Check if user email is @ku.ac.th (required for admin)
+      if (!/.+@ku\.ac\.th$/.test(user.kuEmail)) {
+        return res.status(400).json({
+          success: false,
+          error: "Cannot promote user. Admin must use @ku.ac.th email address. Current email: " + user.kuEmail,
+        });
       }
 
       user.role = "admin";
@@ -471,6 +480,14 @@ export default class AdminController {
         return res.status(400).json({
           success: false,
           error: "All fields are required (name, email, password, faculty, contact)",
+        });
+      }
+
+      // Validate admin email must be @ku.ac.th
+      if (!/.+@ku\.ac\.th$/.test(email)) {
+        return res.status(400).json({
+          success: false,
+          error: "Admin email must be @ku.ac.th",
         });
       }
 
@@ -950,6 +967,201 @@ export default class AdminController {
       });
     } catch (error) {
       console.error("Get item reviews error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // GET /api/admin/meetup-presets - Get all meetup presets
+  getMeetupPresets = async (_req: Request, res: Response): Promise<Response> => {
+    try {
+      const presets = await MeetupPreset.find()
+        .sort({ order: 1, createdAt: -1 });
+
+      return res.json({
+        success: true,
+        presets: presets.map((preset) => ({
+          id: preset._id,
+          label: preset.label,
+          locationName: preset.locationName,
+          address: preset.address,
+          lat: preset.lat,
+          lng: preset.lng,
+          isActive: preset.isActive,
+          order: preset.order,
+          createdAt: preset.createdAt,
+          updatedAt: preset.updatedAt,
+        })),
+      });
+    } catch (error) {
+      console.error("Get meetup presets error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // POST /api/admin/meetup-presets - Create new meetup preset
+  createMeetupPreset = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { label, locationName, address, lat, lng, order } = req.body;
+
+      // Validate required fields
+      if (!label || !locationName || lat === undefined || lng === undefined) {
+        return res.status(400).json({
+          success: false,
+          error: "Missing required fields: label, locationName, lat, lng",
+        });
+      }
+
+      // Validate coordinates
+      if (typeof lat !== "number" || typeof lng !== "number") {
+        return res.status(400).json({
+          success: false,
+          error: "lat and lng must be numbers",
+        });
+      }
+
+      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid coordinates. lat must be between -90 and 90, lng must be between -180 and 180",
+        });
+      }
+
+      // Get max order if not provided
+      let presetOrder = order;
+      if (presetOrder === undefined) {
+        const maxOrderPreset = await MeetupPreset.findOne().sort({ order: -1 });
+        presetOrder = maxOrderPreset ? maxOrderPreset.order + 1 : 0;
+      }
+
+      const preset = new MeetupPreset({
+        label: label.trim(),
+        locationName: locationName.trim(),
+        address: address ? address.trim() : undefined,
+        lat,
+        lng,
+        order: presetOrder,
+        isActive: true,
+      });
+
+      await preset.save();
+
+      return res.status(201).json({
+        success: true,
+        message: "Meetup preset created successfully",
+        preset: {
+          id: preset._id,
+          label: preset.label,
+          locationName: preset.locationName,
+          address: preset.address,
+          lat: preset.lat,
+          lng: preset.lng,
+          isActive: preset.isActive,
+          order: preset.order,
+          createdAt: preset.createdAt,
+          updatedAt: preset.updatedAt,
+        },
+      });
+    } catch (error) {
+      console.error("Create meetup preset error:", error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Server error",
+      });
+    }
+  };
+
+  // PATCH /api/admin/meetup-presets/:id - Update meetup preset
+  updateMeetupPreset = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { id } = req.params;
+      const { label, locationName, address, lat, lng, isActive, order } = req.body;
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid preset ID" });
+      }
+
+      const preset = await MeetupPreset.findById(id);
+      if (!preset) {
+        return res.status(404).json({ success: false, error: "Meetup preset not found" });
+      }
+
+      // Update fields if provided
+      if (label !== undefined) preset.label = label.trim();
+      if (locationName !== undefined) preset.locationName = locationName.trim();
+      if (address !== undefined) preset.address = address ? address.trim() : undefined;
+      if (isActive !== undefined) preset.isActive = isActive;
+      if (order !== undefined) preset.order = order;
+
+      // Validate and update coordinates
+      if (lat !== undefined || lng !== undefined) {
+        const newLat = lat !== undefined ? lat : preset.lat;
+        const newLng = lng !== undefined ? lng : preset.lng;
+
+        if (typeof newLat !== "number" || typeof newLng !== "number") {
+          return res.status(400).json({
+            success: false,
+            error: "lat and lng must be numbers",
+          });
+        }
+
+        if (newLat < -90 || newLat > 90 || newLng < -180 || newLng > 180) {
+          return res.status(400).json({
+            success: false,
+            error: "Invalid coordinates. lat must be between -90 and 90, lng must be between -180 and 180",
+          });
+        }
+
+        preset.lat = newLat;
+        preset.lng = newLng;
+      }
+
+      await preset.save();
+
+      return res.json({
+        success: true,
+        message: "Meetup preset updated successfully",
+        preset: {
+          id: preset._id,
+          label: preset.label,
+          locationName: preset.locationName,
+          address: preset.address,
+          lat: preset.lat,
+          lng: preset.lng,
+          isActive: preset.isActive,
+          order: preset.order,
+          createdAt: preset.createdAt,
+          updatedAt: preset.updatedAt,
+        },
+      });
+    } catch (error) {
+      console.error("Update meetup preset error:", error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Server error",
+      });
+    }
+  };
+
+  // DELETE /api/admin/meetup-presets/:id - Delete meetup preset
+  deleteMeetupPreset = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { id } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: "Invalid preset ID" });
+      }
+
+      const preset = await MeetupPreset.findByIdAndDelete(id);
+      if (!preset) {
+        return res.status(404).json({ success: false, error: "Meetup preset not found" });
+      }
+
+      return res.json({
+        success: true,
+        message: "Meetup preset deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete meetup preset error:", error);
       return res.status(500).json({ success: false, error: "Server error" });
     }
   };
