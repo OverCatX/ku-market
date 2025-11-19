@@ -33,25 +33,45 @@ const calculatePasswordStrength = (password: string): PasswordStrength => {
 
   let score = 0;
   
-  // Length check (max 2 points)
-  if (password.length >= 6) score += 0.5;
-  if (password.length >= 8) score += 0.5;
-  if (password.length >= 12) score += 1;
+  // Length scoring (more important for security)
+  if (password.length >= 6) score += 0.5;  // Minimum requirement
+  if (password.length >= 8) score += 0.5;  // Recommended minimum
+  if (password.length >= 12) score += 1;   // Good length
+  if (password.length >= 16) score += 0.5; // Excellent length
   
-  // Character variety (max 2 points)
-  let varietyScore = 0;
-  if (/[a-z]/.test(password)) varietyScore++;
-  if (/[A-Z]/.test(password)) varietyScore++;
-  if (/[0-9]/.test(password)) varietyScore++;
-  if (/[^a-zA-Z0-9]/.test(password)) varietyScore++;
+  // Character variety (critical for security)
+  const hasLower = /[a-z]/.test(password);
+  const hasUpper = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[^a-zA-Z0-9]/.test(password);
   
-  // Variety scoring: 1 type = 0, 2 types = 0.5, 3 types = 1, 4 types = 2
-  if (varietyScore >= 4) score += 2;
-  else if (varietyScore === 3) score += 1;
-  else if (varietyScore === 2) score += 0.5;
+  const varietyCount = [hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
   
-  // Round and cap at 4
-  score = Math.min(Math.round(score), 4);
+  // Variety scoring: more variety = stronger
+  if (varietyCount === 4) score += 2;      // All character types
+  else if (varietyCount === 3) score += 1.5; // Three types
+  else if (varietyCount === 2) score += 0.5; // Two types
+  // 1 type = 0 points (too weak)
+  
+  // Check for common weak patterns (penalize)
+  const commonPatterns = [
+    /(.)\1{2,}/,           // Repeated characters (aaa, 111)
+    /(012|123|234|345|456|567|678|789|890)/, // Sequential numbers
+    /(abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i, // Sequential letters
+    /^(password|123456|qwerty|admin)/i, // Common passwords
+  ];
+  
+  const hasWeakPattern = commonPatterns.some(pattern => pattern.test(password));
+  if (hasWeakPattern) score -= 0.5;
+  
+  // Check for mixed case and numbers together (bonus)
+  if (hasLower && hasUpper && hasNumber) score += 0.5;
+  
+  // Ensure minimum score is 0 and maximum is 4
+  score = Math.max(0, Math.min(Math.round(score * 2) / 2, 4));
+  
+  // Round to nearest integer for display
+  const finalScore = Math.round(score);
 
   const strengths: PasswordStrength[] = [
     { score: 0, label: "Very Weak", color: "bg-red-500" },
@@ -61,7 +81,7 @@ const calculatePasswordStrength = (password: string): PasswordStrength => {
     { score: 4, label: "Strong", color: "bg-green-500" },
   ];
 
-  return strengths[score] || strengths[0];
+  return strengths[finalScore] || strengths[0];
 };
 
 export function SignUpForm() {
@@ -96,6 +116,18 @@ export function SignUpForm() {
     () => calculatePasswordStrength(formData.confirmPassword),
     [formData.confirmPassword]
   );
+
+  // Email validation
+  const isValidEmail = useMemo(() => {
+    if (!formData.kuEmail) return null;
+    return /^[^\s@]+@ku\.th$/.test(formData.kuEmail);
+  }, [formData.kuEmail]);
+
+  // Phone validation
+  const isValidPhone = useMemo(() => {
+    if (!formData.contact) return null;
+    return /^\d{9,10}$/.test(formData.contact);
+  }, [formData.contact]);
 
   const handleChange = <K extends keyof FormDataType>(
     field: K,
@@ -235,7 +267,7 @@ export function SignUpForm() {
                     : field === "faculty"
                     ? "Faculty of Engineering"
                     : field === "contact"
-                    ? "Phone number"
+                    ? "Phone number (9-10 digits)"
                     : "••••••••"
                 }
                 value={formData[field]}
@@ -243,14 +275,56 @@ export function SignUpForm() {
                 onFocus={() => setFocusedField(field)}
                 onBlur={() => setFocusedField(null)}
                 className={`w-full px-4 py-3 ${
-                  field === "password" || field === "confirmPassword" ? "pr-12" : ""
+                  field === "password" || field === "confirmPassword" 
+                    ? "pr-12" 
+                    : field === "kuEmail" || field === "contact"
+                    ? "pr-10"
+                    : ""
                 } border rounded-lg transition-all duration-200 ease-out focus:ring-2 focus:ring-[#69773D] focus:border-transparent focus:outline-none ${
                   focusedField === field 
                     ? "border-[#69773D] shadow-sm" 
                     : "border-gray-300 hover:border-gray-400"
+                } ${
+                  field === "kuEmail" && isValidEmail === true
+                    ? "border-green-500"
+                    : field === "kuEmail" && isValidEmail === false && formData.kuEmail
+                    ? "border-red-400"
+                    : ""
+                } ${
+                  field === "contact" && isValidPhone === true
+                    ? "border-green-500"
+                    : field === "contact" && isValidPhone === false && formData.contact
+                    ? "border-red-400"
+                    : ""
                 } ${errors[field] ? "border-red-400" : ""}`}
                 required
               />
+              {field === "kuEmail" && formData.kuEmail && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  {isValidEmail ? (
+                    <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-red-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+              )}
+              {field === "contact" && formData.contact && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  {isValidPhone ? (
+                    <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-red-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+              )}
               {field === "password" && (
                 <button
                   type="button"
@@ -316,6 +390,40 @@ export function SignUpForm() {
                     }}
                   />
                 </div>
+                <div className="mt-2 space-y-1">
+                  <div className="flex items-center text-xs">
+                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${formData.password.length >= 8 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}>
+                      {formData.password.length >= 8 ? "✓" : ""}
+                    </span>
+                    <span className={formData.password.length >= 8 ? "text-green-600" : "text-gray-500"}>
+                      At least 8 characters
+                    </span>
+                  </div>
+                  <div className="flex items-center text-xs">
+                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${/[a-z]/.test(formData.password) && /[A-Z]/.test(formData.password) ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}>
+                      {/[a-z]/.test(formData.password) && /[A-Z]/.test(formData.password) ? "✓" : ""}
+                    </span>
+                    <span className={/[a-z]/.test(formData.password) && /[A-Z]/.test(formData.password) ? "text-green-600" : "text-gray-500"}>
+                      Upper and lowercase letters
+                    </span>
+                  </div>
+                  <div className="flex items-center text-xs">
+                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${/[0-9]/.test(formData.password) ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}>
+                      {/[0-9]/.test(formData.password) ? "✓" : ""}
+                    </span>
+                    <span className={/[0-9]/.test(formData.password) ? "text-green-600" : "text-gray-500"}>
+                      At least one number
+                    </span>
+                  </div>
+                  <div className="flex items-center text-xs">
+                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${/[^a-zA-Z0-9]/.test(formData.password) ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}>
+                      {/[^a-zA-Z0-9]/.test(formData.password) ? "✓" : ""}
+                    </span>
+                    <span className={/[^a-zA-Z0-9]/.test(formData.password) ? "text-green-600" : "text-gray-500"}>
+                      At least one special character (!@#$%^&*)
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
             {field === "confirmPassword" && formData.confirmPassword && (
@@ -344,6 +452,22 @@ export function SignUpForm() {
                   </div>
                 )}
               </div>
+            )}
+            {field === "kuEmail" && formData.kuEmail && isValidEmail === false && !errors.kuEmail && (
+              <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Email must end with @ku.th
+              </p>
+            )}
+            {field === "contact" && formData.contact && isValidPhone === false && !errors.contact && (
+              <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Phone number must be 9-10 digits
+              </p>
             )}
             {errors[field] && (
               <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
