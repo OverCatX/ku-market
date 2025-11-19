@@ -101,3 +101,104 @@ export const userLogin = (req: Request, res: Response, next: NextFunction) => {
     next();
 }
 
+export const forgotPassword = (req: Request, res: Response, next: NextFunction) => {
+    const scheme = Joi.object({
+        email: Joi.string()
+            .required()
+            .trim()
+            .email()
+            .pattern(/^[^\s@]+@(ku\.th|ku\.ac\.th)$/)
+            .messages({
+                "string.empty": "Email is required",
+                "string.email": "Please enter a valid email address",
+                "string.pattern.base": "Email must be a valid @ku.th or @ku.ac.th email address"
+            })
+    })
+
+    const payload = req.body;
+    const {error, value} = scheme.validate(payload, {
+        abortEarly: false,
+        stripUnknown: true
+    });
+
+    if (error){
+        const firstError = error.details[0];
+        return res.status(400).json({
+            success: false,
+            error: firstError.message
+        })
+    }
+    
+    req.body = value;
+    next();
+}
+
+export const verifyOtp = (req: Request, res: Response, next: NextFunction) => {
+    const scheme = Joi.object({
+        email: Joi.string()
+            .required()
+            .trim()
+            .email()
+            .pattern(/^[^\s@]+@(ku\.th|ku\.ac\.th)$/)
+            .messages({
+                "string.empty": "Email is required",
+                "string.email": "Please enter a valid email address",
+                "string.pattern.base": "Email must be a valid @ku.th or @ku.ac.th email address"
+            }),
+        otp: Joi.string()
+            .required()
+            .trim()
+            .pattern(/^\d{6}$/)
+            .messages({
+                "string.empty": "OTP is required",
+                "string.pattern.base": "OTP must be 6 digits"
+            })
+    })
+
+    const payload = req.body;
+    const {error, value} = scheme.validate(payload, {
+        abortEarly: false,
+        stripUnknown: true
+    });
+
+    if (error){
+        const firstError = error.details[0];
+        return res.status(400).json({
+            success: false,
+            error: firstError.message
+        })
+    }
+    
+    req.body = value;
+    next();
+}
+
+export const resetPassword = (req: Request, res: Response, next: NextFunction) => {
+    const scheme = Joi.object({
+        token: Joi.string().required().trim().messages({
+            "string.empty": "Reset token is required"
+        }),
+        new_password: Joi.string().required().min(8).messages({
+            "string.empty": "New password is required",
+            "string.min": "Password must be at least 8 characters long"
+        })
+    })
+
+    const payload = req.body;
+    const {error, value} = scheme.validate(payload, {
+        abortEarly: false,
+        stripUnknown: true
+    });
+
+    if (error){
+        const firstError = error.details[0];
+        return res.status(400).json({
+            success: false,
+            error: firstError.message
+        })
+    }
+    
+    req.body = value;
+    next();
+}
+

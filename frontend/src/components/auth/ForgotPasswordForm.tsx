@@ -1,14 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { aboutColors } from "@/components/aboutus/SectionColors";
+import { API_BASE } from "@/config/constants";
+import { getAuthUser } from "@/lib/auth";
 
 export default function ForgotPasswordForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  // Load user email on mount (optional - only if logged in)
+  useEffect(() => {
+    const user = getAuthUser();
+    if (user) {
+      const userEmailValue = (user as { email?: string; kuEmail?: string }).email || (user as { email?: string; kuEmail?: string }).kuEmail;
+      if (userEmailValue) {
+        setUserEmail(userEmailValue);
+        setEmail(userEmailValue); // Auto-fill with user's email
+      }
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -22,15 +39,33 @@ export default function ForgotPasswordForm() {
 
     try {
       setSubmitting(true);
-      const res = await fetch("/api/auth/forgot-password", {
+
+      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json"
+        },
         credentials: "include",
         body: JSON.stringify({ email }),
       });
-      if (!res.ok) throw new Error("Failed to send reset link.");
-      setSuccessMsg("We’ve sent a password reset link to your email.");
-      setEmail("");
+      
+      // Check if response is JSON
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Server returned an invalid response. Please try again.");
+      }
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send reset link.");
+      }
+      
+      setSuccessMsg(data.message || "OTP has been sent to your email. Please check your inbox.");
+      // Redirect to verify OTP page
+      setTimeout(() => {
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+      }, 1500);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
       setErrorMsg(message);
@@ -77,14 +112,18 @@ export default function ForgotPasswordForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@ku.th"
-              className="w-full rounded-md border px-3 py-2 text-sm outline-none"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#69773D] focus:border-transparent"
               style={{
-                borderColor: aboutColors.borderSoft,
                 backgroundColor: aboutColors.creamBg,
               }}
             />
+            {userEmail && (
+              <p className="mt-1 text-[12px] text-gray-600">
+                Your account email: <span className="font-medium">{userEmail}</span>
+              </p>
+            )}
             <p className="mt-2 text-[13px] text-slate-500">
-              We’ll email a secure link to reset your password.
+              We&apos;ll email a secure link to reset your password. Please enter your account email address.
             </p>
           </div>
 
@@ -93,7 +132,7 @@ export default function ForgotPasswordForm() {
               type="submit"
               disabled={submitting}
               className="rounded-full px-5 py-2 text-sm font-semibold shadow-sm hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
-              style={{ backgroundColor: aboutColors.brown, color: aboutColors.creamSoft }}
+              style={{ backgroundColor: "#69773D", color: aboutColors.creamSoft }}
             >
               {submitting ? "Sending..." : "Send reset link"}
             </button>
