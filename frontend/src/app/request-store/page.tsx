@@ -392,10 +392,10 @@ export default function BecomeASeller() {
                 <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Clock className="w-10 h-10 text-yellow-600" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                <h2 className="text-3xl font-bold text-[#A0704F] mb-2">
                   Application Pending
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-[#A0704F]">
                   Your shop request is waiting for admin approval
                 </p>
               </>
@@ -428,7 +428,7 @@ export default function BecomeASeller() {
             )}
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-6 mb-6 space-y-3">
+          <div className="bg-[#A0704F]/10 rounded-xl p-6 mb-6 space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-600">Shop Name:</span>
               <span className="font-semibold text-gray-800">
@@ -939,13 +939,13 @@ export default function BecomeASeller() {
                       </h4>
                       <ul className="space-y-1 text-gray-700">
                         <li>
-                          <strong>Name:</strong> {form.fullName}
+                          <strong className="text-[#4A5130]">Name:</strong> {form.fullName}
                         </li>
                         <li>
-                          <strong>Email:</strong> {form.email}
+                          <strong className="text-[#4A5130]">Email:</strong> {form.email}
                         </li>
                         <li>
-                          <strong>Phone:</strong> {form.phone}
+                          <strong className="text-[#4A5130]">Phone:</strong> {form.phone}
                         </li>
                       </ul>
                     </div>
@@ -959,16 +959,16 @@ export default function BecomeASeller() {
                       </h4>
                       <ul className="space-y-1 text-gray-700">
                         <li>
-                          <strong>Business Name:</strong> {form.businessName}
+                          <strong className="text-[#4A5130]">Business Name:</strong> {form.businessName}
                         </li>
                         <li>
-                          <strong>Type:</strong> {form.businessType}
+                          <strong className="text-[#4A5130]">Type:</strong> {form.businessType}
                         </li>
                         <li>
-                          <strong>Category:</strong> {form.productCategory}
+                          <strong className="text-[#4A5130]">Category:</strong> {form.productCategory}
                         </li>
                         <li>
-                          <strong>Description:</strong>{" "}
+                          <strong className="text-[#4A5130]">Description:</strong>{" "}
                           {form.businessDescription}
                         </li>
                       </ul>

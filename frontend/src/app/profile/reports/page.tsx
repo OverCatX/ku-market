@@ -75,7 +75,7 @@ export default function MyReportsPage() {
 
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Reports</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130]">My Reports</h1>
           <p className="text-sm md:text-base text-gray-600">
             Track the status of reports you have submitted to the KU Market admin team.
           </p>
@@ -84,7 +84,7 @@ export default function MyReportsPage() {
           type="button"
           onClick={handleRefresh}
           disabled={refreshing}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white border border-blue-200 hover:bg-blue-50 transition disabled:opacity-60"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white border border-[#364C91] bg-[#364C91] hover:bg-[#2d3d75] transition disabled:opacity-60"
         >
           <RefreshCcw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
           Refresh

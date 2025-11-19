@@ -168,7 +168,7 @@ export default function ProfilePage() {
       />
 
       {/* Verification Section */}
-      <div className="mt-8 p-6 bg-[#EEB43F] rounded-xl border border-[#F9E5BD]">
+      <div className="mt-8 p-6 bg-[#8DB368]/10 rounded-xl border border-[#8DB368]/20">
         <div className="flex items-start justify-between gap-4 flex-col sm:flex-row">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
@@ -177,7 +177,7 @@ export default function ProfilePage() {
                   user.isVerified ? "text-green-600" : "text-gray-400"
                 }`}
               />
-              <h3 className="text-lg font-semibold text-gray-800">
+              <h3 className="text-lg font-semibold text-[#4A5130]">
                 Identity Verification
               </h3>
             </div>
@@ -223,12 +223,12 @@ export default function ProfilePage() {
       {/* Seller Actions */}
       <div className="mt-6 space-y-4">
         {hasApprovedShop ? (
-          <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
+          <div className="p-6 bg-[#A0704F]/10 rounded-xl border border-[#A0704F]/20">
             <div className="flex items-start justify-between gap-4 flex-col sm:flex-row">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <Store className="w-6 h-6 text-green-600" />
-                  <h3 className="text-lg font-semibold text-gray-800">
+                  <Store className="w-6 h-6 text-[#A0704F]" />
+                  <h3 className="text-lg font-semibold text-[#A0704F]">
                     Seller Panel
                   </h3>
                 </div>
@@ -238,7 +238,7 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={() => router.push("/seller/dashboard")}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 whitespace-nowrap"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#A0704F] text-white rounded-lg hover:bg-[#8a5f3f] shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 whitespace-nowrap"
               >
                 <Store className="w-5 h-5" />
                 Manage Seller Panel
@@ -250,8 +250,8 @@ export default function ProfilePage() {
             <div className="flex items-start justify-between gap-4 flex-col sm:flex-row">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-3">
-                  <Store className="w-6 h-6 text-yellow-600" />
-                  <h3 className="text-lg font-semibold text-gray-800">
+                  <Store className="w-6 h-6 text-[#A0704F]" />
+                  <h3 className="text-lg font-semibold text-[#A0704F]">
                     Seller Application Pending
                   </h3>
                 </div>
@@ -261,7 +261,7 @@ export default function ProfilePage() {
                 {shopDetails && (
                   <div className="space-y-2 text-sm">
                     <div className="flex gap-2">
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-[#A0704F]">
                         Shop Name:
                       </span>
                       <span className="text-gray-600">
@@ -269,14 +269,14 @@ export default function ProfilePage() {
                       </span>
                     </div>
                     <div className="flex gap-2">
-                      <span className="font-medium text-gray-700">Type:</span>
+                      <span className="font-medium text-[#A0704F]">Type:</span>
                       <span className="text-gray-600">
                         {shopDetails.shopType}
                       </span>
                     </div>
                     {shopDetails.submittedAt && (
                       <div className="flex gap-2">
-                        <span className="font-medium text-gray-700">
+                        <span className="font-medium text-[#A0704F]">
                           Submitted:
                         </span>
                         <span className="text-gray-600">
@@ -291,7 +291,7 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={() => router.push("/request-store")}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 shadow-md hover:shadow-lg transition-all duration-300 whitespace-nowrap"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#A0704F] text-white rounded-lg hover:bg-[#8a5f3f] shadow-md hover:shadow-lg transition-all duration-300 whitespace-nowrap"
               >
                 View Status
               </button>
@@ -351,7 +351,7 @@ export default function ProfilePage() {
           user.role !== "seller" && (
             <button
               onClick={handleRequestStore}
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 bg-[#A0704F] text-white rounded-lg hover:bg-[#8a5f3f] shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
             >
               <Store className="w-5 h-5" />
               Become a Seller
@@ -368,7 +368,7 @@ export default function ProfilePage() {
             <Flag className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-[#780606]">
               Report history
             </h3>
             <p className="text-sm text-gray-600">

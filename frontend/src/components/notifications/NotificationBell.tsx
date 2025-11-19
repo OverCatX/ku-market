@@ -135,13 +135,13 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
   const getNotificationIcon = (type: Notification["type"]) => {
     switch (type) {
       case "order":
-        return <Package className="w-5 h-5 text-blue-500" />;
+        return <Package className="w-5 h-5 text-[#8DB368]" />;
       case "message":
         return <MessageCircle className="w-5 h-5 text-green-500" />;
       case "item":
         return <ShoppingBag className="w-5 h-5 text-purple-500" />;
       case "system":
-        return <AlertCircle className="w-5 h-5 text-orange-500" />;
+        return <AlertCircle className="w-5 h-5 text-[#780606]" />;
       default:
         return <Bell className="w-5 h-5 text-gray-500" />;
     }
@@ -199,12 +199,12 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
         <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[80vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-900">Notifications</h3>
+            <h3 className="font-semibold text-[#4A5130]">Notifications</h3>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-xs text-[#8DB368] hover:text-[#7ba05a] font-medium"
                   title="Mark all as read"
                 >
                   <CheckCheck className="w-4 h-4" />
@@ -227,15 +227,15 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
             {notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-4">
                 <Bell className="w-12 h-12 text-gray-300 mb-3" />
-                <p className="text-gray-500 text-sm">No notifications yet</p>
+                <p className="text-[#4A5130] text-sm">No notifications yet</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-4 hover:bg-gray-50 transition cursor-pointer relative ${
-                      !notification.read ? "bg-blue-50" : ""
+                    className={`p-4 hover:bg-[#F6F2E5] transition cursor-pointer relative ${
+                      !notification.read ? "bg-[#8DB368]/10" : "bg-[#F6F2E5]"
                     }`}
                     onClick={() => handleNotificationClick(notification)}
                   >
@@ -257,14 +257,14 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
                       </div>
                       <div className="flex-1 pr-6">
                         <div className="flex items-start justify-between">
-                          <h4 className="font-medium text-sm text-gray-900">
+                          <h4 className="font-medium text-sm text-[#4A5130]">
                             {notification.title}
                           </h4>
                           {!notification.read && (
-                            <span className="w-2 h-2 bg-blue-500 rounded-full ml-2 mt-1.5"></span>
+                            <span className="w-2 h-2 bg-[#8DB368] rounded-full ml-2 mt-1.5"></span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                        <p className="text-sm text-[#4A5130] mt-1 line-clamp-2">
                           {notification.message}
                         </p>
                         <p className="text-xs text-gray-400 mt-2">
@@ -283,7 +283,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
             <div className="p-3 border-t border-gray-200 text-center">
               <a
                 href="/notifications"
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="text-sm text-[#8DB368] hover:text-[#7ba05a] font-medium"
               >
                 View all notifications
               </a>

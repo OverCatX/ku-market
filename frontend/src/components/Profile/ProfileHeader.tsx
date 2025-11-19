@@ -10,7 +10,7 @@ export default function ProfileHeader({
   return (
     <div className="flex items-center justify-between mb-6">
       <div>
-        <h1 className="text-3xl font-semibold text-gray-800 flex items-center gap-2">
+        <h1 className="text-3xl font-semibold text-[#4A5130] flex items-center gap-2">
           <User className="w-6 h-6 text-[#69773D]" />
           {name || "Profile"}
         </h1>
@@ -21,8 +21,8 @@ export default function ProfileHeader({
       <span
         className={`px-3 py-1 rounded-full text-sm font-medium ${
           role === "seller"
-            ? "bg-green-100 text-green-700"
-            : "bg-blue-100 text-blue-700"
+            ? "bg-[#A0704F]/20 text-[#A0704F]"
+            : "bg-[#4A5130]/20 text-[#4A5130]"
         }`}
       >
         {role === "seller" ? "Seller" : "Buyer"}
