@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { aboutColors } from "@/components/aboutus/SectionColors";
 import { API_BASE } from "@/config/constants";
-import { getAuthToken, getAuthUser } from "@/lib/auth";
-import Modal from "@/components/ui/Modal";
+import { getAuthUser } from "@/lib/auth";
 
 export default function VerifyOtpPage() {
   const router = useRouter();
@@ -33,8 +32,11 @@ export default function VerifyOtpPage() {
   useEffect(() => {
     if (!email) {
       const user = getAuthUser();
-      if (user && (user.email || user.kuEmail)) {
-        router.replace(`/verify-otp?email=${encodeURIComponent(user.email || user.kuEmail)}`);
+      if (user) {
+        const userEmail = (user as { email?: string; kuEmail?: string }).email || (user as { email?: string; kuEmail?: string }).kuEmail;
+        if (userEmail) {
+          router.replace(`/verify-otp?email=${encodeURIComponent(userEmail)}`);
+        }
       }
     }
   }, [email, router]);

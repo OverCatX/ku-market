@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { aboutColors } from "@/components/aboutus/SectionColors";
 import { API_BASE } from "@/config/constants";
-import { getAuthToken, getAuthUser } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth";
 
 export default function ForgotPasswordForm() {
   const router = useRouter();
@@ -18,10 +18,12 @@ export default function ForgotPasswordForm() {
   // Load user email on mount (optional - only if logged in)
   useEffect(() => {
     const user = getAuthUser();
-    if (user && (user.email || user.kuEmail)) {
-      const userEmailValue = (user.email || user.kuEmail) as string;
-      setUserEmail(userEmailValue);
-      setEmail(userEmailValue); // Auto-fill with user's email
+    if (user) {
+      const userEmailValue = (user as { email?: string; kuEmail?: string }).email || (user as { email?: string; kuEmail?: string }).kuEmail;
+      if (userEmailValue) {
+        setUserEmail(userEmailValue);
+        setEmail(userEmailValue); // Auto-fill with user's email
+      }
     }
   }, []);
 
@@ -121,7 +123,7 @@ export default function ForgotPasswordForm() {
               </p>
             )}
             <p className="mt-2 text-[13px] text-slate-500">
-              We'll email a secure link to reset your password. Please enter your account email address.
+              We&apos;ll email a secure link to reset your password. Please enter your account email address.
             </p>
           </div>
 

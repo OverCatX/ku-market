@@ -1,7 +1,6 @@
 import { Router} from "express";
 import AuthController from "../controllers/auth.controller";
 import {userSignup, userLogin, forgotPassword, verifyOtp, resetPassword} from "../middlewares/validators/auth.validation";
-import { authenticate } from "../middlewares/authentication";
 
 const router = Router();
 const authController = new AuthController();
