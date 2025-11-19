@@ -200,14 +200,16 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (review.images && review.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev + 1) % review.images.length);
+      const imagesLength = review.images.length;
+      setCurrentImageIndex((prev) => (prev + 1) % imagesLength);
     }
   };
 
   const prevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (review.images && review.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev - 1 + review.images.length) % review.images.length);
+      const imagesLength = review.images.length;
+      setCurrentImageIndex((prev) => (prev - 1 + imagesLength) % imagesLength);
     }
   };
 

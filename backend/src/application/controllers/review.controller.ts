@@ -41,7 +41,7 @@ export default class ReviewController {
       }
 
       // Handle image uploads if files are provided
-      let imageUrls: string[] = [];
+      const imageUrls: string[] = [];
       if (req.files && Array.isArray(req.files) && req.files.length > 0) {
         const files = req.files as Express.Multer.File[];
         if (files.length > 5) {
