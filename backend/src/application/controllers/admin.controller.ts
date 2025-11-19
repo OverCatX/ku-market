@@ -7,12 +7,7 @@ import Review, { IReview } from "../../data/models/Review";
 import MeetupPreset from "../../data/models/MeetupPreset";
 import mongoose from "mongoose";
 import { createNotification } from "../../lib/notifications";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 export default class AdminController {
   // GET /api/admin/verifications - Get all verification requests
