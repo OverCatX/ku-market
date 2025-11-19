@@ -2,11 +2,14 @@
 
 Online marketplace platform for Kasetsart University students.
 
+![Backend Tests](https://img.shields.io/badge/backend%20tests-passing-brightgreen)
+![Frontend Lint](https://img.shields.io/badge/frontend%20lint-passing-brightgreen)[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Latest-green)](https://www.mongodb.com/)
 
-##✨ Features
+## ✨ Features
 
 - **Authentication** - Email validation (@ku.th users, @ku.ac.th admins), OTP password reset, identity verification
 - **Marketplace** - Browse, search, filter items. Create branded shops with custom categories
