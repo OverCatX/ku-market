@@ -39,7 +39,7 @@ beforeEach(async () => {
   // Create a test user
   const testUser = new User({
     name: "Test User",
-    kuEmail: "test@ku.ac.th",
+    kuEmail: "test@ku.th",
     password: "password123",
     faculty: "Engineering",
     contact: "0812345678"

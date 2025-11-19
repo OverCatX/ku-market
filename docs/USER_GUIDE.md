@@ -17,7 +17,7 @@ How to use KU Market platform.
 1. Go to `/signup`
 2. Fill in your information:
    - Name
-   - KU Email (@ku.ac.th required)
+   - KU Email (@ku.th required)
    - Password
    - Faculty
    - Phone number

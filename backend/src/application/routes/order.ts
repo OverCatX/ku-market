@@ -23,4 +23,7 @@ router.post("/:id/payment", orderController.submitPaymentNotification);
 // POST /api/orders/:id/buyer-received - Buyer confirms they received the product
 router.post("/:id/buyer-received", orderController.buyerReceived);
 
+// GET /api/orders/:id/payment-qr - Get QR code data for PromptPay payment
+router.get("/:id/payment-qr", orderController.getPaymentQr);
+
 export default router;

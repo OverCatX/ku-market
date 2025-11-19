@@ -64,8 +64,8 @@ export function SignUpForm() {
       newErrors.name = "Name is required";
       valid = false;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(kuEmail)) {
-      newErrors.kuEmail = "Invalid KU Email address";
+    if (!/^[^\s@]+@ku\.th$/.test(kuEmail)) {
+      newErrors.kuEmail = "Email must be a valid @ku.th email address";
       valid = false;
     }
     if (password.length < 6) {

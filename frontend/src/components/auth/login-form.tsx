@@ -28,9 +28,9 @@ export function LoginForm() {
     let valid = true;
     const newErrors = { email: "", password: "" };
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@(ku\.th|ku\.ac\.th)$/;
     if (!emailRegex.test(email)) {
-      newErrors.email = "Invalid email address";
+      newErrors.email = "Email must be a valid @ku.th or @ku.ac.th email address";
       valid = false;
     }
     if (!password.trim()) {

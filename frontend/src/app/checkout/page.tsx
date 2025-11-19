@@ -21,7 +21,7 @@ import { API_BASE } from "@/config/constants";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
 
-type PaymentMethod = "cash" | "promptpay";
+type PaymentMethod = "cash" | "promptpay" | "transfer";
 type DeliveryMethod = "pickup" | "delivery";
 
 interface ShippingInfo {
@@ -60,6 +60,13 @@ export default function CheckoutPage() {
   const [deliveryMethod, setDeliveryMethod] =
     useState<DeliveryMethod>("pickup");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+
+  // Auto-change payment method when delivery method changes
+  useEffect(() => {
+    if (deliveryMethod === "delivery" && paymentMethod === "cash") {
+      setPaymentMethod("promptpay");
+    }
+  }, [deliveryMethod, paymentMethod]);
 
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
     fullName: "",
@@ -715,7 +722,8 @@ export default function CheckoutPage() {
                               className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
                             />
                             <p className="mt-1 text-xs text-gray-500">
-                              Select when you&apos;d like to meet up with the seller
+                              Select when you&apos;d like to meet up with the
+                              seller
                             </p>
                           </div>
                         </div>
@@ -770,7 +778,9 @@ export default function CheckoutPage() {
                                   Preferred Time
                                 </span>
                                 <span className="text-right text-sm font-medium text-blue-600">
-                                  {new Date(pickupDetails.preferredTime).toLocaleString("th-TH", {
+                                  {new Date(
+                                    pickupDetails.preferredTime
+                                  ).toLocaleString("th-TH", {
                                     year: "numeric",
                                     month: "short",
                                     day: "numeric",
@@ -921,32 +931,34 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-3">
-                  {/* Cash Payment */}
-                  <label
-                    className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
-                      paymentMethod === "cash"
-                        ? "border-[#84B067] bg-green-50"
-                        : "border-gray-300 hover:border-[#84B067]"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="cash"
-                      checked={paymentMethod === "cash"}
-                      onChange={(e) =>
-                        setPaymentMethod(e.target.value as PaymentMethod)
-                      }
-                      className="w-4 h-4 text-[#84B067]"
-                    />
-                    <Package className="w-5 h-5 text-[#84B067]" />
-                    <div className="flex-1">
-                      <div className="font-medium">Cash</div>
-                      <div className="text-sm text-gray-600">
-                        Pay when you receive the item
+                  {/* Cash Payment - Only show for pickup */}
+                  {deliveryMethod === "pickup" && (
+                    <label
+                      className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
+                        paymentMethod === "cash"
+                          ? "border-[#84B067] bg-green-50"
+                          : "border-gray-300 hover:border-[#84B067]"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        value="cash"
+                        checked={paymentMethod === "cash"}
+                        onChange={(e) =>
+                          setPaymentMethod(e.target.value as PaymentMethod)
+                        }
+                        className="w-4 h-4 text-[#84B067]"
+                      />
+                      <Package className="w-5 h-5 text-[#84B067]" />
+                      <div className="flex-1">
+                        <div className="font-medium">Cash</div>
+                        <div className="text-sm text-gray-600">
+                          Pay when you receive the item
+                        </div>
                       </div>
-                    </div>
-                  </label>
+                    </label>
+                  )}
 
                   {/* PromptPay Payment */}
                   <label
@@ -1119,18 +1131,21 @@ export default function CheckoutPage() {
                           {pickupDetails.note}
                         </p>
                       )}
-                      {deliveryMethod === "pickup" && pickupDetails.preferredTime && (
-                        <p className="mb-1 text-blue-600">
-                          <span className="font-medium">Preferred time:</span>{" "}
-                          {new Date(pickupDetails.preferredTime).toLocaleString("th-TH", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      )}
+                      {deliveryMethod === "pickup" &&
+                        pickupDetails.preferredTime && (
+                          <p className="mb-1 text-blue-600">
+                            <span className="font-medium">Preferred time:</span>{" "}
+                            {new Date(
+                              pickupDetails.preferredTime
+                            ).toLocaleString("th-TH", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        )}
                       <p>
                         <span className="font-medium">Payment:</span>{" "}
                         {paymentMethod === "cash"
@@ -1249,7 +1264,10 @@ export default function CheckoutPage() {
                         )}
                         {pickupDetails.preferredTime && (
                           <p className="text-[11px] text-blue-600 font-medium">
-                            Preferred time: {new Date(pickupDetails.preferredTime).toLocaleString("th-TH", {
+                            Preferred time:{" "}
+                            {new Date(
+                              pickupDetails.preferredTime
+                            ).toLocaleString("th-TH", {
                               year: "numeric",
                               month: "short",
                               day: "numeric",

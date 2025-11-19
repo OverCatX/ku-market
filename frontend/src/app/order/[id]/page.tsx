@@ -16,7 +16,10 @@ import {
   ShoppingBag,
   CreditCard,
   MapPin,
+  QrCode,
+  AlertCircle,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import toast from "react-hot-toast";
 import { API_BASE } from "@/config/constants";
 import { useRouter } from "next/navigation";
@@ -262,6 +265,9 @@ export default function OrderDetailPage({
   const [submittingPayment, setSubmittingPayment] = useState(false);
   const [contactingSeller, setContactingSeller] = useState(false);
   const [markingReceived, setMarkingReceived] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState<string | null>(null);
+  const [loadingQrCode, setLoadingQrCode] = useState(false);
+  const [showQrCode, setShowQrCode] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     setLoading(true);
@@ -327,20 +333,30 @@ export default function OrderDetailPage({
     fetchOrder();
   }, [fetchOrder]);
 
+  // Auto-fetch QR code when order is confirmed and payment method is promptpay
+  useEffect(() => {
+    if (
+      order &&
+      order.paymentMethod === "promptpay" &&
+      order.status === "confirmed" &&
+      order.paymentStatus !== "paid" &&
+      order.paymentStatus !== "payment_submitted" &&
+      !qrCodeData
+    ) {
+      // Don't auto-fetch, let user click button to show QR code
+    }
+  }, [order, qrCodeData]);
+
   const handleMakePayment = useCallback(async () => {
     if (!order) {
       return;
     }
 
-    if (!isAuthenticated()) {
-      toast.error("Please login to submit payment");
-      return;
-    }
-
-    const token = getAuthToken();
+    // Get token directly from localStorage to avoid auto-clearing
+    const token = localStorage.getItem("authentication") || localStorage.getItem("token");
     if (!token) {
-      clearAuthTokens();
       toast.error("Please login to submit payment");
+      router.push("/login?redirect=/order/" + order.id);
       return;
     }
 
@@ -358,6 +374,14 @@ export default function OrderDetailPage({
         }
       );
 
+      // Only clear tokens if we get 401 Unauthorized
+      if (response.status === 401) {
+        clearAuthTokens();
+        toast.error("Your session expired. Please login again.");
+        router.push("/login?redirect=/order/" + order.id);
+        return;
+      }
+
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
         const message =
@@ -371,13 +395,79 @@ export default function OrderDetailPage({
       await fetchOrder();
     } catch (err) {
       console.error("Submit payment error:", err);
-      toast.error(
-        err instanceof Error ? err.message : "Failed to submit payment"
-      );
+      // Only show error if it's not a navigation error
+      if (err instanceof Error && !err.message.includes("session expired")) {
+        toast.error(
+          err instanceof Error ? err.message : "Failed to submit payment"
+        );
+      }
     } finally {
       setSubmittingPayment(false);
     }
-  }, [fetchOrder, order]);
+  }, [fetchOrder, order, router]);
+
+  const fetchPaymentQr = useCallback(async () => {
+    if (!order || order.paymentMethod !== "promptpay" || order.status !== "confirmed") {
+      return;
+    }
+
+    if (order.paymentStatus === "paid" || order.paymentStatus === "payment_submitted") {
+      return;
+    }
+
+    // Get token directly from localStorage to avoid auto-clearing
+    const token = localStorage.getItem("authentication") || localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to view QR code");
+      return;
+    }
+
+    setLoadingQrCode(true);
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/orders/${order.id}/payment-qr`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Only clear tokens if we get 401 Unauthorized
+      if (response.status === 401) {
+        clearAuthTokens();
+        toast.error("Your session expired. Please login again.");
+        router.push("/login?redirect=/order/" + order.id);
+        return;
+      }
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        console.error("Failed to fetch payment QR:", payload);
+        toast.error("Failed to load QR code. Please try again.");
+        return;
+      }
+
+      const data = await response.json();
+      if (data.success && data.qrData?.promptpayData) {
+        setQrCodeData(data.qrData.promptpayData);
+        setShowQrCode(true);
+      }
+    } catch (err) {
+      console.error("Fetch payment QR error:", err);
+      toast.error("Failed to load QR code. Please try again.");
+    } finally {
+      setLoadingQrCode(false);
+    }
+  }, [order, router]);
+
+  const handleShowQrCode = useCallback(() => {
+    if (qrCodeData) {
+      setShowQrCode(true);
+    } else {
+      fetchPaymentQr();
+    }
+  }, [qrCodeData, fetchPaymentQr]);
 
   const handleMarkReceived = useCallback(async () => {
     if (!order) {
@@ -562,7 +652,7 @@ export default function OrderDetailPage({
     return { requiresPayment, awaitingBuyerPayment, paymentComplete };
   }, [order]);
 
-  const { awaitingBuyerPayment, paymentComplete } = paymentState;
+  const { paymentComplete } = paymentState;
 
   if (loading) {
     return (
@@ -804,38 +894,153 @@ export default function OrderDetailPage({
               </div>
             </section>
 
+            {/* QR Code Modal for PromptPay */}
+            {showQrCode && qrCodeData && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                <div className="rounded-2xl bg-white p-6 max-w-md w-full">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      PromptPay QR Code
+                    </h3>
+                    <button
+                      onClick={() => setShowQrCode(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <XCircle size={24} />
+                    </button>
+                  </div>
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
+                      <QRCodeSVG
+                        value={qrCodeData}
+                        size={256}
+                        level="H"
+                        includeMargin={true}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 text-center">
+                      Scan this QR code with your banking app to complete payment
+                    </p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      Amount: {order.totalPrice.toLocaleString()} THB
+                    </p>
+                    <div className="flex gap-3 w-full">
+                      <button
+                        onClick={() => setShowQrCode(false)}
+                        className="flex-1 rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                      >
+                        Close
+                      </button>
+                      <button
+                        onClick={handleMakePayment}
+                        disabled={submittingPayment}
+                        className={`flex-1 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                          submittingPayment
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
+                        }`}
+                      >
+                        {submittingPayment
+                          ? "Submitting..."
+                          : "I've Paid"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="mt-6 flex flex-wrap gap-3">
-              {awaitingBuyerPayment && !paymentComplete && (
-                <button
-                  type="button"
-                  onClick={handleMakePayment}
-                  disabled={submittingPayment}
-                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                    submittingPayment
-                      ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                      : "bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
-                  }`}
-                >
-                  <CreditCard size={16} />
-                  {submittingPayment ? "Submitting..." : "Make payment"}
-                </button>
-              )}
+              {/* Payment button for PromptPay when order is confirmed */}
+              {normalizedStatus === "confirmed" &&
+                order.paymentMethod === "promptpay" &&
+                !paymentComplete && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleShowQrCode}
+                      disabled={loadingQrCode}
+                      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                        loadingQrCode
+                          ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
+                          : "bg-blue-600 text-white hover:bg-blue-700"
+                      }`}
+                    >
+                      <QrCode size={16} />
+                      {loadingQrCode
+                        ? "Loading QR Code..."
+                        : "Show QR Code"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleMakePayment}
+                      disabled={submittingPayment}
+                      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                        submittingPayment
+                          ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
+                          : "bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
+                      }`}
+                    >
+                      <CreditCard size={16} />
+                      {submittingPayment
+                        ? "Submitting..."
+                        : "Submit Payment Notification"}
+                    </button>
+                  </>
+                )}
+              {/* Payment button for Transfer when order is confirmed */}
+              {normalizedStatus === "confirmed" &&
+                order.paymentMethod === "transfer" &&
+                !paymentComplete && (
+                  <button
+                    type="button"
+                    onClick={handleMakePayment}
+                    disabled={submittingPayment}
+                    className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                      submittingPayment
+                        ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
+                        : "bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
+                    }`}
+                  >
+                    <CreditCard size={16} />
+                    {submittingPayment
+                      ? "Submitting..."
+                      : "Submit Payment Notification"}
+                  </button>
+                )}
               {normalizedStatus === "confirmed" &&
                 order.deliveryMethod === "pickup" &&
                 !order.buyerReceived && (
-                  <button
-                    type="button"
-                    onClick={handleMarkReceived}
-                    disabled={markingReceived}
-                    className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                      markingReceived
-                        ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                        : "bg-green-600 text-white hover:bg-green-700"
-                    }`}
-                  >
-                    <CheckCircle size={16} />
-                    {markingReceived ? "Saving..." : "I received the product"}
-                  </button>
+                  <>
+                    {/* For PromptPay/Transfer: Only show button if payment is submitted */}
+                    {(order.paymentMethod === "promptpay" ||
+                      order.paymentMethod === "transfer") &&
+                      !paymentComplete && (
+                        <div className="inline-flex items-center gap-2 rounded-xl bg-yellow-100 px-4 py-2 text-sm font-semibold text-yellow-800">
+                          <AlertCircle size={16} />
+                          Please submit payment first before confirming receipt
+                        </div>
+                      )}
+                    {/* Show button only if: cash payment OR payment is completed */}
+                    {((order.paymentMethod === "cash") ||
+                      (order.paymentMethod === "promptpay" ||
+                        order.paymentMethod === "transfer") &&
+                        paymentComplete) && (
+                      <button
+                        type="button"
+                        onClick={handleMarkReceived}
+                        disabled={markingReceived}
+                        className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                          markingReceived
+                            ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
+                            : "bg-green-600 text-white hover:bg-green-700"
+                        }`}
+                      >
+                        <CheckCircle size={16} />
+                        {markingReceived ? "Saving..." : "I received the product"}
+                      </button>
+                    )}
+                  </>
                 )}
               {order.buyerReceived && (
                 <div className="inline-flex items-center gap-2 rounded-xl bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
