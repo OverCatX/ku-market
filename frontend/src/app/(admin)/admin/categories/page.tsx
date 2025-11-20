@@ -314,7 +314,7 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>

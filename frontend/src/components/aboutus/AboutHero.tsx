@@ -13,7 +13,7 @@ export default function AboutHero() {
         <div
           className="inline-block rounded-full px-6 py-3 text-base font-semibold mb-6 shadow-sm"
           style={{
-            backgroundColor: aboutColors.brown,
+            backgroundColor: aboutColors.lightGreen,
             color: aboutColors.creamSoft,
           }}
         >

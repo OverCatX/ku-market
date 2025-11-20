@@ -21,8 +21,8 @@ export default function ProfileHeader({
       <span
         className={`px-3 py-1 rounded-full text-sm font-medium ${
           role === "seller"
-            ? "bg-[#A0704F]/20 text-[#A0704F]"
-            : "bg-[#4A5130]/20 text-[#4A5130]"
+            ? "bg-[#69773D]/20 text-[#69773D]"
+            : "bg-[#69773D]/20 text-[#69773D]"
         }`}
       >
         {role === "seller" ? "Seller" : "Buyer"}

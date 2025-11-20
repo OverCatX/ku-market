@@ -122,20 +122,21 @@ export default function SellerItems() {
     <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-[#421404]">My Items</h1>
-          <p className="text-[#8c522f] mt-1">Manage your listed products</p>
+          <h1 className="text-3xl font-bold text-[#4A5130]">My Items</h1>
+          <p className="text-[#69773D] mt-1">Manage your listed products</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={loadItems}
             disabled={loading}
-            className="px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#8c522f] hover:text-white active:bg-[#8c522f] active:text-white disabled:opacity-50 transition-colors group"
+            className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors"
           >
-            <RefreshCw size={18} className={`${loading ? "animate-spin" : ""} text-[#4A5130] group-hover:text-white group-active:text-white`} />
+            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+            Refresh
           </button>
           <Link
             href="/seller/add-item"
-            className="px-4 py-2 bg-[#8c522f] text-white rounded-lg hover:bg-[#7a4526] transition-colors font-medium"
+            className="px-4 py-2 bg-[#69773D] text-[#F6F2E5] rounded-lg hover:bg-[#5a6530] transition-colors font-medium"
           >
             + Add Item
           </Link>
@@ -151,7 +152,7 @@ export default function SellerItems() {
           <p className="text-[#8c522f] mb-4">Start by adding your first item</p>
           <Link
             href="/seller/add-item"
-            className="inline-block px-6 py-3 bg-[#8c522f] text-white rounded-lg hover:bg-[#7a4526] transition-colors font-medium"
+            className="inline-block px-6 py-3 bg-[#69773D] text-[#F6F2E5] rounded-lg hover:bg-[#5a6530] transition-colors font-medium"
           >
             Add Item
           </Link>
@@ -179,13 +180,13 @@ export default function SellerItems() {
               </div>
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-[#421404] flex-1 text-sm md:text-base">
+                  <h3 className="font-bold text-[#4A5130] flex-1 text-sm md:text-base">
                     {item.title}
                   </h3>
                   <span
                     className={`text-xs px-2 py-1 rounded-full ml-2 flex items-center gap-1 whitespace-nowrap ${
                       item.approvalStatus === "approved"
-                        ? "bg-green-100 text-green-800 border border-green-200"
+                        ? "bg-[#69773D]/10 text-[#69773D] border border-[#69773D]/30"
                         : item.approvalStatus === "pending"
                         ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
                         : "bg-[#780606] text-[#780606] border border-[#780606]"
@@ -245,7 +246,7 @@ export default function SellerItems() {
                   {item.description}
                 </p>
                 <div className="flex flex-wrap justify-between items-center mb-4 gap-3">
-                  <span className="text-lg font-bold text-[#724a24]">
+                  <span className="text-lg font-bold text-[#4A5130]">
                     ฿{item.price.toLocaleString()}
                   </span>
                   <div className="flex items-center gap-2">
@@ -261,7 +262,7 @@ export default function SellerItems() {
                         )
                       }
                       disabled={updatingStatusId === item.id}
-                      className="text-xs px-2 py-1 rounded-lg border border-[#8c522f] focus:outline-none focus:ring-1 focus:ring-[#8c522f]"
+                      className="text-xs px-2 py-1 rounded-lg border border-[#69773D] focus:outline-none focus:ring-1 focus:ring-[#69773D]"
                     >
                       <option value="available">available</option>
                       <option value="reserved">reserved</option>
@@ -274,7 +275,7 @@ export default function SellerItems() {
                     href={`/seller/edit-item/${item.id}`}
                     className={`flex-1 px-3 py-2 rounded-lg transition-colors text-sm font-medium text-center ${
                       item.approvalStatus === "approved"
-                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                        ? "bg-[#69773D] text-white hover:bg-[#5a6530]"
                         : "bg-gray-400 text-white cursor-not-allowed opacity-50"
                     }`}
                     onClick={(e) => {

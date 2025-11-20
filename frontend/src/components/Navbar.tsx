@@ -17,7 +17,7 @@ export function Header() {
     (path: string) =>
       pathName === path
         ? "text-[#69773D] font-bold relative"
-        : "text-gray-800 hover:text-[#69773D] relative",
+        : "text-[#4A5130] hover:text-[#69773D] relative",
     [pathName]
   );
 
@@ -75,7 +75,7 @@ export function Header() {
               className="relative flex items-center justify-center w-10 h-10 rounded-xl hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50/60 transition-all duration-300 group border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5"
               title="Cart"
             >
-              <ShoppingCart className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
+              <ShoppingCart className="w-5 h-5 text-[#4A5130] group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
               {getTotalItems() > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-[#780606] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
                   {getTotalItems() > 9 ? "9+" : getTotalItems()}
@@ -92,7 +92,7 @@ export function Header() {
               className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50/60 transition-all duration-300 group border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5"
               title="Profile"
             >
-              <User className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
+              <User className="w-5 h-5 text-[#4A5130] group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
             </Link>
           </div>
 
@@ -103,9 +103,9 @@ export function Header() {
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-gray-800 hover:text-[#69773D] transition-all duration-300 rotate-90" />
+              <X className="w-6 h-6 text-[#4A5130] hover:text-[#69773D] transition-all duration-300 rotate-90" />
             ) : (
-              <Menu className="w-6 h-6 text-gray-800 hover:text-[#69773D] transition-all duration-300" />
+              <Menu className="w-6 h-6 text-[#4A5130] hover:text-[#69773D] transition-all duration-300" />
             )}
           </button>
         </div>
@@ -122,7 +122,7 @@ export function Header() {
                   className={`block px-4 py-3 rounded-xl font-medium transition-all duration-300 capitalize ${
                     pathName === link.href
                       ? "text-white bg-gradient-to-r from-[#69773D] to-[#84B067] shadow-md transform scale-[1.02]"
-                      : "text-gray-700 hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 hover:shadow-sm hover:translate-x-1"
+                      : "text-[#4A5130] hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 hover:shadow-sm hover:translate-x-1"
                   }`}
                   style={{
                     animationDelay: `${index * 50}ms`,
@@ -138,7 +138,7 @@ export function Header() {
             <div className="border-t border-gray-100 pt-4 space-y-1">
               <Link
                 href="/cart"
-                className="flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
+                className="flex items-center justify-between px-4 py-3 rounded-xl text-[#4A5130] hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <div className="flex items-center gap-3">
@@ -154,7 +154,7 @@ export function Header() {
 
               <Link
                 href="/notifications"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-[#4A5130] hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -163,7 +163,7 @@ export function Header() {
 
               <Link
                 href={profileLink}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-[#4A5130] hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <User className="w-5 h-5 group-hover:scale-110 transition-transform" />

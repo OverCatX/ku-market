@@ -126,8 +126,8 @@ export default function AddItemPage() {
     <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#421404]">Add New Item</h1>
-        <p className="text-[#8c522f] mt-2">List a new product for sale</p>
+        <h1 className="text-3xl font-bold text-[#4A5130]">Add New Item</h1>
+        <p className="text-[#69773D] mt-2">List a new product for sale</p>
       </div>
 
       <form
@@ -136,14 +136,14 @@ export default function AddItemPage() {
       >
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-[#421404] mb-2">
+          <label className="block text-sm font-medium text-[#4A5130] mb-2">
             Title *
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c522f]"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#69773D]"
             placeholder="e.g., Programming Textbook"
             required
           />
@@ -151,13 +151,13 @@ export default function AddItemPage() {
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-[#421404] mb-2">
+          <label className="block text-sm font-medium text-[#4A5130] mb-2">
             Description *
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c522f]"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#69773D]"
             rows={4}
             placeholder="Describe your item..."
             required
@@ -167,14 +167,14 @@ export default function AddItemPage() {
         {/* Price & Category */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-[#421404] mb-2">
+            <label className="block text-sm font-medium text-[#4A5130] mb-2">
               Price (฿) *
             </label>
             <input
               type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c522f]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#69773D]"
               placeholder="0"
               min="0"
               required
@@ -182,13 +182,13 @@ export default function AddItemPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#421404] mb-2">
+            <label className="block text-sm font-medium text-[#4A5130] mb-2">
               Category *
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c522f]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#69773D]"
               required
               disabled={categories.length === 0}
             >
@@ -207,12 +207,12 @@ export default function AddItemPage() {
 
         {/* Images */}
         <div>
-          <label className="block text-sm font-medium text-[#421404] mb-2">
+          <label className="block text-sm font-medium text-[#4A5130] mb-2">
             Images * (Max 5)
           </label>
 
           {images.length < 5 && (
-            <label className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-[#8c522f] hover:bg-[#8c522f]/10 transition-colors">
+            <label className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-[#69773D] hover:bg-[#69773D]/10 transition-colors">
               <Upload size={48} className="text-gray-400 mb-2" />
               <span className="text-sm text-gray-600">
                 Click to upload images
@@ -278,7 +278,7 @@ export default function AddItemPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="flex-1 px-6 py-3 bg-[#8c522f] text-white rounded-lg hover:bg-[#7a4526] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+            className="flex-1 px-6 py-3 bg-[#69773D] text-[#F6F2E5] rounded-lg hover:bg-[#5a6530] disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
           >
             {submitting ? "Adding..." : "Add Item"}
           </button>

@@ -110,7 +110,7 @@ export function LoginForm() {
 
       {redirectTo !== "/" && (
         <div
-          className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg"
+          className="mb-4 p-3 bg-blue-50 border border-[#F6F2E5] rounded-lg"
           style={{ backgroundColor: aboutColors.creamSoft }}
         >
           <p
@@ -177,7 +177,7 @@ export function LoginForm() {
         </div>
 
         {apiError && (
-          <div className="p-3 bg-[#780606]/10 border border-[#780606]/30 rounded-lg text-[#780606] text-center text-sm mt-1">
+          <div className="p-3 bg-[#780606]/10 rounded-lg text-[#780606] text-center text-sm mt-1">
             {apiError}
           </div>
         )}

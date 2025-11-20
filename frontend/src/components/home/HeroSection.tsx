@@ -76,7 +76,7 @@ export default function HeroSection() {
           <Link
             href="/signup"
             className="inline-block px-8 py-4 rounded-xl font-semibold text-[#69773D]
-               bg-white border-2 border-[#69773D] transition-all hover:bg-green-50"
+               bg-white border-2 border-[#69773D] transition-all hover:bg-[#69773D]/10"
           >
             Get Started
           </Link>

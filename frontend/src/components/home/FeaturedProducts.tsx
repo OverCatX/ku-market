@@ -110,7 +110,7 @@ export default function FeaturedProducts() {
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-12">
-            <ShoppingBag className="w-16 h-16 text-[#4A5130] mx-auto mb-4" />
+            <ShoppingBag className="w-16 h-16 text-[#69773D] mx-auto mb-4" />
             <p className="text-[#4A5130] text-lg">
               No featured products available yet.
             </p>

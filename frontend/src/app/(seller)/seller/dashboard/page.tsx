@@ -140,10 +140,10 @@ export default function SellerDashboard() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-1 h-8 bg-gradient-to-b from-[#A0704F] to-[#5a3f2a] rounded-full"></div>
+          <div className="w-1 h-8 bg-gradient-to-b from-[#8B9B6E] via-[#6B7B4E] to-[#2d3220] rounded-full"></div>
           <div>
-            <h1 className="text-3xl font-bold text-[#421404]">Dashboard</h1>
-            <p className="text-[#A0704F] mt-1">
+            <h1 className="text-3xl font-bold text-[#4A5130]">Dashboard</h1>
+            <p className="text-[#69773D] mt-1">
               Welcome back! Here&apos;s your store overview.
             </p>
           </div>
@@ -156,58 +156,58 @@ export default function SellerDashboard() {
           title="Total Orders"
           value={stats.totalOrders}
           icon={ShoppingBag}
-          color="#562c1e"
-          borderColor="#562c1e"
-          titleColor="#562c1e"
+          color="#2F5A32"
+          borderColor="#2F5A32"
+          titleColor="#2F5A32"
         />
         <StatCard
           title="Pending Orders"
           value={stats.pendingOrders}
           icon={Clock}
-          color="#903500"
-          borderColor="#903500"
-          titleColor="#903500"
+          color="#5C8140"
+          borderColor="#5C8140"
+          titleColor="#5C8140"
         />
         <StatCard
           title="Total Items"
           value={stats.totalItems}
           icon={Package}
-          color="#8c522f"
-          borderColor="#8c522f"
-          titleColor="#8c522f"
+          color="#7ba02e"
+          borderColor="#7ba02e"
+          titleColor="#7ba02e"
         />
         <StatCard
           title="Total Revenue"
           value={`฿${stats.totalRevenue.toLocaleString()}`}
           icon={DollarSign}
-          color="#A0704F"
-          borderColor="#A0704F"
-          titleColor="#A0704F"
+          color="#8fb88f"
+          borderColor="#8fb88f"
+          titleColor="#8fb88f"
         />
       </div>
 
       {/* Quick Actions */}
       <div className="bg-white rounded-xl shadow-md p-6 mb-8 border border-gray-100">
-        <h2 className="text-xl font-bold text-[#421404] mb-5 flex items-center gap-2">
-          <div className="w-1 h-6 bg-gradient-to-b from-[#A0704F] to-[#5a3f2a] rounded-full"></div>
+        <h2 className="text-xl font-bold text-[#4A5130] mb-5 flex items-center gap-2">
+          <div className="w-1 h-6 bg-gradient-to-b from-[#8B9B6E] via-[#6B7B4E] to-[#2d3220] rounded-full"></div>
           Quick Actions
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link
             href="/seller/add-item"
-            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#8c522f] hover:bg-gradient-to-br hover:from-[#8c522f]/10 hover:to-[#8c522f]/5 transition-all group hover:shadow-md"
+            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#7ba02e] hover:bg-gradient-to-br hover:from-[#7ba02e]/10 hover:to-[#7ba02e]/5 transition-all group hover:shadow-md"
           >
-            <div className="w-12 h-12 bg-gradient-to-br from-[#8c522f]/20 to-[#8c522f]/30 rounded-xl flex items-center justify-center group-hover:from-[#8c522f]/30 group-hover:to-[#8c522f]/40 transition-all shadow-sm">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#7ba02e]/20 to-[#7ba02e]/30 rounded-xl flex items-center justify-center group-hover:from-[#7ba02e]/30 group-hover:to-[#7ba02e]/40 transition-all shadow-sm">
               <Package
                 size={22}
-                className="text-[#8c522f] group-hover:scale-110 transition-transform"
+                className="text-[#7ba02e] group-hover:scale-110 transition-transform"
               />
             </div>
             <div>
-              <div className="font-semibold text-gray-900 group-hover:text-[#8c522f] transition-colors">
+              <div className="font-semibold text-[#4A5130] group-hover:text-[#7ba02e] transition-colors">
                 Add New Item
               </div>
-              <div className="text-sm text-gray-600 group-hover:text-gray-700">
+              <div className="text-sm text-[#69773D] group-hover:text-gray-700">
                 List a product for sale
               </div>
             </div>
@@ -215,19 +215,19 @@ export default function SellerDashboard() {
 
           <Link
             href="/seller/orders"
-            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#562c1e] hover:bg-gradient-to-br hover:from-[#562c1e]/10 hover:to-[#562c1e]/5 transition-all group hover:shadow-md"
+            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#2F5A32] hover:bg-gradient-to-br hover:from-[#2F5A32]/10 hover:to-[#2F5A32]/5 transition-all group hover:shadow-md"
           >
-            <div className="w-12 h-12 bg-gradient-to-br from-[#562c1e]/20 to-[#562c1e]/30 rounded-xl flex items-center justify-center group-hover:from-[#562c1e]/30 group-hover:to-[#562c1e]/40 transition-all shadow-sm">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#2F5A32]/20 to-[#2F5A32]/30 rounded-xl flex items-center justify-center group-hover:from-[#2F5A32]/30 group-hover:to-[#2F5A32]/40 transition-all shadow-sm">
               <ShoppingBag
                 size={22}
-                className="text-[#562c1e] group-hover:scale-110 transition-transform"
+                className="text-[#2F5A32] group-hover:scale-110 transition-transform"
               />
             </div>
             <div>
-              <div className="font-semibold text-gray-900 group-hover:text-[#562c1e] transition-colors">
+              <div className="font-semibold text-[#4A5130] group-hover:text-[#2F5A32] transition-colors">
                 View Orders
               </div>
-              <div className="text-sm text-gray-600 group-hover:text-gray-700">
+              <div className="text-sm text-[#69773D] group-hover:text-gray-700">
                 Manage your orders
               </div>
             </div>
@@ -235,19 +235,19 @@ export default function SellerDashboard() {
 
           <Link
             href="/seller/items"
-            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#A0704F] hover:bg-gradient-to-br hover:from-[#A0704F]/10 hover:to-[#A0704F]/5 transition-all group hover:shadow-md"
+            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#8fb88f] hover:bg-gradient-to-br hover:from-[#8fb88f]/10 hover:to-[#8fb88f]/5 transition-all group hover:shadow-md"
           >
-            <div className="w-12 h-12 bg-gradient-to-br from-[#A0704F]/20 to-[#A0704F]/30 rounded-xl flex items-center justify-center group-hover:from-[#A0704F]/30 group-hover:to-[#A0704F]/40 transition-all shadow-sm">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#8fb88f]/20 to-[#8fb88f]/30 rounded-xl flex items-center justify-center group-hover:from-[#8fb88f]/30 group-hover:to-[#8fb88f]/40 transition-all shadow-sm">
               <CheckCircle
                 size={22}
-                className="text-[#A0704F] group-hover:scale-110 transition-transform"
+                className="text-[#8fb88f] group-hover:scale-110 transition-transform"
               />
             </div>
             <div>
-              <div className="font-semibold text-gray-900 group-hover:text-[#A0704F] transition-colors">
+              <div className="font-semibold text-[#4A5130] group-hover:text-[#8fb88f] transition-colors">
                 Manage Items
               </div>
-              <div className="text-sm text-gray-600 group-hover:text-gray-700">
+              <div className="text-sm text-[#69773D] group-hover:text-gray-700">
                 Edit your listings
               </div>
             </div>
@@ -257,8 +257,8 @@ export default function SellerDashboard() {
 
       {/* Recent Activity */}
       <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-        <h2 className="text-xl font-bold text-[#421404] mb-5 flex items-center gap-2">
-          <div className="w-1 h-6 bg-gradient-to-b from-[#A0704F] to-[#5a3f2a] rounded-full"></div>
+        <h2 className="text-xl font-bold text-[#4A5130] mb-5 flex items-center gap-2">
+          <div className="w-1 h-6 bg-gradient-to-b from-[#8B9B6E] via-[#6B7B4E] to-[#2d3220] rounded-full"></div>
           Recent Activity
         </h2>
         <div className="space-y-4">
@@ -280,13 +280,13 @@ export default function SellerDashboard() {
               </div>
             </div>
           ) : (
-            <div className="p-5 bg-[#A0704F]/10 border border-[#A0704F]/20 rounded-xl text-center">
+            <div className="p-5 bg-[#69773D]/10 border border-[#69773D]/20 rounded-xl text-center">
               <div className="flex flex-col items-center gap-2">
-                <CheckCircle size={32} className="text-[#A0704F]" />
-                <p className="text-[#A0704F] font-medium">
+                <CheckCircle size={32} className="text-[#69773D]" />
+                <p className="text-[#69773D] font-medium">
                   No pending orders at the moment
                 </p>
-                <p className="text-sm text-[#A0704F]">All caught up!</p>
+                <p className="text-sm text-[#69773D]">All caught up!</p>
               </div>
             </div>
           )}

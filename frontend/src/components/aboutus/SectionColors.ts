@@ -10,5 +10,9 @@ export const aboutColors = {
     russet:"#421404",
     philippine:"#562c1e",
     maxyellow:"#724a24",
-    champagne:"#8c522f"
+    champagne:"#8c522f",
+    green: "#2F5A32",
+    olive: "#5C8140",
+    lime: "#92bf37",
+    mint: "#A7D2A5"
   };

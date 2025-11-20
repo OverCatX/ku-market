@@ -250,7 +250,7 @@ export default function UsersPage() {
   }, [users]);
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>

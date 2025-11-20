@@ -234,13 +234,13 @@ export default function SellerOrders() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-[#421404]">Orders</h1>
-          <p className="text-[#8c522f] mt-1">Manage your customer orders</p>
+          <h1 className="text-3xl font-bold text-[#4A5130]">Orders</h1>
+          <p className="text-[#69773D] mt-1">Manage your customer orders</p>
         </div>
         <button
           onClick={loadOrders}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-[#8c522f] text-white rounded-lg hover:bg-[#7a4526] disabled:opacity-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors"
         >
           <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
           Refresh
@@ -260,8 +260,8 @@ export default function SellerOrders() {
             onClick={() => setFilter(f.value)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === f.value
-                ? "bg-[#8c522f] text-white"
-                : "bg-white text-[#562c1e]/85 hover:bg-gray-100"
+                ? "bg-[#69773D] text-[#F6F2E5]"
+                : "bg-white text-[#69773D] hover:bg-[#69773D] hover:text-[#F6F2E5]"
             }`}
           >
             {f.label}
@@ -278,11 +278,11 @@ export default function SellerOrders() {
       <div className="space-y-4">
         {orders.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <ShoppingBag size={48} className="mx-auto text-[#8c522f] mb-4" />
-            <h3 className="text-lg font-medium text-[#562c1e] mb-2">
+            <ShoppingBag size={48} className="mx-auto text-[#69773D] mb-4" />
+            <h3 className="text-lg font-medium text-[#4A5130] mb-2">
               No orders found
             </h3>
-            <p className="text-[#8c522f]">
+            <p className="text-[#69773D]">
               {filter === "all"
                 ? "You haven't received any orders yet"
                 : `No ${getStatusLabel(filter)} orders`}

@@ -501,7 +501,7 @@ export default function MeetupPresetsPage() {
   }
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Meetup Presets</h1>
