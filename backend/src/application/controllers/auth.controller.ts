@@ -4,6 +4,12 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendPasswordResetOtp } from "../../lib/email";
 
+interface GoogleProfile {
+    kuEmail?: string;
+    email?: string;
+    [key: string]: unknown;
+}
+
 export default class AuthController {
     userSignup = async(req: Request, res: Response) =>{
         const {name, kuEmail, password, confirm_password, faculty, contact} = req.body;
@@ -84,7 +90,7 @@ export default class AuthController {
 
     googleOAuth = async (req: Request, res: Response): Promise<Response> => {
         try {
-            const profile = req.user as any;
+            const profile = req.user as GoogleProfile;
 
             if (!profile || !profile.kuEmail) {
                 return res.status(400).json({ error: "No email found from Google account" });

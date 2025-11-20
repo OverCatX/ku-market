@@ -1,7 +1,8 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import dotenv from "dotenv";
-import User from "../data/models/User";
+import User, { IUser } from "../data/models/User";
+import { Document } from "mongoose";
 
 dotenv.config();
 
@@ -28,24 +29,27 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                     await user.save();
                 }
                 done(null, user);
-            } catch (err: any) { 
-                if (err.name === "ValidationError") {
-                    const errors: Record<string, string> = {};
-                    for (const field in err.errors) {
-                        errors[field] = err.errors[field].message;
+            } catch (err: unknown) {
+                if (err && typeof err === "object" && "name" in err && err.name === "ValidationError") {
+                    const validationErr = err as { errors?: Record<string, { message: string }> };
+                    if (validationErr.errors) {
+                        const errors: Record<string, string> = {};
+                        for (const field in validationErr.errors) {
+                            errors[field] = validationErr.errors[field].message;
+                        }
+                        return done({ validationErrors: errors });
                     }
-                    return done({ validationErrors: errors });
                 }
             done(err);
             }
         }
     ));
 
-    passport.serializeUser((user: any, done) => {
+    passport.serializeUser((user: IUser & Document, done) => {
     done(null, user);
     });
 
-    passport.deserializeUser((user: any, done) => {
+    passport.deserializeUser((user: IUser & Document, done) => {
     done(null, user);
     });
 }
