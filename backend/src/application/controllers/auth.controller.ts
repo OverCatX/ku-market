@@ -93,12 +93,24 @@ export default class AuthController {
             const profile = req.user as GoogleProfile;
 
             if (!profile || !profile.kuEmail) {
+                const errorMessage = "No email found from Google account";
                 // Check if request wants JSON
                 if (req.headers.accept && req.headers.accept.includes("application/json")) {
-                    return res.status(400).json({ error: "No email found from Google account" });
+                    return res.status(400).json({ error: errorMessage });
                 }
                 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-                return res.redirect(`${frontendUrl}/auth/google/callback?error=${encodeURIComponent("No email found from Google account")}`);
+                return res.redirect(`${frontendUrl}/auth/google/callback?error=${encodeURIComponent(errorMessage)}`);
+            }
+
+            // Double check email domain (additional validation)
+            if (!profile.kuEmail.endsWith("@ku.th")) {
+                const errorMessage = "Email must be @ku.th domain. Please use your KU email address.";
+                // Check if request wants JSON
+                if (req.headers.accept && req.headers.accept.includes("application/json")) {
+                    return res.status(400).json({ error: errorMessage });
+                }
+                const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+                return res.redirect(`${frontendUrl}/auth/google/callback?error=${encodeURIComponent(errorMessage)}`);
             }
 
             // Create JWT token

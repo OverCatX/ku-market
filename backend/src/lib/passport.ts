@@ -20,12 +20,24 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         },
         async (accessToken, refreshToken, profile, done) => {
             try {
-                let user = await User.findOne({ kuEmail: profile.emails?.[0].value });
+                const email = profile.emails?.[0].value;
+                
+                // Check if email exists
+                if (!email) {
+                    return done(new Error("No email found from Google account"));
+                }
+
+                // Check if email is @ku.th domain
+                if (!email.endsWith("@ku.th")) {
+                    return done(new Error("Email must be @ku.th domain. Please use your KU email address."));
+                }
+
+                let user = await User.findOne({ kuEmail: email });
 
                 if (!user) {
                     user = new User({
                         name: profile.displayName,
-                        kuEmail: profile.emails?.[0].value,
+                        kuEmail: email,
                         password: Math.random().toString(36).slice(-8),
                         role: "buyer",
                         faculty: "Unknown",

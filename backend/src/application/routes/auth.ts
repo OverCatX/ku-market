@@ -1,4 +1,4 @@
-import { Router} from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import AuthController from "../controllers/auth.controller";
 import {userSignup, userLogin, forgotPassword, verifyOtp, resetPassword} from "../middlewares/validators/auth.validation";
 import passport from "passport";
@@ -28,10 +28,28 @@ router.post("/reset-password", resetPassword, authController.resetPassword)
 router.get("/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 router.get("/google/callback", 
-  passport.authenticate("google", { 
-    failureRedirect: `${process.env.FRONTEND_URL || "http://localhost:3000"}/login?error=${encodeURIComponent("Google login failed")}`, 
-    session: false 
-  }),
+  (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate("google", { 
+      session: false 
+    }, (err: Error | null, user: Express.User | false, info?: { message?: string }) => {
+      // Handle authentication errors
+      if (err) {
+        const errorMessage = err.message || "Google login failed";
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+        return res.redirect(`${frontendUrl}/auth/google/callback?error=${encodeURIComponent(errorMessage)}`);
+      }
+      
+      if (!user) {
+        const errorMessage = info?.message || "Google login failed";
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+        return res.redirect(`${frontendUrl}/auth/google/callback?error=${encodeURIComponent(errorMessage)}`);
+      }
+      
+      // Authentication successful, attach user to request and continue
+      (req as { user?: Express.User }).user = user;
+      next();
+    })(req, res, next);
+  },
   authController.googleOAuth
 );
 
