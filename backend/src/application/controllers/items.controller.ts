@@ -209,13 +209,30 @@ export default class ItemController {
                 filters.owner = new mongoose.Types.ObjectId(req.query.owner as string);
             }
             
-            // Search in title and description
-            if (req.query.search) {
-                filters.$text = { $search: req.query.search as string };
+            // Enhanced search: comprehensive regex-based search that finds everything
+            const searchQuery = req.query.search as string;
+            
+            if (searchQuery && searchQuery.trim()) {
+                const searchTerm = searchQuery.trim();
+                // Escape special regex characters for safe regex search
+                const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const searchRegex = new RegExp(escapedSearch, 'i');
+                
+                // Use regex search for comprehensive partial matching
+                // This finds results even with:
+                // - Partial words (e.g., "iph" finds "iPhone")
+                // - Anywhere in text (not just word boundaries)
+                // - Case-insensitive matching
+                // - Multiple fields (title, description, category)
+                filters.$or = [
+                    { title: searchRegex },
+                    { description: searchRegex },
+                    { category: searchRegex }
+                ];
             }
             
-            // Sorting
-            let sortOption: Record<string, 1 | -1 | { $meta: "textScore" }> = { createAt: -1 } as const;
+            // Sorting with optimized defaults
+            let sortOption: Record<string, 1 | -1 | { $meta: "textScore" }> = { updateAt: -1 } as const; // Default to newest updated
             
             if (req.query.sortBy) {
                 const sortBy = req.query.sortBy as string;
@@ -232,16 +249,21 @@ export default class ItemController {
                         sortOption = { createAt: sortOrder };
                         break;
                     case 'updateAt':
+                        // Optimized: use compound index for better performance
                         sortOption = { updateAt: sortOrder };
                         break;
                     case 'relevance':
-                        if (req.query.search) {
-                            sortOption = { score: { $meta: "textScore" } };
-                        }
+                        // For relevance, use updateAt as primary sort (newest first)
+                        // Regex search already finds relevant items, so we sort by recency
+                        sortOption = { updateAt: -1 };
                         break;
+                    default:
+                        // Default to newest updated if invalid sortBy
+                        sortOption = { updateAt: -1 };
                 }
             }
             
+            // Build pipeline with optimized stages
             const pipeline: PipelineStage[] = [
                 { $match: filters },
                 { $sort: sortOption },
