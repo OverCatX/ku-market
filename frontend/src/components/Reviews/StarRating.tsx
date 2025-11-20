@@ -55,7 +55,7 @@ export default function StarRating({
                   ? "fill-yellow-400 text-yellow-400"
                   : isPartial
                   ? "fill-yellow-200 text-yellow-400"
-                  : "fill-none text-gray-300"
+                  : "fill-none text-[#4A5130]"
               } transition-colors`}
             />
           </button>

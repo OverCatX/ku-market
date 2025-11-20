@@ -170,7 +170,7 @@ export default function ReviewsPage() {
             <span className="sm:hidden">Back</span>
           </button>
 
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Customer Reviews</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#4A5130]">Customer Reviews</h1>
           {itemTitle && (
             <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-1">for {itemTitle}</p>
           )}

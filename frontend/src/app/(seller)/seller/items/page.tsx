@@ -129,9 +129,9 @@ export default function SellerItems() {
           <button
             onClick={loadItems}
             disabled={loading}
-            className="px-4 py-2 bg-[#F6F2E5] text-gray-700 rounded-lg hover:bg-[#E8E0D0] disabled:opacity-50 transition-colors"
+            className="px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#8c522f] hover:text-white active:bg-[#8c522f] active:text-white disabled:opacity-50 transition-colors group"
           >
-            <RefreshCw size={18} className={`${loading ? "animate-spin" : ""} text-[#724a24]`} />
+            <RefreshCw size={18} className={`${loading ? "animate-spin" : ""} text-[#4A5130] group-hover:text-white group-active:text-white`} />
           </button>
           <Link
             href="/seller/add-item"
@@ -323,7 +323,7 @@ export default function SellerItems() {
                         );
                       }
                     }}
-                    className="flex-1 px-3 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#780606] transition-colors text-sm font-medium"
+                    className="flex-1 px-3 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#8c522f] transition-colors text-sm font-medium"
                   >
                     <Trash2 size={14} className="inline mr-1" />
                     Delete

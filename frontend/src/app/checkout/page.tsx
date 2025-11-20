@@ -405,20 +405,20 @@ export default function CheckoutPage() {
               <AlertCircle className="w-12 h-12 text-yellow-600" />
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130] mb-4">
               Verification Required
             </h1>
 
-            <p className="text-gray-600 mb-6 leading-relaxed">
+            <p className="text-[#4A5130]/70 mb-6 leading-relaxed">
               To place an order, you need to verify your identity first. This
               helps us maintain a safe and trusted marketplace for all users.
             </p>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-800">
+            <div className="bg-[#4A5130]/10 border border-[#4A5130]/30 rounded-lg p-4 mb-6">
+              <p className="text-sm text-[#4A5130]">
                 <strong>Why verify?</strong>
               </p>
-              <ul className="text-sm text-blue-700 mt-2 space-y-1 text-left list-disc list-inside">
+              <ul className="text-sm text-[#4A5130] mt-2 space-y-1 text-left list-disc list-inside">
                 <li>Build trust with sellers</li>
                 <li>Secure your transactions</li>
                 <li>Unlock full marketplace features</li>
@@ -428,7 +428,7 @@ export default function CheckoutPage() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={() => router.push("/verify-identity")}
-                className="px-6 py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition font-semibold flex items-center justify-center gap-2"
+                className="px-6 py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#84B067] transition font-semibold flex items-center justify-center gap-2"
               >
                 <CheckCircle2 className="w-5 h-5" />
                 Verify My Identity
@@ -436,7 +436,7 @@ export default function CheckoutPage() {
 
               <button
                 onClick={() => router.push("/marketplace")}
-                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold"
+                className="px-6 py-3 border-2 border-gray-300 text-[#4A5130]/80 rounded-lg hover:bg-gray-50 transition font-semibold"
               >
                 Back to Marketplace
               </button>
@@ -933,31 +933,31 @@ export default function CheckoutPage() {
                 <div className="space-y-3">
                   {/* Cash Payment - Only show for pickup */}
                   {deliveryMethod === "pickup" && (
-                    <label
-                      className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
-                        paymentMethod === "cash"
-                          ? "border-[#84B067] bg-green-50"
-                          : "border-gray-300 hover:border-[#84B067]"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="cash"
-                        checked={paymentMethod === "cash"}
-                        onChange={(e) =>
-                          setPaymentMethod(e.target.value as PaymentMethod)
-                        }
-                        className="w-4 h-4 text-[#84B067]"
-                      />
-                      <Package className="w-5 h-5 text-[#84B067]" />
-                      <div className="flex-1">
-                        <div className="font-medium">Cash</div>
-                        <div className="text-sm text-gray-600">
-                          Pay when you receive the item
-                        </div>
+                  <label
+                    className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
+                      paymentMethod === "cash"
+                        ? "border-[#84B067] bg-green-50"
+                        : "border-gray-300 hover:border-[#84B067]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="cash"
+                      checked={paymentMethod === "cash"}
+                      onChange={(e) =>
+                        setPaymentMethod(e.target.value as PaymentMethod)
+                      }
+                      className="w-4 h-4 text-[#84B067]"
+                    />
+                    <Package className="w-5 h-5 text-[#84B067]" />
+                    <div className="flex-1">
+                      <div className="font-medium">Cash</div>
+                      <div className="text-sm text-gray-600">
+                        Pay when you receive the item
                       </div>
-                    </label>
+                    </div>
+                  </label>
                   )}
 
                   {/* PromptPay Payment */}
@@ -1133,19 +1133,19 @@ export default function CheckoutPage() {
                       )}
                       {deliveryMethod === "pickup" &&
                         pickupDetails.preferredTime && (
-                          <p className="mb-1 text-blue-600">
-                            <span className="font-medium">Preferred time:</span>{" "}
+                        <p className="mb-1 text-blue-600">
+                          <span className="font-medium">Preferred time:</span>{" "}
                             {new Date(
                               pickupDetails.preferredTime
                             ).toLocaleString("th-TH", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        )}
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      )}
                       <p>
                         <span className="font-medium">Payment:</span>{" "}
                         {paymentMethod === "cash"

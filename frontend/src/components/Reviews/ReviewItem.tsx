@@ -89,7 +89,7 @@ export default function ReviewItem({ review, onHelpful }: ReviewItemProps) {
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">{review.userName}</h4>
+              <h4 className="text-sm sm:text-base font-semibold text-[#4A5130] truncate">{review.userName}</h4>
               {review.verified && (
                 <span
                   className="flex items-center gap-1 text-[10px] sm:text-xs text-green-600 bg-green-50 px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0"
@@ -145,9 +145,9 @@ export default function ReviewItem({ review, onHelpful }: ReviewItemProps) {
           disabled={isSubmitting || !checkAuth()}
           className={`flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm transition-colors ${
             hasVoted
-              ? "text-[#84B067] hover:text-[#69773D] cursor-pointer"
+              ? "text-[#69773D] hover:text-[#5a6530] cursor-pointer"
               : checkAuth()
-              ? "text-gray-600 hover:text-[#69773D] cursor-pointer"
+              ? "text-[#69773D] hover:text-[#5a6530] cursor-pointer"
               : "text-gray-400 cursor-not-allowed"
           } disabled:opacity-60 disabled:cursor-not-allowed`}
           title={
@@ -159,11 +159,11 @@ export default function ReviewItem({ review, onHelpful }: ReviewItemProps) {
           }
         >
           <ThumbsUp
-            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${hasVoted ? "fill-[#84B067]" : ""}`}
+            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${hasVoted ? "fill-[#69773D] text-[#69773D]" : "text-[#69773D]"}`}
           />
           <span>
             Helpful ({helpfulCount})
-            {hasVoted && <span className="ml-1 text-[#84B067]">✓</span>}
+            {hasVoted && <span className="ml-1 text-[#69773D]">✓</span>}
           </span>
         </button>
       </div>

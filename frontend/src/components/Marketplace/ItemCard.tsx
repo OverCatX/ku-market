@@ -24,9 +24,9 @@ export default function ItemCard({
 }: ItemCardProps) {
   const statusConfig = {
     available: {
-      text: "text-[#69773D]",
-      bg: "bg-green-50",
-      border: "border-green-200",
+      text: "text-[#F6F2E5]",
+      bg: "bg-[#69773D]",
+      border: "border-[#69773D]",
       label: "Available",
     },
     reserved: {
@@ -53,7 +53,7 @@ export default function ItemCard({
   const formattedPrice = Number.isFinite(price) ? price.toLocaleString() : "0";
 
   return (
-    <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
+    <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-[#f7f5ed] shadow-[8px_0_12px_-2px_rgba(0,0,0,0.2),4px_0_8px_-2px_rgba(0,0,0,0.15)] transition-all duration-300 hover:shadow-[12px_0_16px_-2px_rgba(0,0,0,0.25),6px_0_12px_-2px_rgba(0,0,0,0.2)]">
       {/* Image */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
         <Image
@@ -87,7 +87,7 @@ export default function ItemCard({
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-0.5">
               <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-yellow-400 text-yellow-400" />
-              <span className="text-xs font-semibold text-gray-900 sm:text-sm">
+              <span className="text-xs font-semibold text-[#4A5130] sm:text-sm">
                 {rating.toFixed(1)}
               </span>
             </div>
@@ -106,10 +106,10 @@ export default function ItemCard({
         {/* Price section */}
         <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-3">
           <div className="flex items-baseline gap-1">
-            <span className="text-base font-bold text-[#69773D] sm:text-lg">
+            <span className="text-base font-bold text-[#4A5130] sm:text-lg">
               {formattedPrice}
             </span>
-            <span className="text-[10px] font-medium text-gray-500 sm:text-xs">
+            <span className="text-[10px] font-medium text-[#4A5130] sm:text-xs">
               THB
             </span>
           </div>

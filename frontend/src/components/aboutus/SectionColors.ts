@@ -1,5 +1,6 @@
 export const aboutColors = {
     oliveDark: "#4A5130",
+    lightGreen: "#69773D",
     brown: "#A0704F",
     creamSoft: "#F6F2E5",
     creamBg: "#F6F2E5",

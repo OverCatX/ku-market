@@ -173,9 +173,7 @@ export default function ProfilePage() {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <ShieldCheck
-                className={`w-6 h-6 ${
-                  user.isVerified ? "text-green-600" : "text-gray-400"
-                }`}
+                className="w-6 h-6 text-[#4A5130]"
               />
               <h3 className="text-lg font-semibold text-[#4A5130]">
                 Identity Verification
@@ -211,7 +209,7 @@ export default function ProfilePage() {
           {!user.isVerified && (
             <button
               onClick={handleVerifyIdentity}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#364C91] text-white rounded-lg hover:bg-[#2d3d75] shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 whitespace-nowrap"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 whitespace-nowrap"
             >
               <ShieldCheck className="w-5 h-5" />
               Verify Identity

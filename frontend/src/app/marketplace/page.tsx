@@ -216,7 +216,7 @@ export default function MarketPage() {
             type="text"
             placeholder="Search items..."
             onChange={(e) => debouncedSearch(e.target.value)}
-            className="flex-1 p-3 rounded-xl border border-gray-300 focus:border-[#69773D] focus:ring-2 focus:ring-[#69773D] outline-none"
+            className="flex-1 p-3 rounded-xl border border-gray-300 bg-[#f7f5ed] focus:border-[#4A5130] focus:ring-2 focus:ring-[#4A5130] outline-none"
           />
           <div className="flex flex-wrap gap-2">
             <select
@@ -225,7 +225,7 @@ export default function MarketPage() {
                 setCurrentPage(1);
                 setStatus(e.target.value);
               }}
-              className="p-2 rounded-xl border border-gray-300"
+              className="p-2 rounded-xl border border-gray-300 bg-white focus:border-[#4A5130] focus:ring-2 focus:ring-[#4A5130] outline-none"
             >
               {statusOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -241,7 +241,7 @@ export default function MarketPage() {
                 setCurrentPage(1);
                 setCategory(e.target.value);
               }}
-              className="p-2 rounded-xl border border-gray-300"
+              className="p-2 rounded-xl border border-gray-300 bg-white focus:border-[#4A5130] focus:ring-2 focus:ring-[#4A5130] outline-none"
             >
               <option value="">All Categories</option>
               {categories.map((cat) => (
@@ -256,7 +256,7 @@ export default function MarketPage() {
                 setCurrentPage(1);
                 setSortBy(e.target.value as SortOptions);
               }}
-              className="p-2 rounded-xl border border-gray-300"
+              className="p-2 rounded-xl border border-gray-300 bg-white focus:border-[#4A5130] focus:ring-2 focus:ring-[#4A5130] outline-none"
             >
               {sortOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -269,7 +269,7 @@ export default function MarketPage() {
                 onClick={() =>
                   setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                 }
-                className="px-3 py-2 bg-green-200 rounded-xl hover:bg-green-300 transition-colors"
+                className="px-3 py-2 bg-[#e7efdb] rounded-xl hover:bg-[#d4e0c5] transition-colors"
                 aria-label={`Sort ${
                   sortOrder === "asc" ? "ascending" : "descending"
                 }`}
@@ -281,7 +281,7 @@ export default function MarketPage() {
             {activeFilterChips.length > 0 && (
               <button
                 onClick={clearFilters}
-                className="px-3 py-2 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                className="px-3 py-2 bg-[#780606]/70 text-[#F6F2E5] rounded-xl hover:bg-[#780606]/80 transition-colors"
                 aria-label="Clear filters"
               >
                 Clear
@@ -296,7 +296,7 @@ export default function MarketPage() {
             {activeFilterChips.map((chip) => (
               <span
                 key={chip.key}
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm"
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f7f5ed] text-gray-700 text-sm"
               >
                 {chip.label}
                 <button

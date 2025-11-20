@@ -81,7 +81,7 @@ export default function ReviewList({
       {!showReviewForm && (
         <button
           onClick={handleWriteReviewClick}
-          className="w-full px-4 py-2.5 sm:px-6 sm:py-3 border-2 border-[#84B067] text-[#69773D] rounded-lg hover:bg-[#84B067] hover:text-white transition-colors text-sm sm:text-base font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-4 py-2.5 sm:px-6 sm:py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors text-sm sm:text-base font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           title={!isAuthenticated ? "Please login to submit a review" : ""}
         >
           <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -103,10 +103,10 @@ export default function ReviewList({
       )}
 
       {/* Reviews List */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-[#F6F2E5]/50 rounded-lg border border-gray-200 overflow-hidden">
         {/* Header */}
         <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <h3 className="text-sm sm:text-base font-semibold text-gray-900">
+          <h3 className="text-sm sm:text-base font-semibold text-[#4A5130]">
             All Reviews ({reviews.length})
           </h3>
 

@@ -169,7 +169,7 @@ export default function NotificationsPage() {
       case "message":
         return <MessageCircle className="w-6 h-6 text-green-500" />;
       case "item":
-        return <ShoppingBag className="w-6 h-6 text-purple-500" />;
+        return <ShoppingBag className="w-6 h-6 text-[#69773D]" />;
       case "system":
         return <AlertCircle className="w-6 h-6 text-[#780606]" />;
       default:
@@ -252,7 +252,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Filters and Actions */}
-          <div className="bg-[#F6F2E5] rounded-lg shadow-sm p-4 mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex flex-col sm:flex-row gap-3">
               {/* Read/Unread Filter */}
@@ -299,10 +299,10 @@ export default function NotificationsPage() {
               {notifications.length > 0 && (
                 <button
                   onClick={handleClearAll}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-[#780606] hover:bg-[#780606] rounded-lg transition"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-[#780606] hover:bg-[#780606]/60 rounded-lg transition group"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  <span className="hidden sm:inline">Clear all</span>
+                  <Trash2 className="w-4 h-4 text-[#780606] group-hover:text-[#F6F2E5]" />
+                  <span className="hidden sm:inline group-hover:text-[#F6F2E5]">Clear all</span>
                 </button>
               )}
             </div>
@@ -311,14 +311,14 @@ export default function NotificationsPage() {
 
         {/* Notifications List */}
         {filteredNotifications.length === 0 ? (
-          <div className="bg-[#F6F2E5] rounded-lg shadow-sm p-12 text-center">
-            <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <Bell className="w-16 h-16 text-[#69773D] mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-[#4A5130] mb-2">
               {notifications.length === 0
                 ? "No notifications yet"
                 : "No notifications match your filters"}
             </h3>
-            <p className="text-[#4A5130]">
+            <p className={notifications.length === 0 ? "text-[#4A5130]" : "text-[#69773D]"}>
               {notifications.length === 0
                 ? "When you receive notifications, they'll appear here"
                 : "Try changing your filter settings"}

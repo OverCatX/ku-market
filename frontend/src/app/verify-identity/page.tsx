@@ -227,14 +227,14 @@ export default function VerifyIdentityPage() {
           className="bg-white rounded-2xl shadow-xl overflow-hidden"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#4A5130] to-[#4A5130] p-8 text-white">
+          <div className="bg-gradient-to-r from-[#4A5130] to-[#4A5130] p-8 text-[#F6F2E5]">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <h1 className="text-3xl font-bold">Identity Verification</h1>
             </div>
-            <p className="text-white/90">
+            <p className="text-[#F6F2E5]">
               Verify your identity to build trust and unlock special features
             </p>
           </div>

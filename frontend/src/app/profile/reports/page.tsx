@@ -84,9 +84,9 @@ export default function MyReportsPage() {
           type="button"
           onClick={handleRefresh}
           disabled={refreshing}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white border border-[#364C91] bg-[#364C91] hover:bg-[#2d3d75] transition disabled:opacity-60"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-[#4A5130] hover:bg-[#4A5130]/60 hover:text-[#F6F2E5] transition disabled:opacity-60 group"
         >
-          <RefreshCcw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+          <RefreshCcw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""} text-[#4A5130] group-hover:text-[#F6F2E5]`} />
           Refresh
         </button>
       </header>
@@ -97,14 +97,14 @@ export default function MyReportsPage() {
         </div>
       ) : reports.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-xl p-10 text-center text-gray-500">
-          <Flag className="w-10 h-10 mx-auto mb-3 text-gray-400" />
-          <p className="text-lg font-semibold">No reports yet</p>
-          <p className="text-sm text-gray-500">
+          <Flag className="w-10 h-10 mx-auto mb-3 text-[#69773D]" />
+          <p className="text-lg font-semibold text-[#4A5130]">No reports yet</p>
+          <p className="text-sm text-[#69773D]">
             If you encounter an issue, you can submit a report from the report center.
           </p>
           <Link
             href="/report"
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-[#4B5D34] to-[#7BAA5F] shadow hover:shadow-lg transition"
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-[#F6F2E5] bg-[#69773D] shadow hover:shadow-lg hover:bg-[#5a6530] transition"
           >
             Go to Report Center
           </Link>

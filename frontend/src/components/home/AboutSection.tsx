@@ -14,28 +14,28 @@ const features = [
     title: "Easy Trading",
     description:
       "Buy and sell items with just a few clicks. Simple, fast, and secure.",
-    color: "from-green-500 to-emerald-500",
+    color: "from-green-300 to-emerald-300",
   },
   {
     icon: Users,
     title: "Campus Community",
     description:
       "Connect with fellow KU students. Build trust within your campus network.",
-    color: "from-blue-500 to-cyan-500",
+    color: "from-blue-300 to-cyan-300",
   },
   {
     icon: Shield,
     title: "Secure Platform",
     description:
       "Verified student accounts and secure transactions. Your safety is our priority.",
-    color: "from-purple-500 to-pink-500",
+    color: "from-purple-300 to-pink-300",
   },
   {
     icon: TrendingUp,
     title: "Great Deals",
     description:
       "Discover amazing deals from your peers. Save money while supporting your community.",
-    color: "from-orange-500 to-red-500",
+    color: "from-orange-300 to-red-300",
   },
 ];
 

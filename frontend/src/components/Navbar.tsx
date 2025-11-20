@@ -77,7 +77,7 @@ export function Header() {
             >
               <ShoppingCart className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
               {getTotalItems() > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-gradient-to-br from-red-500 to-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-[#780606] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
                   {getTotalItems() > 9 ? "9+" : getTotalItems()}
                 </span>
               )}
@@ -146,7 +146,7 @@ export function Header() {
                   <span className="font-medium">Cart</span>
                 </div>
                 {getTotalItems() > 0 && (
-                  <span className="min-w-[24px] h-6 px-2 bg-gradient-to-br from-red-500 to-red-600 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-md">
+                  <span className="min-w-[24px] h-6 px-2 bg-[#780606] text-white text-xs rounded-full flex items-center justify-center font-bold shadow-md">
                     {getTotalItems() > 9 ? "9+" : getTotalItems()}
                   </span>
                 )}

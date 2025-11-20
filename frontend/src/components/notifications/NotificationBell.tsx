@@ -139,7 +139,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
       case "message":
         return <MessageCircle className="w-5 h-5 text-green-500" />;
       case "item":
-        return <ShoppingBag className="w-5 h-5 text-purple-500" />;
+        return <ShoppingBag className="w-5 h-5 text-[#69773D]" />;
       case "system":
         return <AlertCircle className="w-5 h-5 text-[#780606]" />;
       default:
@@ -225,8 +225,8 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
           {/* Notification List */}
           <div className="overflow-y-auto flex-1">
             {notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 px-4">
-                <Bell className="w-12 h-12 text-gray-300 mb-3" />
+              <div className="flex flex-col items-center justify-center py-12 px-4 bg-white">
+                <Bell className="w-12 h-12 text-[#69773D] mb-3" />
                 <p className="text-[#4A5130] text-sm">No notifications yet</p>
               </div>
             ) : (
@@ -283,7 +283,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
             <div className="p-3 border-t border-gray-200 text-center">
               <a
                 href="/notifications"
-                className="text-sm text-[#8DB368] hover:text-[#7ba05a] font-medium"
+                className="text-sm text-[#4A5130] hover:text-[#3a4025] font-medium"
               >
                 View all notifications
               </a>

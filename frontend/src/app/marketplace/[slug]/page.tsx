@@ -489,7 +489,7 @@ export default function Page() {
           </section>
 
           <section>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-gray-800 mb-2 leading-tight">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-[#4A5130] mb-2 leading-tight">
               {item.title}
             </h1>
 
@@ -523,10 +523,10 @@ export default function Page() {
 
             {(ownerInfo.id || ownerInfo.name) && (
               <div
-                className="mt-6 p-4 bg-gray-50 rounded-xl border"
-                style={{ borderColor: BORDER }}
+                className="mt-6 p-4 rounded-xl border"
+                style={{ backgroundColor: 'rgba(231, 239, 219, 0.5)', borderColor: 'rgba(231, 239, 219, 0.8)' }}
               >
-                <h3 className="text-sm font-semibold text-gray-600 mb-2">
+                <h3 className="text-sm font-semibold text-[#4A5130] mb-2">
                   Seller Information
                 </h3>
                 <div className="flex items-center gap-3">
@@ -534,7 +534,7 @@ export default function Page() {
                     {sellerInitial}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-[#4A5130]">
                       {sellerDisplayName}
                     </p>
                     <p className="text-sm text-gray-500">KU Market Seller</p>
@@ -546,7 +546,7 @@ export default function Page() {
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:bg-gray-100"
                     }`}
-                    style={{ borderColor: BORDER, color: GREEN }}
+                    style={{ borderColor: BORDER, backgroundColor: 'rgba(122,74,34,0.85)', color: '#F6F2E5' }}
                     onClick={handleContactSeller}
                     disabled={isOwnItem}
                     title={
@@ -636,7 +636,7 @@ export default function Page() {
               <button
                 type="button"
                 onClick={handleReportItem}
-                className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold text-white bg-gradient-to-r from-red-500 via-red-500 to-red-600 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+                className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold text-white bg-[#780606] shadow-md hover:shadow-lg hover:bg-[#5c0505] transition-all duration-300 hover:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#780606]"
               >
                 Report this item
               </button>
@@ -647,12 +647,12 @@ export default function Page() {
         {/* Reviews Section */}
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#4A5130]">
               Customer Reviews
             </h2>
             <Link
               href={`/marketplace/${item._id}/reviews`}
-              className="text-[#84B067] hover:text-[#69773D] font-semibold text-sm sm:text-base transition-colors flex items-center gap-1 self-start sm:self-auto"
+              className="text-[#69773D] hover:text-[#5a6530] font-semibold text-sm sm:text-base transition-colors flex items-center gap-1 self-start sm:self-auto"
             >
               <span className="hidden sm:inline">View All Reviews</span>
               <span className="sm:hidden">View All</span>

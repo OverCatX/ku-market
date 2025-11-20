@@ -93,6 +93,7 @@ export default function FeaturedProducts() {
           </p>
         </div>
 
+        <div className="bg-white rounded-2xl p-8 md:p-12">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
@@ -153,6 +154,7 @@ export default function FeaturedProducts() {
             ))}
           </div>
         )}
+        </div>
 
         {!loading && items.length > 0 && (
           <motion.div
