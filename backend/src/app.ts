@@ -2,6 +2,7 @@ import express, { Application } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import session from "express-session";
+import cookieParser from "cookie-parser";
 import passport from "./lib/passport";
 import authRoutes from "./application/routes/auth";
 import profileRoutes from "./application/routes/profile";
@@ -33,6 +34,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(express.json());
 
