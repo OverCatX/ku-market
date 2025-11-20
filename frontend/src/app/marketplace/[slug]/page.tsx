@@ -546,7 +546,7 @@ export default function Page() {
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:bg-gray-100"
                     }`}
-                    style={{ borderColor: BORDER, backgroundColor: 'rgba(122,74,34,0.85)', color: '#F6F2E5' }}
+                    style={{ borderColor: BORDER, backgroundColor: '#69773D', color: '#F6F2E5' }}
                     onClick={handleContactSeller}
                     disabled={isOwnItem}
                     title={

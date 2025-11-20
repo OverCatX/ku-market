@@ -26,19 +26,16 @@ export default function ItemCard({
     available: {
       text: "text-[#F6F2E5]",
       bg: "bg-[#69773D]",
-      border: "border-[#69773D]",
       label: "Available",
     },
     reserved: {
-      text: "text-yellow-700",
-      bg: "bg-yellow-50",
-      border: "border-yellow-200",
+      text: "text-[#F6F2E5]",
+      bg: "bg-yellow-700",
       label: "Reserved",
     },
     sold: {
-      text: "text-[#780606]",
+      text: "text-[#F6F2E5]",
       bg: "bg-[#780606]",
-      border: "border-[#780606]",
       label: "Sold",
     },
   } as const;
@@ -46,7 +43,6 @@ export default function ItemCard({
   const statusStyle = statusConfig[status as keyof typeof statusConfig] || {
     text: "text-gray-600",
     bg: "bg-gray-50",
-    border: "border-gray-200",
     label: status,
   };
 
@@ -66,7 +62,7 @@ export default function ItemCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/0 via-black/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <div className="absolute top-2 right-2">
           <span
-            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusStyle.bg} ${statusStyle.border} ${statusStyle.text} border backdrop-blur-sm shadow-sm`}
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusStyle.bg} ${statusStyle.text} backdrop-blur-sm shadow-sm`}
           >
             {statusStyle.label}
           </span>
