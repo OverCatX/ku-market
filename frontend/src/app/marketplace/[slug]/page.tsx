@@ -112,6 +112,11 @@ export default function Page() {
     setCurrentUserId(extractUserId(authUser));
   }, []);
 
+  // Scroll to top when page loads or slug changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [slug]);
+
   useEffect(() => {
     let ok = true;
     (async () => {
@@ -119,6 +124,8 @@ export default function Page() {
         const res = await getItem(String(slug));
         if (ok) {
           setItem(res.item);
+          // Scroll to top after item is loaded
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }
 
         // Load reviews and summary
