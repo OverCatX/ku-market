@@ -1,4 +1,4 @@
-import { ThumbsUp, CheckCircle, User, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ThumbsUp, CheckCircle, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Review } from "@/types/review";
 import StarRating from "./StarRating";
 import Image from "next/image";
