@@ -31,30 +31,32 @@ export default function FeaturedProducts() {
         sortBy: "createAt",
         sortOrder: "desc",
       });
-        if (res.success && res.data.items) {
-          // Fetch ratings using batch API (more efficient)
-          try {
-            const itemIds = res.data.items.map((item: Item) => item._id);
-            const summaries = await getBatchReviewSummaries(itemIds);
-            
-            const itemsWithRatings = res.data.items.map((item: Item) => {
-              const summary = summaries[item._id];
-              return {
-                ...item,
-                rating: summary?.averageRating || 0,
-                totalReviews: summary?.totalReviews || 0,
-              };
-            });
-            
-            setItems(itemsWithRatings);
-          } catch {
-            // If review summary fails, return items without rating
-            setItems(res.data.items.map((item: Item) => ({
+      if (res.success && res.data.items) {
+        // Fetch ratings using batch API (more efficient)
+        try {
+          const itemIds = res.data.items.map((item: Item) => item._id);
+          const summaries = await getBatchReviewSummaries(itemIds);
+
+          const itemsWithRatings = res.data.items.map((item: Item) => {
+            const summary = summaries[item._id];
+            return {
+              ...item,
+              rating: summary?.averageRating || 0,
+              totalReviews: summary?.totalReviews || 0,
+            };
+          });
+
+          setItems(itemsWithRatings);
+        } catch {
+          // If review summary fails, return items without rating
+          setItems(
+            res.data.items.map((item: Item) => ({
               ...item,
               rating: 0,
               totalReviews: 0,
-            })));
-          }
+            }))
+          );
+        }
       } else {
         // If API call failed, show empty state
         setItems([]);

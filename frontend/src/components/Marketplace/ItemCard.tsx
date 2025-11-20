@@ -23,34 +23,39 @@ const ItemCard = memo(function ItemCard({
   rating,
   totalReviews,
 }: ItemCardProps) {
-  const statusConfig = useMemo(() => ({
-    available: {
-      text: "text-[#69773D]",
-      bg: "bg-green-50",
-      border: "border-green-200",
-      label: "Available",
-    },
-    reserved: {
-      text: "text-yellow-700",
-      bg: "bg-yellow-50",
-      border: "border-yellow-200",
-      label: "Reserved",
-    },
-    sold: {
-      text: "text-red-700",
-      bg: "bg-red-50",
-      border: "border-red-200",
-      label: "Sold",
-    },
-  } as const), []);
+  const statusConfig = useMemo(
+    () =>
+      ({
+        available: {
+          text: "text-[#69773D]",
+          bg: "bg-green-50",
+          border: "border-green-200",
+          label: "Available",
+        },
+        reserved: {
+          text: "text-yellow-700",
+          bg: "bg-yellow-50",
+          border: "border-yellow-200",
+          label: "Reserved",
+        },
+        sold: {
+          text: "text-red-700",
+          bg: "bg-red-50",
+          border: "border-red-200",
+          label: "Sold",
+        },
+      } as const),
+    []
+  );
 
-  const statusStyle = useMemo(() => 
-    statusConfig[status as keyof typeof statusConfig] || {
-      text: "text-gray-600",
-      bg: "bg-gray-50",
-      border: "border-gray-200",
-      label: status,
-    },
+  const statusStyle = useMemo(
+    () =>
+      statusConfig[status as keyof typeof statusConfig] || {
+        text: "text-gray-600",
+        bg: "bg-gray-50",
+        border: "border-gray-200",
+        label: status,
+      },
     [status, statusConfig]
   );
 
