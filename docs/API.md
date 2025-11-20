@@ -106,6 +106,65 @@ Sends OTP to email (expires in 60 seconds).
 
 ---
 
+### Google OAuth Login
+
+**GET** `/api/auth/google`
+
+Initiates Google OAuth flow. Redirects to Google login page.
+
+**Requirements:**
+
+- `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` must be configured in backend `.env`
+- Only `@ku.th` email addresses are accepted
+- Users with non-`@ku.th` emails will receive an error
+
+**Flow:**
+
+1. User clicks "Continue with Google" button
+2. Redirects to Google OAuth consent screen
+3. User authorizes application
+4. Google redirects to `/api/auth/google/callback`
+5. Backend validates email domain (`@ku.th` required)
+6. Creates account if user doesn't exist
+7. Returns JWT token and user data
+
+**Callback Endpoint:**
+
+**GET** `/api/auth/google/callback`
+
+Internal endpoint. Handles OAuth callback from Google.
+
+**Data Endpoint:**
+
+**GET** `/api/auth/google/callback/data`
+
+Returns OAuth data (token and user) stored in cookies after successful authentication.
+
+**Response:** `200`
+
+```json
+{
+  "token": "jwt.token.here",
+  "user": {
+    "id": "...",
+    "name": "John Doe",
+    "email": "john.d@ku.th",
+    "role": "buyer",
+    "isVerified": false
+  }
+}
+```
+
+**Error Response:** `400`
+
+```json
+{
+  "error": "Email must be @ku.th domain. Please use your KU email address."
+}
+```
+
+---
+
 ## Profile Endpoints
 
 ### Get Profile

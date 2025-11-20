@@ -132,6 +132,11 @@ CLOUDINARY_API_SECRET=your_api_secret
 SMTP_EMAIL=your-email@gmail.com
 SMTP_PASSWORD=your-16-character-app-password
 
+# Google OAuth (Optional - for Google login)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=http://localhost:8080/api/auth/google/callback
+
 # Frontend URL
 FRONTEND_URL=http://localhost:3000
 ```
@@ -186,6 +191,31 @@ MONGO_URI=mongodb://localhost:27017/ku-market
 ```bash
 openssl rand -base64 32
 ```
+
+### 5. Google OAuth (Optional)
+
+**For Google login feature:**
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing one
+3. Enable **Google+ API**
+4. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
+5. Configure OAuth consent screen:
+   - User Type: External
+   - App name: KU Market
+   - Authorized domains: your domain (or localhost for development)
+6. Create OAuth 2.0 Client ID:
+   - Application type: Web application
+   - Name: KU Market Web Client
+   - **Authorized JavaScript origins:**
+     - `http://localhost:3000` (development)
+     - `https://your-frontend-domain.com` (production)
+   - **Authorized redirect URIs:**
+     - `http://localhost:8080/api/auth/google/callback` (development)
+     - `https://your-backend-domain.com/api/auth/google/callback` (production)
+7. Copy **Client ID** and **Client Secret** to `.env`
+
+**Note:** Google login only accepts `@ku.th` email addresses. Users with other email domains will see an error message.
 
 ---
 

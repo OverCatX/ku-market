@@ -14,6 +14,8 @@ How to use KU Market platform.
 
 ### 1. Create Account
 
+**Option A: Email/Password Signup**
+
 1. Go to `/signup`
 2. Fill in your information:
    - Name
@@ -23,6 +25,17 @@ How to use KU Market platform.
    - Phone number (10 digits, starting with 0)
 3. Click "Sign Up"
 4. Login with your credentials
+
+**Option B: Google Login**
+
+1. Go to `/login`
+2. Click "Continue with Google" button
+3. Select your Google account
+4. **Important:** Only `@ku.th` email addresses are accepted
+5. If your account doesn't exist, it will be created automatically
+6. You'll be logged in immediately
+
+**Note:** If you use a non-`@ku.th` email with Google login, you'll see an error message asking you to use your KU email address.
 
 ### Forgot Password
 

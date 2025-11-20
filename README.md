@@ -11,7 +11,7 @@ An online marketplace platform for Kasetsart University students to buy and sell
 
 ## ✨ Features
 
-- **Authentication** - Email validation (@ku.th users, @ku.ac.th admins), OTP password reset, identity verification
+- **Authentication** - Email validation (@ku.th users, @ku.ac.th admins), Google OAuth login, OTP password reset, identity verification
 - **Marketplace** - Browse, search, filter items. Create branded shops with custom categories
 - **Payments** - Cash, PromptPay QR, Bank Transfer with instant QR generation
 - **Delivery** - Pickup at meetup points or home delivery with interactive maps
@@ -70,6 +70,7 @@ npm install && npm run dev
 ## Important Notes
 
 - Email: `@ku.th` for users, `@ku.ac.th` for admins
+- Google OAuth: Only `@ku.th` emails are accepted for Google login
 - Identity verification required before checkout
 - Admin account: `npm run bootstrap-admin`
 - Password reset: OTP via email (60 seconds expiry)
