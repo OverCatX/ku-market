@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { getItem, Item } from "@/config/items";
 import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
@@ -25,6 +26,8 @@ interface OwnerObject {
   _id: string;
   name?: string;
   email?: string;
+  kuEmail?: string;
+  profilePicture?: string;
 }
 
 const isOwnerObject = (value: unknown): value is OwnerObject =>
@@ -34,17 +37,18 @@ const isOwnerObject = (value: unknown): value is OwnerObject =>
 
 const resolveOwnerInfo = (
   owner: unknown
-): { id: string | null; name: string | null } => {
+): { id: string | null; name: string | null; profilePicture?: string | null } => {
   if (typeof owner === "string") {
-    return { id: owner, name: null };
+    return { id: owner, name: null, profilePicture: null };
   }
   if (isOwnerObject(owner)) {
     return {
       id: owner._id ?? null,
       name: owner.name ?? null,
+      profilePicture: owner.profilePicture ?? null,
     };
   }
-  return { id: null, name: null };
+  return { id: null, name: null, profilePicture: null };
 };
 
 const extractUserId = (user: unknown): string | null => {
@@ -87,7 +91,7 @@ export default function Page() {
 
   const ownerInfo = item
     ? resolveOwnerInfo(item.owner)
-    : { id: null, name: null };
+    : { id: null, name: null, profilePicture: null };
   const isOwnItem = Boolean(
     ownerInfo.id && currentUserId && ownerInfo.id === currentUserId
   );
@@ -530,9 +534,21 @@ export default function Page() {
                   Seller Information
                 </h3>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold">
-                    {sellerInitial}
-                  </div>
+                  {ownerInfo.profilePicture ? (
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#69773D]">
+                      <Image
+                        src={ownerInfo.profilePicture}
+                        alt={sellerDisplayName}
+                        fill
+                        className="object-cover"
+                        sizes="40px"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold">
+                      {sellerInitial}
+                    </div>
+                  )}
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">
                       {sellerDisplayName}

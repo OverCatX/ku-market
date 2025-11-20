@@ -9,6 +9,7 @@ export type ProfileData = {
   email: string;
   isVerified?: boolean;
   role?: string;
+  profilePicture?: string;
 };
 
 export type ProfileResponse = ProfileData;
@@ -17,6 +18,7 @@ export type UpdateProfileData = {
   name?: string;
   faculty?: string;
   contact?: string;
+  profilePicture?: File;
 };
 
 async function request<T>(url: string, options: RequestInit): Promise<T> {
@@ -52,12 +54,19 @@ export function updateProfile(data: UpdateProfileData): Promise<ProfileResponse>
   const token = getAuthToken();
   if (!token) throw new Error("Please login to update profile");
   
+  const formData = new FormData();
+  
+  if (data.name !== undefined) formData.append("name", data.name);
+  if (data.faculty !== undefined) formData.append("faculty", data.faculty);
+  if (data.contact !== undefined) formData.append("contact", data.contact);
+  if (data.profilePicture) formData.append("profilePicture", data.profilePicture);
+  
   return request(`${API_BASE}/api/profile/update`, {
     method: "PUT",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
+      // Don't set Content-Type, let browser set it with boundary for FormData
     },
-    body: JSON.stringify(data),
+    body: formData,
   });
 }
