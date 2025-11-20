@@ -304,6 +304,85 @@ export default class ReviewController {
     }
   };
 
+  // POST /api/reviews/summaries/batch - Get review summaries for multiple items (batch)
+  getBatchReviewSummaries = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { itemIds } = req.body;
+
+      if (!Array.isArray(itemIds) || itemIds.length === 0) {
+        return res.status(400).json({ success: false, error: "itemIds must be a non-empty array" });
+      }
+
+      // Validate all item IDs
+      const validItemIds = itemIds.filter((id: string) => mongoose.Types.ObjectId.isValid(id));
+      
+      if (validItemIds.length === 0) {
+        return res.status(400).json({ success: false, error: "No valid item IDs provided" });
+      }
+
+      // Limit batch size to prevent abuse
+      const maxBatchSize = 50;
+      const itemIdsToProcess = validItemIds.slice(0, maxBatchSize);
+
+      // Fetch all reviews for the items in a single query
+      const reviews = await Review.find({
+        item: { $in: itemIdsToProcess.map((id: string) => new mongoose.Types.ObjectId(id)) },
+      });
+
+      // Group reviews by item ID
+      const reviewsByItem = new Map<string, typeof reviews>();
+      reviews.forEach((review) => {
+        const itemId = String(review.item);
+        if (!reviewsByItem.has(itemId)) {
+          reviewsByItem.set(itemId, []);
+        }
+        reviewsByItem.get(itemId)!.push(review);
+      });
+
+      // Calculate summaries for each item
+      const summaries: Record<string, {
+        averageRating: number;
+        totalReviews: number;
+        ratingDistribution: { 1: number; 2: number; 3: number; 4: number; 5: number };
+      }> = {};
+
+      itemIdsToProcess.forEach((itemId: string) => {
+        const itemReviews = reviewsByItem.get(itemId) || [];
+        
+        if (itemReviews.length === 0) {
+          summaries[itemId] = {
+            averageRating: 0,
+            totalReviews: 0,
+            ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+          };
+        } else {
+          const totalRating = itemReviews.reduce((sum, review) => sum + review.rating, 0);
+          const averageRating = totalRating / itemReviews.length;
+
+          const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+          itemReviews.forEach((review) => {
+            const rating = review.rating as 1 | 2 | 3 | 4 | 5;
+            ratingDistribution[rating]++;
+          });
+
+          summaries[itemId] = {
+            averageRating: Math.round(averageRating * 10) / 10,
+            totalReviews: itemReviews.length,
+            ratingDistribution,
+          };
+        }
+      });
+
+      return res.json({
+        success: true,
+        summaries,
+      });
+    } catch (error) {
+      console.error("Get batch review summaries error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
   // POST /api/reviews/:id/helpful - Mark review as helpful
   // DELETE /api/reviews/:id/helpful - Unmark review as helpful
   markHelpful = async (req: Request, res: Response): Promise<Response> => {

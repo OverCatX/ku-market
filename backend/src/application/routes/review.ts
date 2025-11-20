@@ -16,6 +16,9 @@ router.get("/item/:itemId", optionalAuthenticate, reviewController.getItemReview
 // GET /api/reviews/item/:itemId/summary - Get review summary (public)
 router.get("/item/:itemId/summary", reviewController.getReviewSummary);
 
+// POST /api/reviews/summaries/batch - Get review summaries for multiple items (public, batch)
+router.post("/summaries/batch", reviewController.getBatchReviewSummaries);
+
 // POST /api/reviews/:id/helpful - Mark review as helpful (authenticated)
 // DELETE /api/reviews/:id/helpful - Unmark review as helpful (authenticated)
 router.post("/:id/helpful", authenticate, reviewController.markHelpful);

@@ -8,7 +8,7 @@ import Pagination from "@/components/Marketplace/Pagination";
 import debounce from "lodash.debounce";
 import { listItems, Item, ListItemsResponse } from "../../config/items";
 import { getCategories, Category } from "../../config/categories";
-import { getReviewSummary } from "../../config/reviews";
+import { getBatchReviewSummaries } from "../../config/reviews";
 import FooterSection from "@/components/home/FooterSection";
 
 const LIGHT = "#f9f9f7";
@@ -80,33 +80,26 @@ export default function MarketPage() {
         setTotalPages(res.data.pagination.totalPages);
         setCurrentPage(res.data.pagination.currentPage);
 
-        // Fetch review summaries for all items
+        // Fetch review summaries for all items using batch API (more efficient)
         const fetchRatings = async () => {
           try {
-            const ratingsPromises = res.data.items.map(async (item) => {
-              try {
-                const summary = await getReviewSummary(item._id);
-                return {
-                  ...item,
-                  rating: summary.averageRating,
-                  totalReviews: summary.totalReviews,
-                };
-              } catch {
-                // If review summary fails, return item without rating
-                return {
-                  ...item,
-                  rating: 0,
-                  totalReviews: 0,
-                };
-              }
+            const itemIds = res.data.items.map((item: Item) => item._id);
+            const summaries = await getBatchReviewSummaries(itemIds);
+            
+            const itemsWithRatings = res.data.items.map((item: Item) => {
+              const summary = summaries[item._id];
+              return {
+                ...item,
+                rating: summary?.averageRating || 0,
+                totalReviews: summary?.totalReviews || 0,
+              };
             });
-
-            const itemsWithRatings = await Promise.all(ratingsPromises);
+            
             setItemsWithRating(itemsWithRatings);
           } catch {
             // If fetching ratings fails, just use items without ratings
             setItemsWithRating(
-              res.data.items.map((item) => ({
+              res.data.items.map((item: Item) => ({
                 ...item,
                 rating: 0,
                 totalReviews: 0,

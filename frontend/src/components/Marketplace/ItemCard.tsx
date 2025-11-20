@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { Star } from "lucide-react";
+import { memo, useMemo } from "react";
 
 interface ItemCardProps {
   id?: string;
@@ -13,7 +14,7 @@ interface ItemCardProps {
   totalReviews?: number; // Total number of reviews
 }
 
-export default function ItemCard({
+const ItemCard = memo(function ItemCard({
   title,
   description,
   price,
@@ -22,7 +23,7 @@ export default function ItemCard({
   rating,
   totalReviews,
 }: ItemCardProps) {
-  const statusConfig = {
+  const statusConfig = useMemo(() => ({
     available: {
       text: "text-[#69773D]",
       bg: "bg-green-50",
@@ -41,16 +42,22 @@ export default function ItemCard({
       border: "border-red-200",
       label: "Sold",
     },
-  } as const;
+  } as const), []);
 
-  const statusStyle = statusConfig[status as keyof typeof statusConfig] || {
-    text: "text-gray-600",
-    bg: "bg-gray-50",
-    border: "border-gray-200",
-    label: status,
-  };
+  const statusStyle = useMemo(() => 
+    statusConfig[status as keyof typeof statusConfig] || {
+      text: "text-gray-600",
+      bg: "bg-gray-50",
+      border: "border-gray-200",
+      label: status,
+    },
+    [status, statusConfig]
+  );
 
-  const formattedPrice = Number.isFinite(price) ? price.toLocaleString() : "0";
+  const formattedPrice = useMemo(
+    () => (Number.isFinite(price) ? price.toLocaleString() : "0"),
+    [price]
+  );
 
   return (
     <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
@@ -137,4 +144,6 @@ export default function ItemCard({
       </div>
     </div>
   );
-}
+});
+
+export default ItemCard;
