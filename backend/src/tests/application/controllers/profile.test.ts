@@ -60,6 +60,7 @@ describe("Profile api", ()=>{
             expect(res.body).toHaveProperty("name", "Jaden");
         })
 
+        
     })
 
 
