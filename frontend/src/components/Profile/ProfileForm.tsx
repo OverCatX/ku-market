@@ -56,12 +56,12 @@ export default function ProfileForm({
               <span className="text-sm font-medium">Upload Photo</span>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/bmp,image/heic,image/heif,image/avif,.heic,.heif"
                 onChange={onProfilePictureChange}
                 className="hidden"
               />
             </label>
-            <p className="text-xs text-gray-500 mt-1 text-center sm:text-left">Max 5MB, JPG/PNG</p>
+            <p className="text-xs text-gray-500 mt-1 text-center sm:text-left">Max 5MB, JPG/PNG/WEBP/GIF/BMP/HEIC/HEIF/AVIF</p>
           </div>
         </div>
       </div>

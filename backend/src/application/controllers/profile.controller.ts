@@ -41,7 +41,14 @@ export default class ProfileController {
             const file = (req as { file?: Express.Multer.File }).file;
             if (file) {
                 try {
-                    const imageUrl = await uploadToCloudinary(file.buffer, "profiles");
+                    // Pass mimeType and fileName to convert HEIC/HEIF/AVIF to JPG for browser compatibility
+                    const imageUrl = await uploadToCloudinary(
+                        file.buffer, 
+                        "profiles", 
+                        undefined, 
+                        file.mimetype,
+                        file.originalname
+                    );
                     updateData.profilePicture = imageUrl;
                 } catch (uploadError) {
                     return res.status(500).json({ 

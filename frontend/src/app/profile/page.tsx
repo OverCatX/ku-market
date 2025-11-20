@@ -162,10 +162,30 @@ export default function ProfilePage() {
         toast.error("Image size must be less than 5MB");
         return;
       }
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file");
+      
+      // Check file type - support various image formats including HEIC
+      const validImageTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "image/bmp",
+        "image/heic",
+        "image/heif",
+        "image/avif",
+      ];
+      
+      // Also check by file extension for HEIC/HEIF which might not have proper MIME type
+      const fileName = file.name.toLowerCase();
+      const validExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".heic", ".heif", ".avif"];
+      const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+      
+      if (!file.type.startsWith("image/") && !validImageTypes.includes(file.type) && !hasValidExtension) {
+        toast.error("Please select an image file (JPG, PNG, WEBP, GIF, BMP, HEIC, HEIF, AVIF)");
         return;
       }
+      
       setProfilePicture(file);
       const reader = new FileReader();
       reader.onloadend = () => {
