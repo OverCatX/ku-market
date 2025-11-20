@@ -33,7 +33,9 @@ export default function ProfileForm({
     <form onSubmit={onSave} className="space-y-5">
       {/* Profile Picture Upload */}
       <div>
-        <label className="text-sm text-gray-600 mb-2 block">Profile Picture</label>
+        <label className="text-sm text-gray-600 mb-2 block">
+          Profile Picture
+        </label>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           {profilePicturePreview ? (
             <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-[#69773D] flex-shrink-0">
@@ -61,7 +63,9 @@ export default function ProfileForm({
                 className="hidden"
               />
             </label>
-            <p className="text-xs text-gray-500 mt-1 text-center sm:text-left">Max 5MB, JPG/PNG/WEBP/GIF/BMP/HEIC/HEIF/AVIF</p>
+            <p className="text-xs text-gray-500 mt-1 text-center sm:text-left">
+              Max 5MB, JPG/PNG/GIF
+            </p>
           </div>
         </div>
       </div>
@@ -120,7 +124,9 @@ export default function ProfileForm({
           {saving ? "Saving..." : "Save Changes"}
         </button>
         {saveMessage && (
-          <span className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">{saveMessage}</span>
+          <span className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
+            {saveMessage}
+          </span>
         )}
       </div>
     </form>
