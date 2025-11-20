@@ -230,19 +230,21 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0 mb-3">
         <div className="flex items-center gap-2 sm:gap-3">
           {/* User Avatar */}
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold flex-shrink-0">
-            {review.userAvatar ? (
+          {review.userAvatar ? (
+            <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-[#69773D] flex-shrink-0">
               <Image
                 src={review.userAvatar}
                 alt={review.userName}
-                width={40}
-                height={40}
-                className="rounded-full w-full h-full"
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 32px, 40px"
               />
-            ) : (
-              <User className="w-4 h-4 sm:w-5 sm:h-5" />
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold flex-shrink-0 text-xs sm:text-sm">
+              {review.userName?.charAt(0).toUpperCase() || "U"}
+            </div>
+          )}
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">

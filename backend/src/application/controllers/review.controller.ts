@@ -122,8 +122,8 @@ export default class ReviewController {
 
       await review.save();
 
-      // Populate user info for response
-      await review.populate("user", "name kuEmail");
+      // Populate user info for response (including profilePicture)
+      await review.populate("user", "name kuEmail profilePicture");
 
       // Notify item owner about new review
       await createNotification(
@@ -138,6 +138,7 @@ export default class ReviewController {
         _id: mongoose.Types.ObjectId;
         name?: string;
         kuEmail?: string;
+        profilePicture?: string;
       }
 
       const populatedUser = review.user as unknown as PopulatedUser;
@@ -149,7 +150,7 @@ export default class ReviewController {
           itemId: review.item,
           userId: String(review.user),
           userName: populatedUser.name || "Anonymous",
-          userAvatar: undefined,
+          userAvatar: populatedUser.profilePicture || undefined,
           rating: review.rating,
           title: review.title,
           comment: review.comment,
@@ -185,8 +186,8 @@ export default class ReviewController {
       const reviews = await Review.find({ item: itemId })
         .sort({ createAt: -1 });
       
-      // Populate user separately to ensure we get the user ID as string
-      await Promise.all(reviews.map(review => review.populate("user", "name kuEmail")));
+      // Populate user separately to ensure we get the user ID as string (including profilePicture)
+      await Promise.all(reviews.map(review => review.populate("user", "name kuEmail profilePicture")));
 
       // Get helpful votes for current user if authenticated
       let userVotes: mongoose.Types.ObjectId[] = [];
@@ -202,6 +203,7 @@ export default class ReviewController {
         _id: mongoose.Types.ObjectId;
         name?: string;
         kuEmail?: string;
+        profilePicture?: string;
       }
 
       return res.json({
@@ -225,7 +227,7 @@ export default class ReviewController {
             itemId: review.item,
             userId: userIdString,
             userName: populatedUser.name || "Anonymous",
-            userAvatar: undefined,
+            userAvatar: populatedUser.profilePicture || undefined,
             rating: review.rating,
             title: review.title,
             comment: review.comment,
