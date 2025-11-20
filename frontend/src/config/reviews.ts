@@ -160,6 +160,31 @@ export async function getReviewSummary(itemId: string): Promise<ReviewSummary> {
 }
 
 /**
+ * Get review summaries for multiple items (batch) - more efficient than individual calls
+ */
+export async function getBatchReviewSummaries(itemIds: string[]): Promise<Record<string, ReviewSummary>> {
+  if (!Array.isArray(itemIds) || itemIds.length === 0) {
+    return {};
+  }
+
+  const response = await fetch(`${API_BASE}/api/reviews/summaries/batch`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ itemIds }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(errorData.error || "Failed to fetch review summaries");
+  }
+
+  const result = await response.json();
+  return result.summaries || {};
+}
+
+/**
  * Toggle helpful vote for a review (mark/unmark as helpful)
  */
 export async function toggleHelpful(reviewId: string, currentHasVoted: boolean): Promise<{ helpful: number; hasVoted: boolean }> {

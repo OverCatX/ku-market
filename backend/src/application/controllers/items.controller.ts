@@ -254,7 +254,7 @@ export default class ItemController {
                         foreignField: "_id",
                         as: "ownerInfo",
                         pipeline: [
-                            { $project: { name: 1, email: 1 } }
+                            { $project: { name: 1, kuEmail: 1, profilePicture: 1 } }
                         ]
                     }
                 },
@@ -317,7 +317,7 @@ export default class ItemController {
             }
     
             // Find the item and populate owner details
-            const item = await Item.findById(id).populate('owner', 'name email');
+            const item = await Item.findById(id).populate('owner', 'name kuEmail profilePicture');
             
             if (!item) {
                 return res.status(404).json({ 

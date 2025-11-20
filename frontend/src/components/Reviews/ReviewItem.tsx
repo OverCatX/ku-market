@@ -1,4 +1,11 @@
-import { ThumbsUp, CheckCircle, User, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ThumbsUp,
+  CheckCircle,
+  Trash2,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Review } from "@/types/review";
 import StarRating from "./StarRating";
 import Image from "next/image";
@@ -8,11 +15,18 @@ import { isAuthenticated as checkAuth, getAuthUser } from "@/lib/auth";
 
 interface ReviewItemProps {
   review: Review;
-  onHelpful?: (reviewId: string, currentHasVoted: boolean) => Promise<{ helpful: number; hasVoted: boolean }>;
+  onHelpful?: (
+    reviewId: string,
+    currentHasVoted: boolean
+  ) => Promise<{ helpful: number; hasVoted: boolean }>;
   onDelete?: (reviewId: string) => Promise<void>;
 }
 
-export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemProps) {
+export default function ReviewItem({
+  review,
+  onHelpful,
+  onDelete,
+}: ReviewItemProps) {
   const [hasVoted, setHasVoted] = useState(review.hasVoted || false);
   const [helpfulCount, setHelpfulCount] = useState(review.helpful || 0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,37 +35,39 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
   const [showImageModal, setShowImageModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const modalRef = useRef<HTMLDivElement>(null);
-  
 
   // Sync state with props when review changes
   useEffect(() => {
     setHasVoted(review.hasVoted || false);
     setHelpfulCount(review.helpful || 0);
-    
+
     // Check if current user is the owner of this review
     if (checkAuth()) {
       const user = getAuthUser();
-      
+
       // Handle reviewUserId - it might be a string or an object
       let reviewUserId: string | null = null;
       if (review.userId) {
-        if (typeof review.userId === 'string') {
+        if (typeof review.userId === "string") {
           reviewUserId = review.userId.trim();
-        } else if (typeof review.userId === 'object' && review.userId !== null) {
+        } else if (
+          typeof review.userId === "object" &&
+          review.userId !== null
+        ) {
           // If it's an object, try to get _id from it
           const userIdObj = review.userId as Record<string, unknown>;
-          
+
           // Check if it has _id property
-          if ('_id' in userIdObj && userIdObj._id) {
+          if ("_id" in userIdObj && userIdObj._id) {
             const _idValue = userIdObj._id;
             // Handle ObjectId or string _id
-            if (typeof _idValue === 'string') {
+            if (typeof _idValue === "string") {
               reviewUserId = _idValue.trim();
-            } else if (typeof _idValue === 'object' && _idValue !== null) {
+            } else if (typeof _idValue === "object" && _idValue !== null) {
               // It's likely a MongoDB ObjectId
               // Try to convert the whole object to string first to see what we get
               const objStr = String(_idValue);
-              
+
               // Try to extract ObjectId from string representation like "new ObjectId('691d3935db46d551a8edfb2a')"
               // or just the ID itself if it's already a string
               const oidMatch = objStr.match(/ObjectId\(['"]([^'"]+)['"]\)/);
@@ -63,7 +79,7 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
               } else {
                 // Try toString() method if available
                 const objId = _idValue as { toString?: () => string };
-                if (objId.toString && typeof objId.toString === 'function') {
+                if (objId.toString && typeof objId.toString === "function") {
                   try {
                     const str = objId.toString();
                     if (/^[0-9a-fA-F]{24}$/.test(str)) {
@@ -100,7 +116,7 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
           reviewUserId = String(review.userId).trim();
         }
       }
-      
+
       // Try multiple possible user ID fields from JWT token
       let currentUserId: string | null = null;
       if (user) {
@@ -112,12 +128,19 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
           currentUserId = String((user as { userId?: string }).userId).trim();
         }
       }
-      
+
       // Normalize both IDs to strings for comparison (remove any whitespace, convert to lowercase for comparison)
-      const normalizedReviewUserId = reviewUserId ? reviewUserId.trim().toLowerCase() : null;
-      const normalizedCurrentUserId = currentUserId ? currentUserId.trim().toLowerCase() : null;
-      
-      const isMatch = normalizedCurrentUserId !== null && normalizedReviewUserId !== null && normalizedCurrentUserId === normalizedReviewUserId;
+      const normalizedReviewUserId = reviewUserId
+        ? reviewUserId.trim().toLowerCase()
+        : null;
+      const normalizedCurrentUserId = currentUserId
+        ? currentUserId.trim().toLowerCase()
+        : null;
+
+      const isMatch =
+        normalizedCurrentUserId !== null &&
+        normalizedReviewUserId !== null &&
+        normalizedCurrentUserId === normalizedReviewUserId;
       setIsOwner(isMatch);
     } else {
       setIsOwner(false);
@@ -148,14 +171,20 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
 
     setIsSubmitting(true);
     try {
-      const result = await onHelpful(review._id || (review as { id?: string }).id || "", hasVoted);
+      const result = await onHelpful(
+        review._id || (review as { id?: string }).id || "",
+        hasVoted
+      );
       // Update state based on response
       if (result) {
         setHasVoted(result.hasVoted);
         setHelpfulCount(result.helpful);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to mark review as helpful";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to mark review as helpful";
       if (errorMessage.includes("login")) {
         toast.error("Please login to mark review as helpful", {
           duration: 3000,
@@ -172,8 +201,10 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
   const handleDelete = async () => {
     if (!onDelete) return;
     if (isDeleting) return;
-    
-    const confirmed = window.confirm("Are you sure you want to delete this review? This action cannot be undone.");
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this review? This action cannot be undone."
+    );
     if (!confirmed) return;
 
     setIsDeleting(true);
@@ -181,7 +212,8 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
       await onDelete(review._id || (review as { id?: string }).id || "");
       toast.success("Review deleted successfully");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to delete review";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to delete review";
       toast.error(errorMessage);
     } finally {
       setIsDeleting(false);
@@ -230,23 +262,27 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0 mb-3">
         <div className="flex items-center gap-2 sm:gap-3">
           {/* User Avatar */}
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold flex-shrink-0">
-            {review.userAvatar ? (
+          {review.userAvatar ? (
+            <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-[#69773D] flex-shrink-0">
               <Image
                 src={review.userAvatar}
                 alt={review.userName}
-                width={40}
-                height={40}
-                className="rounded-full w-full h-full"
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 32px, 40px"
               />
-            ) : (
-              <User className="w-4 h-4 sm:w-5 sm:h-5" />
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold flex-shrink-0 text-xs sm:text-sm">
+              {review.userName?.charAt(0).toUpperCase() || "U"}
+            </div>
+          )}
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">{review.userName}</h4>
+              <h4 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
+                {review.userName}
+              </h4>
               {review.verified && (
                 <span
                   className="flex items-center gap-1 text-[10px] sm:text-xs text-green-600 bg-green-50 px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0"
@@ -257,7 +293,9 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
                 </span>
               )}
             </div>
-            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{formatDate(review.createdAt)}</p>
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+              {formatDate(review.createdAt)}
+            </p>
           </div>
         </div>
 
@@ -269,11 +307,15 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
 
       {/* Title - Show even if empty, but only if provided */}
       {review.title && review.title.trim() && (
-        <h5 className="text-sm sm:text-base font-semibold text-gray-900 mb-2">{review.title}</h5>
+        <h5 className="text-sm sm:text-base font-semibold text-gray-900 mb-2">
+          {review.title}
+        </h5>
       )}
 
       {/* Comment */}
-      <p className="text-sm sm:text-base text-gray-700 mb-3 leading-relaxed break-words">{review.comment}</p>
+      <p className="text-sm sm:text-base text-gray-700 mb-3 leading-relaxed break-words">
+        {review.comment}
+      </p>
 
       {/* Images */}
       {review.images && review.images.length > 0 && (
@@ -413,14 +455,16 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
           }
         >
           <ThumbsUp
-            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${hasVoted ? "fill-[#84B067]" : ""}`}
+            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
+              hasVoted ? "fill-[#84B067]" : ""
+            }`}
           />
           <span>
             Helpful ({helpfulCount})
             {hasVoted && <span className="ml-1 text-[#84B067]">✓</span>}
           </span>
         </button>
-        
+
         {/* Delete Button - Only show if user owns the review */}
         {isOwner && onDelete && (
           <button
@@ -433,9 +477,7 @@ export default function ReviewItem({ review, onHelpful, onDelete }: ReviewItemPr
             <span>{isDeleting ? "Deleting..." : "Delete"}</span>
           </button>
         )}
-        
       </div>
     </div>
   );
 }
-

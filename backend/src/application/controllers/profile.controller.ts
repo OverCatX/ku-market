@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import User from "../../data/models/User";
 import { AuthenticatedRequest } from "../middlewares/authentication";
+import { uploadToCloudinary } from "../../lib/cloudinary";
 
 export default class ProfileController {
     userView = async (req: Request, res: Response) =>{
@@ -27,16 +28,48 @@ export default class ProfileController {
             if (!userId) {
                 return res.status(401).json({ error: "User not authenticated" });
             }
+            
             const { name, faculty, contact } = req.body;
+            const updateData: { name?: string; faculty?: string; contact?: string; profilePicture?: string } = {};
+            
+            if (name !== undefined) updateData.name = name;
+            if (faculty !== undefined) updateData.faculty = faculty;
+            if (contact !== undefined) updateData.contact = contact;
+            
+            // Handle profile picture upload
+            // Note: upload.single() stores file in req.file, not req.files
+            const file = (req as { file?: Express.Multer.File }).file;
+            if (file) {
+                try {
+                    // Pass mimeType and fileName to convert HEIC/HEIF/AVIF to JPG for browser compatibility
+                    const imageUrl = await uploadToCloudinary(
+                        file.buffer, 
+                        "profiles", 
+                        undefined, 
+                        file.mimetype,
+                        file.originalname
+                    );
+                    updateData.profilePicture = imageUrl;
+                } catch (uploadError) {
+                    return res.status(500).json({ 
+                        error: "Failed to upload profile picture",
+                        details: uploadError instanceof Error ? uploadError.message : "Unknown error"
+                    });
+                }
+            }
+            
             const user = await User.findByIdAndUpdate(
               userId,
-              { name, faculty, contact },
+              updateData,
               { new: true, runValidators: true }
             ).select("-password -__v");
             if (!user){
                 return res.status(404).json({ error: "User not found" });
-            } 
-            return res.json(user);
+            }
+            
+            // Ensure profilePicture is included in response
+            const userResponse = user.toObject();
+            return res.json(userResponse);
 
           } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Bad request";

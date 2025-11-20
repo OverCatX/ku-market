@@ -122,8 +122,8 @@ export default class ReviewController {
 
       await review.save();
 
-      // Populate user info for response
-      await review.populate("user", "name kuEmail");
+      // Populate user info for response (including profilePicture)
+      await review.populate("user", "name kuEmail profilePicture");
 
       // Notify item owner about new review
       await createNotification(
@@ -138,6 +138,7 @@ export default class ReviewController {
         _id: mongoose.Types.ObjectId;
         name?: string;
         kuEmail?: string;
+        profilePicture?: string;
       }
 
       const populatedUser = review.user as unknown as PopulatedUser;
@@ -149,7 +150,7 @@ export default class ReviewController {
           itemId: review.item,
           userId: String(review.user),
           userName: populatedUser.name || "Anonymous",
-          userAvatar: undefined,
+          userAvatar: populatedUser.profilePicture || undefined,
           rating: review.rating,
           title: review.title,
           comment: review.comment,
@@ -185,8 +186,8 @@ export default class ReviewController {
       const reviews = await Review.find({ item: itemId })
         .sort({ createAt: -1 });
       
-      // Populate user separately to ensure we get the user ID as string
-      await Promise.all(reviews.map(review => review.populate("user", "name kuEmail")));
+      // Populate user separately to ensure we get the user ID as string (including profilePicture)
+      await Promise.all(reviews.map(review => review.populate("user", "name kuEmail profilePicture")));
 
       // Get helpful votes for current user if authenticated
       let userVotes: mongoose.Types.ObjectId[] = [];
@@ -202,6 +203,7 @@ export default class ReviewController {
         _id: mongoose.Types.ObjectId;
         name?: string;
         kuEmail?: string;
+        profilePicture?: string;
       }
 
       return res.json({
@@ -225,7 +227,7 @@ export default class ReviewController {
             itemId: review.item,
             userId: userIdString,
             userName: populatedUser.name || "Anonymous",
-            userAvatar: undefined,
+            userAvatar: populatedUser.profilePicture || undefined,
             rating: review.rating,
             title: review.title,
             comment: review.comment,
@@ -298,6 +300,85 @@ export default class ReviewController {
       });
     } catch (error) {
       console.error("Get review summary error:", error);
+      return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  // POST /api/reviews/summaries/batch - Get review summaries for multiple items (batch)
+  getBatchReviewSummaries = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { itemIds } = req.body;
+
+      if (!Array.isArray(itemIds) || itemIds.length === 0) {
+        return res.status(400).json({ success: false, error: "itemIds must be a non-empty array" });
+      }
+
+      // Validate all item IDs
+      const validItemIds = itemIds.filter((id: string) => mongoose.Types.ObjectId.isValid(id));
+      
+      if (validItemIds.length === 0) {
+        return res.status(400).json({ success: false, error: "No valid item IDs provided" });
+      }
+
+      // Limit batch size to prevent abuse
+      const maxBatchSize = 50;
+      const itemIdsToProcess = validItemIds.slice(0, maxBatchSize);
+
+      // Fetch all reviews for the items in a single query
+      const reviews = await Review.find({
+        item: { $in: itemIdsToProcess.map((id: string) => new mongoose.Types.ObjectId(id)) },
+      });
+
+      // Group reviews by item ID
+      const reviewsByItem = new Map<string, typeof reviews>();
+      reviews.forEach((review) => {
+        const itemId = String(review.item);
+        if (!reviewsByItem.has(itemId)) {
+          reviewsByItem.set(itemId, []);
+        }
+        reviewsByItem.get(itemId)!.push(review);
+      });
+
+      // Calculate summaries for each item
+      const summaries: Record<string, {
+        averageRating: number;
+        totalReviews: number;
+        ratingDistribution: { 1: number; 2: number; 3: number; 4: number; 5: number };
+      }> = {};
+
+      itemIdsToProcess.forEach((itemId: string) => {
+        const itemReviews = reviewsByItem.get(itemId) || [];
+        
+        if (itemReviews.length === 0) {
+          summaries[itemId] = {
+            averageRating: 0,
+            totalReviews: 0,
+            ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+          };
+        } else {
+          const totalRating = itemReviews.reduce((sum, review) => sum + review.rating, 0);
+          const averageRating = totalRating / itemReviews.length;
+
+          const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+          itemReviews.forEach((review) => {
+            const rating = review.rating as 1 | 2 | 3 | 4 | 5;
+            ratingDistribution[rating]++;
+          });
+
+          summaries[itemId] = {
+            averageRating: Math.round(averageRating * 10) / 10,
+            totalReviews: itemReviews.length,
+            ratingDistribution,
+          };
+        }
+      });
+
+      return res.json({
+        success: true,
+        summaries,
+      });
+    } catch (error) {
+      console.error("Get batch review summaries error:", error);
       return res.status(500).json({ success: false, error: "Server error" });
     }
   };

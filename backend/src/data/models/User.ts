@@ -18,6 +18,7 @@ export interface IUser extends Document {
   resetPasswordExpires?: Date;
   resetPasswordOtp?: string;
   resetPasswordOtpExpires?: Date;
+  profilePicture?: string;
   comparePassword(password: string): Promise<boolean>;
 }
 
@@ -57,7 +58,8 @@ const userSchema: Schema<IUser> = new Schema({
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
   resetPasswordOtp: { type: String },
-  resetPasswordOtpExpires: { type: Date }
+  resetPasswordOtpExpires: { type: Date },
+  profilePicture: { type: String }
 }, { timestamps: true });
 
 // Hash password before save

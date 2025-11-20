@@ -1,10 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { listItems, Item } from "@/config/items";
-import { getReviewSummary } from "@/config/reviews";
+import { getBatchReviewSummaries } from "@/config/reviews";
 import { ShoppingBag } from "lucide-react";
 import ItemCard from "../Marketplace/ItemCard";
 
@@ -22,55 +22,59 @@ export default function FeaturedProducts() {
   const [items, setItems] = useState<ItemWithRating[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchFeatured = async () => {
-      try {
-        const res = await listItems({
-          page: 1,
-          limit: 3,
-          status: "available",
-          sortBy: "createAt",
-          sortOrder: "desc",
-        });
-        if (res.success && res.data.items) {
-          // Fetch ratings for each item
-          const itemsWithRatings = await Promise.all(
-            res.data.items.map(async (item) => {
-              try {
-                const summary = await getReviewSummary(item._id);
-                return {
-                  ...item,
-                  rating: summary.averageRating,
-                  totalReviews: summary.totalReviews,
-                };
-              } catch {
-                // If review summary fails, return item without rating
-                return {
-                  ...item,
-                  rating: 0,
-                  totalReviews: 0,
-                };
-              }
-            })
-          );
-          setItems(itemsWithRatings);
-        } else {
-          // If API call failed, show empty state
-          setItems([]);
-        }
-      } catch (error) {
-        // Only log non-AbortError errors
-        if (error instanceof Error && error.name !== "AbortError") {
-          console.warn("Fetch featured items error:", error);
-        }
-        setItems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchFeatured = useCallback(async () => {
+    try {
+      const res = await listItems({
+        page: 1,
+        limit: 3,
+        status: "available",
+        sortBy: "createAt",
+        sortOrder: "desc",
+      });
+      if (res.success && res.data.items) {
+        // Fetch ratings using batch API (more efficient)
+        try {
+          const itemIds = res.data.items.map((item: Item) => item._id);
+          const summaries = await getBatchReviewSummaries(itemIds);
 
-    fetchFeatured();
+          const itemsWithRatings = res.data.items.map((item: Item) => {
+            const summary = summaries[item._id];
+            return {
+              ...item,
+              rating: summary?.averageRating || 0,
+              totalReviews: summary?.totalReviews || 0,
+            };
+          });
+
+          setItems(itemsWithRatings);
+        } catch {
+          // If review summary fails, return items without rating
+          setItems(
+            res.data.items.map((item: Item) => ({
+              ...item,
+              rating: 0,
+              totalReviews: 0,
+            }))
+          );
+        }
+      } else {
+        // If API call failed, show empty state
+        setItems([]);
+      }
+    } catch (error) {
+      // Only log non-AbortError errors
+      if (error instanceof Error && error.name !== "AbortError") {
+        console.warn("Fetch featured items error:", error);
+      }
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchFeatured();
+  }, [fetchFeatured]);
 
   return (
     <section
