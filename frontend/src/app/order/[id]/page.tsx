@@ -262,7 +262,6 @@ export default function OrderDetailPage({
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [submittingPayment, setSubmittingPayment] = useState(false);
   const [contactingSeller, setContactingSeller] = useState(false);
   const [markingReceived, setMarkingReceived] = useState(false);
 
@@ -785,17 +784,10 @@ export default function OrderDetailPage({
                   <button
                     type="button"
                     onClick={handleMakePayment}
-                    disabled={submittingPayment}
-                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition ${
-                      submittingPayment
-                        ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
-                    }`}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition bg-blue-600 text-white hover:bg-blue-700"
                   >
                     <QrCode size={14} className="sm:w-4 sm:h-4" />
-                    {submittingPayment
-                      ? "Loading..."
-                      : "Make Payment"}
+                    Make Payment
                   </button>
                 )}
               {/* Payment button for Transfer when order is confirmed */}
@@ -805,23 +797,14 @@ export default function OrderDetailPage({
                   <button
                     type="button"
                     onClick={handleMakePayment}
-                    disabled={submittingPayment}
-                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition ${
-                      submittingPayment
-                        ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                        : "bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
-                    }`}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
                   >
                     <CreditCard size={14} className="sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">
-                      {submittingPayment
-                        ? "Submitting..."
-                        : "Submit Payment Notification"}
+                      Submit Payment Notification
                     </span>
                     <span className="sm:hidden">
-                      {submittingPayment
-                        ? "Submitting..."
-                        : "Submit Payment"}
+                      Submit Payment
                     </span>
                   </button>
                 )}

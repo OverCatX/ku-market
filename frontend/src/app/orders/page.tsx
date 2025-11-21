@@ -16,7 +16,6 @@ import {
   MapPin,
   ExternalLink,
   HelpCircle,
-  AlertCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { ComponentType } from "react";

@@ -2,6 +2,7 @@ import { Stripe } from 'stripe';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../middlewares/authentication';
 import Order from '../../data/models/Order';
+import { logActivity } from '../../lib/activityLogger';
 
 interface Item {
   name: string;
@@ -173,6 +174,22 @@ export class CheckoutController {
       order.paymentStatus = 'paid';
       order.paymentIntentId = paymentIntentId;
       await order.save();
+
+      // Log payment confirmation for admin
+      await logActivity({
+        req,
+        activityType: "payment_confirmed",
+        entityType: "payment",
+        entityId: orderId,
+        description: `Buyer completed payment for order ${orderId} via Stripe - Amount: ${order.totalPrice} THB, Payment Intent: ${paymentIntentId}`,
+        metadata: {
+          orderId: orderId,
+          orderTotal: order.totalPrice,
+          paymentMethod: order.paymentMethod,
+          paymentStatus: "paid",
+          paymentIntentId: paymentIntentId,
+        },
+      });
 
       return res.status(200).json({
         success: true,
