@@ -195,15 +195,30 @@ export default function ReviewForm({
   };
 
   const removeImage = (index: number) => {
+    // Revoke object URL to free memory before removing
+    if (imagePreviews[index]) {
+      URL.revokeObjectURL(imagePreviews[index]);
+    }
+    
     const newImages = images.filter((_, i) => i !== index);
     const newPreviews = imagePreviews.filter((_, i) => i !== index);
-    
-    // Revoke object URL to free memory
-    URL.revokeObjectURL(imagePreviews[index]);
     
     setImages(newImages);
     setImagePreviews(newPreviews);
   };
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      // Cleanup all object URLs on unmount
+      imagePreviews.forEach((preview) => {
+        if (preview) {
+          URL.revokeObjectURL(preview);
+        }
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount/unmount
 
   return (
     <form
