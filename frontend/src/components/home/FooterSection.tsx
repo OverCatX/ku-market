@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function FooterSection() {
   return (
@@ -22,15 +23,15 @@ export default function FooterSection() {
         {/* Right: Links and copyright */}
         <div className="flex flex-col md:items-end space-y-2">
           <div className="flex space-x-6 text-sm text-gray-500">
-            <a href="#" className="hover:text-[#69773D] transition-colors">
+            <Link href="/privacy" className="hover:text-[#69773D] transition-colors">
               Privacy Policy
-            </a>
-            <a href="#" className="hover:text-[#69773D] transition-colors">
+            </Link>
+            <Link href="/terms" className="hover:text-[#69773D] transition-colors">
               Terms of Service
-            </a>
-            <a href="#" className="hover:text-[#69773D] transition-colors">
+            </Link>
+            <Link href="/report" className="hover:text-[#69773D] transition-colors">
               Contact Us
-            </a>
+            </Link>
           </div>
           <p className="text-gray-400 text-xs">
             © {new Date().getFullYear()} KU Market. All rights reserved.
