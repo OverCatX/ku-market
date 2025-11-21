@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X } from "lucide-react";
+import { X, Image as ImageIcon, Trash2, Shield } from "lucide-react";
 import StarRating from "./StarRating";
 import toast from "react-hot-toast";
 import {
@@ -10,6 +10,7 @@ import {
   updateStoredUser,
 } from "@/lib/auth";
 import { getProfile } from "@/config/profile";
+import Image from "next/image";
 
 interface ReviewFormProps {
   itemId: string;
@@ -17,6 +18,7 @@ interface ReviewFormProps {
     rating: number;
     title?: string;
     comment: string;
+    images?: File[];
   }) => Promise<void>;
   onCancel?: () => void;
 }
@@ -28,10 +30,13 @@ export default function ReviewForm({
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
+  const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const lastVerificationCheckRef = useRef(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const refreshVerificationFromServer = async () => {
     try {
@@ -148,6 +153,7 @@ export default function ReviewForm({
         rating,
         title: title.trim() || undefined,
         comment: comment.trim(),
+        images: images.length > 0 ? images : undefined,
       });
 
       // Don't show toast here - parent component will handle it
@@ -156,6 +162,11 @@ export default function ReviewForm({
       setRating(0);
       setTitle("");
       setComment("");
+      setImages([]);
+      setImagePreviews([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       onCancel?.();
     } catch (error) {
       // Don't show toast here - parent component will handle it
@@ -167,6 +178,47 @@ export default function ReviewForm({
       setSubmitting(false);
     }
   };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (images.length + files.length > 5) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+
+    const newImages = [...images, ...files];
+    setImages(newImages);
+
+    // Create previews
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setImagePreviews([...imagePreviews, ...newPreviews]);
+  };
+
+  const removeImage = (index: number) => {
+    // Revoke object URL to free memory before removing
+    if (imagePreviews[index]) {
+      URL.revokeObjectURL(imagePreviews[index]);
+    }
+
+    const newImages = images.filter((_, i) => i !== index);
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+
+    setImages(newImages);
+    setImagePreviews(newPreviews);
+  };
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      // Cleanup all object URLs on unmount
+      imagePreviews.forEach((preview) => {
+        if (preview) {
+          URL.revokeObjectURL(preview);
+        }
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount/unmount
 
   return (
     <form
@@ -212,6 +264,23 @@ export default function ReviewForm({
           >
             Verify Identity Now →
           </a>
+        </div>
+      )}
+
+      {/* Security info - shown when authenticated and verified */}
+      {isAuthenticated && isVerified && (
+        <div className="mb-4 p-2.5 sm:p-3 bg-green-50 border border-[#84B067]/30 rounded-lg">
+          <div className="flex items-start gap-2">
+            <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-[#69773D] mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs sm:text-sm text-[#69773D]">
+                <span className="font-medium">Protected Reviews:</span> All
+                reviews are verified and protected. You can submit up to 5
+                reviews per hour. Reviews from verified purchases are marked
+                with a badge.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -292,6 +361,65 @@ export default function ReviewForm({
             </span>
           )}
         </p>
+      </div>
+
+      {/* Image Upload */}
+      <div className="mb-3 sm:mb-4">
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+          Photos (Optional, max 5)
+        </label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleImageChange}
+          disabled={!isAuthenticated || !isVerified || images.length >= 5}
+          className="hidden"
+          id="review-images"
+        />
+        <label
+          htmlFor="review-images"
+          className={`inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer transition-colors ${
+            !isAuthenticated || !isVerified || images.length >= 5
+              ? "bg-gray-100 cursor-not-allowed opacity-50"
+              : "bg-white hover:bg-gray-50"
+          }`}
+        >
+          <ImageIcon className="w-4 h-4" />
+          <span className="text-sm">Add Photos</span>
+        </label>
+        {images.length > 0 && (
+          <p className="text-xs text-gray-500 mt-1">{images.length}/5 images</p>
+        )}
+
+        {/* Image Previews */}
+        {imagePreviews.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {imagePreviews.map((preview, index) => (
+              <div
+                key={index}
+                className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200"
+              >
+                <Image
+                  src={preview}
+                  alt={`Preview ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="80px"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                  aria-label="Remove image"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Buttons */}

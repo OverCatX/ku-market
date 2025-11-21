@@ -4,113 +4,229 @@ Complete setup instructions for KU Market platform.
 
 ## Prerequisites
 
-- **Node.js** 20+
-- **MongoDB** (local or Atlas)
-- **Cloudinary Account** (for image uploads)
+- **Node.js** 20+ ([Download](https://nodejs.org/))
+- **MongoDB** (Local or Atlas)
+- **Cloudinary Account** ([Sign up](https://cloudinary.com))
+- **Gmail Account** (for SMTP email)
+- **Docker** (optional, for Docker setup)
 
-## Backend Setup
+---
 
-### 1. Install Dependencies
+## Installation Methods
+
+### 🐳 Method 1: Docker (Easiest)
+
+**Requirements:** Docker & Docker Compose
+
+```bash
+# 1. Clone repository
+git clone https://github.com/OverCatX/ku-market.git
+cd ku-market
+
+# 2. Copy environment files
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env.local
+
+# 3. Edit backend/.env with your credentials (see below)
+# 4. Edit frontend/.env.local:
+#    NEXT_PUBLIC_API_BASE=http://localhost:8080
+
+# 5. Start all services
+docker-compose up -d
+
+# 6. Create admin account
+docker exec -it ku-market-backend npm run bootstrap-admin
+```
+
+**Access:**
+
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8080
+- MongoDB: localhost:27017
+
+**Stop services:**
+
+```bash
+docker-compose down
+```
+
+---
+
+### 💻 Method 2: Manual Installation
+
+#### Step 1: Clone Repository
+
+```bash
+git clone https://github.com/OverCatX/ku-market.git
+cd ku-market
+```
+
+#### Step 2: Backend Setup
 
 ```bash
 cd backend
+
+# Install dependencies
 npm install
-```
 
-### 2. Configure Environment
+# Copy environment file
+cp .env.example .env
 
-Create `.env` file:
-
-```env
-PORT=8080
-NODE_ENV=development
-MONGO_URI=mongodb://localhost:27017/ku-market
-JWT_SECRET=your-super-secret-jwt-key-change-this
-CLOUDINARY_CLOUD_NAME=your_cloud_name_here
-CLOUDINARY_API_KEY=your_api_key_here
-CLOUDINARY_API_SECRET=your_api_secret_here
-```
-
-⚠️ **Security:**
-
-- Never commit `.env` files
-- Use strong secrets for production
-- Generate JWT secret: `openssl rand -base64 32`
-
-### 3. Start Backend
-
-```bash
+# Edit .env with your credentials (see Environment Variables section)
+# Then start server
 npm run dev
 ```
 
-Server runs at http://localhost:8080
-
-### 4. Create Admin Account
-
-```bash
-npm run bootstrap-admin
-```
-
-Follow the prompts to create your first admin account.
-
-## Frontend Setup
-
-### 1. Install Dependencies
+#### Step 3: Frontend Setup
 
 ```bash
 cd frontend
+
+# Install dependencies
 npm install
+
+# Copy environment file
+cp .env.example .env.local
+
+# Edit .env.local:
+# NEXT_PUBLIC_API_BASE=http://localhost:8080
+
+# Start frontend
+npm run dev
 ```
 
-### 2. Configure Environment
+#### Step 4: Create Admin Account
 
-Create `.env.local` file:
+```bash
+cd backend
+npm run bootstrap-admin
+```
+
+Follow prompts to create admin account (must use `@ku.ac.th` email).
+
+---
+
+## Environment Variables
+
+### Backend (.env)
+
+Copy from root `.env.example` (Backend section) or `backend/.env.example` and fill in:
+
+```env
+# Server
+PORT=8080
+NODE_ENV=development
+
+# Database
+MONGO_URI=mongodb://localhost:27017/ku-market
+
+# JWT (generate: openssl rand -base64 32)
+JWT_SECRET=your-super-secret-jwt-key-change-this
+
+# Cloudinary (get from https://cloudinary.com/console)
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# SMTP Email (Gmail App Password)
+SMTP_EMAIL=your-email@gmail.com
+SMTP_PASSWORD=your-16-character-app-password
+
+# Google OAuth (Optional - for Google login)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_REDIRECT_URI=http://localhost:8080/api/auth/google/callback
+
+# Frontend URL
+FRONTEND_URL=http://localhost:3000
+```
+
+### Frontend (.env.local)
+
+Copy from root `.env.example` (Frontend section) or `frontend/.env.example`:
 
 ```env
 NEXT_PUBLIC_API_BASE=http://localhost:8080
 ```
 
-### 3. Start Frontend
+---
 
-```bash
-npm run dev
-```
+## Getting Credentials
 
-Open http://localhost:3000
+### 1. MongoDB
 
-## MongoDB Setup
-
-### Option 1: Local MongoDB
-
-```bash
-# Install MongoDB
-# macOS
-brew install mongodb-community
-
-# Start MongoDB
-brew services start mongodb-community
-```
-
-### Option 2: MongoDB Atlas
-
-1. Create account at https://www.mongodb.com/cloud/atlas
-2. Create cluster
-3. Get connection string
-4. Update `MONGO_URI` in `.env`
+**Local:**
 
 ```env
-MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>
+MONGO_URI=mongodb://localhost:27017/ku-market
 ```
 
-## Cloudinary Setup
+**Atlas (Cloud):**
 
-1. Create account at https://cloudinary.com
+1. Sign up at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Create free cluster
+3. Create database user
+4. Whitelist IP: `0.0.0.0/0` (for development)
+5. Get connection string:
+   ```
+   mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>
+   ```
+
+### 2. Cloudinary
+
+1. Sign up at [Cloudinary](https://cloudinary.com)
 2. Go to Dashboard
-3. Copy credentials:
-   - Cloud Name
-   - API Key
-   - API Secret
-4. Update `.env` file
+3. Copy: Cloud Name, API Key, API Secret
+
+### 3. SMTP (Gmail)
+
+1. **Enable 2-Step Verification** on Google Account
+2. **Generate App Password:**
+   - Go to [App Passwords](https://myaccount.google.com/apppasswords)
+   - Select "Mail" → "Other" → Enter "KU Market"
+   - Copy 16-character password → Use as `SMTP_PASSWORD`
+
+### 4. JWT Secret
+
+```bash
+openssl rand -base64 32
+```
+
+### 5. Google OAuth (Optional)
+
+**For Google login feature:**
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing one
+3. Enable **Google+ API**
+4. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
+5. Configure OAuth consent screen:
+   - User Type: External
+   - App name: KU Market
+   - Authorized domains: your domain (or localhost for development)
+6. Create OAuth 2.0 Client ID:
+   - Application type: Web application
+   - Name: KU Market Web Client
+   - **Authorized JavaScript origins:**
+     - `http://localhost:3000` (development)
+     - `https://your-frontend-domain.com` (production)
+   - **Authorized redirect URIs:**
+     - `http://localhost:8080/api/auth/google/callback` (development)
+     - `https://your-backend-domain.com/api/auth/google/callback` (production)
+7. Copy **Client ID** and **Client Secret** to `.env`
+
+**Note:** Google login only accepts `@ku.th` email addresses. Users with other email domains will see an error message.
+
+---
+
+## Verification
+
+✅ Backend running: http://localhost:8080  
+✅ Frontend running: http://localhost:3000  
+✅ Can access homepage  
+✅ Admin account created
+
+---
 
 ## Troubleshooting
 
@@ -127,16 +243,27 @@ npx kill-port 3000
 ### MongoDB Connection Failed
 
 ```env
-# Try IPv4 instead of localhost
+# Try IPv4
 MONGO_URI=mongodb://127.0.0.1:27017/ku-market
+
+# Check MongoDB is running
+mongosh
 ```
+
+### SMTP Email Not Sending
+
+- Verify 2-Step Verification enabled
+- Check App Password is correct (16 chars, no spaces)
+- Ensure `SMTP_USER` is full email address
 
 ### Module Not Found
 
 ```bash
-rm -rf node_modules
+rm -rf node_modules package-lock.json
 npm install
 ```
+
+---
 
 ## Production Build
 
@@ -156,12 +283,12 @@ npm run build
 npm start
 ```
 
-## Docker Setup (Optional)
+**Important:** Update environment variables for production (strong secrets, production URLs, etc.)
 
-Coming soon...
+---
 
 ## Next Steps
 
-- Read [User Guide](USER_GUIDE.md) to learn how to use the platform
-- Check [API Documentation](API.md) for API reference
-- Visit [Contributing Guide](CONTRIBUTING.md) to start development
+- 📖 Read [User Guide](USER_GUIDE.md)
+- 📚 Check [API Documentation](API.md)
+- 🐛 Report issues on [GitHub](https://github.com/OverCatX/ku-market/issues)

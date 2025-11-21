@@ -31,11 +31,20 @@ export default function CartPage() {
   }, []);
 
   const handleUpdateQuantity = async (itemId: string, quantity: number) => {
+    const MAX_QUANTITY_PER_ITEM = 10;
+    
+    // Validate before making API call
+    if (quantity > MAX_QUANTITY_PER_ITEM) {
+      toast.error(`Maximum quantity per item is ${MAX_QUANTITY_PER_ITEM}.`);
+      return;
+    }
+
     try {
       setActionLoading(itemId);
       await updateQuantity(itemId, quantity);
-    } catch {
-      toast.error("Failed to update quantity");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to update quantity";
+      toast.error(errorMessage);
       // Refresh to get correct state
       await refreshCart();
     } finally {
@@ -159,20 +168,26 @@ export default function CartPage() {
                         onClick={() =>
                           handleUpdateQuantity(item.id, item.quantity - 1)
                         }
-                        disabled={actionLoading === item.id}
-                        className="p-2 hover:bg-gray-100 transition disabled:opacity-50"
+                        disabled={actionLoading === item.id || item.quantity <= 1}
+                        className="p-2 hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label="Decrease quantity"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
-                      <span className="px-4 font-medium">{item.quantity}</span>
+                      <span className="px-4 font-medium min-w-[3rem] text-center">
+                        {item.quantity}
+                        {item.quantity >= 10 && (
+                          <span className="block text-xs text-gray-500">(max)</span>
+                        )}
+                      </span>
                       <button
                         onClick={() =>
                           handleUpdateQuantity(item.id, item.quantity + 1)
                         }
-                        disabled={actionLoading === item.id}
-                        className="p-2 hover:bg-gray-100 transition disabled:opacity-50"
+                        disabled={actionLoading === item.id || item.quantity >= 10}
+                        className="p-2 hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label="Increase quantity"
+                        title={item.quantity >= 10 ? "Maximum quantity is 10" : "Increase quantity"}
                       >
                         <Plus className="w-4 h-4" />
                       </button>

@@ -14,15 +14,16 @@ import {
   MessageCircle,
   CreditCard,
   MapPin,
+  ExternalLink,
+  HelpCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { ComponentType } from "react";
 import { clearAuthTokens, getAuthToken, isAuthenticated } from "@/lib/auth";
 
-const StaticMap = dynamic(
-  () => import("@/components/maps/StaticMap"),
-  { ssr: false }
-);
+const StaticMap = dynamic(() => import("@/components/maps/StaticMap"), {
+  ssr: false,
+});
 
 interface OrderItem {
   itemId: string;
@@ -119,10 +120,7 @@ function PickupLocationSection({
     <div className="mt-4 space-y-3">
       <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex items-start gap-2">
-          <MapPin
-            size={16}
-            className="mt-0.5 text-gray-500 flex-shrink-0"
-          />
+          <MapPin size={16} className="mt-0.5 text-gray-500 flex-shrink-0" />
           <div className="text-sm flex-1">
             <p className="font-medium text-[#4A5130]">
               {pickupDetails.locationName}
@@ -133,10 +131,21 @@ function PickupLocationSection({
               </p>
             )}
             {pickupDetails.coordinates && (
-              <p className="text-gray-500 text-xs mt-1 font-mono">
-                {pickupDetails.coordinates.lat.toFixed(6)},{" "}
-                {pickupDetails.coordinates.lng.toFixed(6)}
-              </p>
+              <div className="mt-1 flex items-center gap-2 flex-wrap">
+                <p className="text-gray-500 text-xs font-mono">
+                  {pickupDetails.coordinates.lat.toFixed(6)},{" "}
+                  {pickupDetails.coordinates.lng.toFixed(6)}
+                </p>
+                <a
+                  href={`https://www.google.com/maps?q=${pickupDetails.coordinates.lat},${pickupDetails.coordinates.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline transition"
+                >
+                  <ExternalLink size={12} />
+                  Open in Google Maps
+                </a>
+              </div>
             )}
             {pickupDetails.coordinates && (
               <button
@@ -151,7 +160,7 @@ function PickupLocationSection({
         </div>
       </div>
       {showMap && pickupDetails.coordinates && (
-        <div className="mt-2">
+        <div className="mt-2 relative z-0">
           <StaticMap
             position={{
               lat: pickupDetails.coordinates.lat,
@@ -524,6 +533,13 @@ export default function OrdersPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Link
+                href="/guide"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a632d] transition-colors text-sm font-medium shadow-sm hover:shadow-md"
+              >
+                <HelpCircle size={18} />
+                User Guide
+              </Link>
               <button
                 onClick={loadOrders}
                 disabled={loading}
@@ -714,7 +730,9 @@ export default function OrdersPage() {
                             {order.deliveryMethod}
                           </span>
                           <span className="text-gray-300">•</span>
-                          <span>{formatPaymentMethod(order.paymentMethod)}</span>
+                          <span>
+                            {formatPaymentMethod(order.paymentMethod)}
+                          </span>
                           <span className="text-gray-300">•</span>
                           <span className="text-[#69773D]">
                             {formatDate(order.createdAt)}

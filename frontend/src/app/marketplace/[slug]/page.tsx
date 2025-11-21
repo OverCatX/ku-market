@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { getItem, Item } from "@/config/items";
 import { useCart } from "@/contexts/CartContext";
 import toast from "react-hot-toast";
@@ -25,6 +26,8 @@ interface OwnerObject {
   _id: string;
   name?: string;
   email?: string;
+  kuEmail?: string;
+  profilePicture?: string;
 }
 
 const isOwnerObject = (value: unknown): value is OwnerObject =>
@@ -34,17 +37,18 @@ const isOwnerObject = (value: unknown): value is OwnerObject =>
 
 const resolveOwnerInfo = (
   owner: unknown
-): { id: string | null; name: string | null } => {
+): { id: string | null; name: string | null; profilePicture?: string | null } => {
   if (typeof owner === "string") {
-    return { id: owner, name: null };
+    return { id: owner, name: null, profilePicture: null };
   }
   if (isOwnerObject(owner)) {
     return {
       id: owner._id ?? null,
       name: owner.name ?? null,
+      profilePicture: owner.profilePicture ?? null,
     };
   }
-  return { id: null, name: null };
+  return { id: null, name: null, profilePicture: null };
 };
 
 const extractUserId = (user: unknown): string | null => {
@@ -87,7 +91,7 @@ export default function Page() {
 
   const ownerInfo = item
     ? resolveOwnerInfo(item.owner)
-    : { id: null, name: null };
+    : { id: null, name: null, profilePicture: null };
   const isOwnItem = Boolean(
     ownerInfo.id && currentUserId && ownerInfo.id === currentUserId
   );
@@ -108,6 +112,11 @@ export default function Page() {
     setCurrentUserId(extractUserId(authUser));
   }, []);
 
+  // Scroll to top when page loads or slug changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [slug]);
+
   useEffect(() => {
     let ok = true;
     (async () => {
@@ -115,6 +124,8 @@ export default function Page() {
         const res = await getItem(String(slug));
         if (ok) {
           setItem(res.item);
+          // Scroll to top after item is loaded
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }
 
         // Load reviews and summary
@@ -146,9 +157,18 @@ export default function Page() {
   }, [slug]);
 
   const handleAddToCart = async () => {
+    const MAX_QUANTITY_PER_ITEM = 10;
+    
     if (!isMounted || !item) return;
     if (isOwnItem) {
       toast.error("You cannot add your own item");
+      return;
+    }
+
+    // Validate quantity before adding
+    if (qty > MAX_QUANTITY_PER_ITEM) {
+      toast.error(`Maximum quantity per item is ${MAX_QUANTITY_PER_ITEM}.`);
+      setQty(MAX_QUANTITY_PER_ITEM);
       return;
     }
 
@@ -174,6 +194,11 @@ export default function Page() {
       const message = error instanceof Error ? error.message : "";
       if (message.toLowerCase().includes("own item")) {
         toast.error("You cannot add your own item");
+        return;
+      }
+      if (message.toLowerCase().includes("maximum quantity")) {
+        toast.error(message);
+        setQty(MAX_QUANTITY_PER_ITEM);
         return;
       }
       console.error("Add to cart error:", error);
@@ -315,6 +340,11 @@ export default function Page() {
         toast.error("Please login to submit a review");
       } else if (errorMessage.includes("already reviewed")) {
         toast.error("You have already reviewed this item");
+      } else if (errorMessage.includes("Too many") || errorMessage.includes("rate limit") || errorMessage.includes("per hour")) {
+        toast.error(errorMessage, {
+          duration: 6000,
+          icon: "⏱️",
+        });
       } else {
         toast.error(errorMessage);
       }
@@ -530,9 +560,21 @@ export default function Page() {
                   Seller Information
                 </h3>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold">
-                    {sellerInitial}
-                  </div>
+                  {ownerInfo.profilePicture ? (
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#69773D]">
+                      <Image
+                        src={ownerInfo.profilePicture}
+                        alt={sellerDisplayName}
+                        fill
+                        className="object-cover"
+                        sizes="40px"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold">
+                      {sellerInitial}
+                    </div>
+                  )}
                   <div className="flex-1">
                     <p className="font-medium text-[#4A5130]">
                       {sellerDisplayName}
@@ -591,22 +633,28 @@ export default function Page() {
                   >
                     <button
                       type="button"
-                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
+                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={() => setQty((q) => Math.max(1, q - 1))}
+                      disabled={qty <= 1}
                       aria-label="Decrease quantity"
                     >
                       —
                     </button>
 
-                    <div className="min-w-[3.5rem] px-4 py-2 flex items-center justify-center font-semibold text-gray-800 bg-white">
-                      {qty}
+                    <div className="min-w-[3.5rem] px-4 py-2 flex flex-col items-center justify-center font-semibold text-gray-800 bg-white">
+                      <span>{qty}</span>
+                      {qty >= 10 && (
+                        <span className="text-xs text-gray-500 font-normal">(max)</span>
+                      )}
                     </div>
 
                     <button
                       type="button"
-                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
-                      onClick={() => setQty((q) => q + 1)}
+                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => setQty((q) => Math.min(10, q + 1))}
+                      disabled={qty >= 10}
                       aria-label="Increase quantity"
+                      title={qty >= 10 ? "Maximum quantity is 10" : "Increase quantity"}
                     >
                       +
                     </button>

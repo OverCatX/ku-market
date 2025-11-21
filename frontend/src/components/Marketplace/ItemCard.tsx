@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { Star } from "lucide-react";
+import { memo, useMemo } from "react";
 
 interface ItemCardProps {
   id?: string;
@@ -13,7 +14,7 @@ interface ItemCardProps {
   totalReviews?: number; // Total number of reviews
 }
 
-export default function ItemCard({
+const ItemCard = memo(function ItemCard({
   title,
   description,
   price,
@@ -22,31 +23,42 @@ export default function ItemCard({
   rating,
   totalReviews,
 }: ItemCardProps) {
-  const statusConfig = {
-    available: {
-      text: "text-[#F6F2E5]",
-      bg: "bg-[#69773D]",
-      label: "Available",
-    },
-    reserved: {
-      text: "text-[#F6F2E5]",
-      bg: "bg-yellow-700",
-      label: "Reserved",
-    },
-    sold: {
-      text: "text-[#F6F2E5]",
-      bg: "bg-[#780606]",
-      label: "Sold",
-    },
-  } as const;
+  const statusConfig = useMemo(
+    () =>
+      ({
+        available: {
+          text: "text-[#F6F2E5]",
+          bg: "bg-[#69773D]",
+          label: "Available",
+        },
+        reserved: {
+          text: "text-[#F6F2E5]",
+          bg: "bg-yellow-700",
+          label: "Reserved",
+        },
+        sold: {
+          text: "text-[#F6F2E5]",
+          bg: "bg-[#780606]",
+          label: "Sold",
+        },
+      } as const),
+    []
+  );
 
-  const statusStyle = statusConfig[status as keyof typeof statusConfig] || {
-    text: "text-gray-600",
-    bg: "bg-gray-50",
-    label: status,
-  };
+  const statusStyle = useMemo(
+    () =>
+      statusConfig[status as keyof typeof statusConfig] || {
+        text: "text-gray-600",
+        bg: "bg-gray-50",
+        label: status,
+      },
+    [status, statusConfig]
+  );
 
-  const formattedPrice = Number.isFinite(price) ? price.toLocaleString() : "0";
+  const formattedPrice = useMemo(
+    () => (Number.isFinite(price) ? price.toLocaleString() : "0"),
+    [price]
+  );
 
   return (
     <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-[#f7f5ed] shadow-[8px_0_12px_-2px_rgba(0,0,0,0.2),4px_0_8px_-2px_rgba(0,0,0,0.15)] transition-all duration-300 hover:shadow-[12px_0_16px_-2px_rgba(0,0,0,0.25),6px_0_12px_-2px_rgba(0,0,0,0.2)]">
@@ -133,4 +145,6 @@ export default function ItemCard({
       </div>
     </div>
   );
-}
+});
+
+export default ItemCard;

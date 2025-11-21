@@ -167,7 +167,7 @@ export default function NotificationsPage() {
       case "order":
         return <Package className="w-6 h-6 text-[#8DB368]" />;
       case "message":
-        return <MessageCircle className="w-6 h-6 text-green-500" />;
+        return <MessageCircle className="w-6 h-6 text-[#84B067]" />;
       case "item":
         return <ShoppingBag className="w-6 h-6 text-[#69773D]" />;
       case "system":
@@ -195,14 +195,76 @@ export default function NotificationsPage() {
     });
   };
 
+  // Group notifications by date
+  const groupNotificationsByDate = (notifications: Notification[]) => {
+    const groups: { [key: string]: Notification[] } = {};
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const thisWeek = new Date(today);
+    thisWeek.setDate(thisWeek.getDate() - 7);
+
+    notifications.forEach((notification) => {
+      const notifDate = new Date(notification.timestamp);
+      const notifDateOnly = new Date(notifDate.getFullYear(), notifDate.getMonth(), notifDate.getDate());
+
+      let groupKey: string;
+      if (notifDateOnly.getTime() === today.getTime()) {
+        groupKey = "Today";
+      } else if (notifDateOnly.getTime() === yesterday.getTime()) {
+        groupKey = "Yesterday";
+      } else if (notifDate >= thisWeek) {
+        groupKey = "This Week";
+      } else {
+        groupKey = notifDate.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      }
+
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(notification);
+    });
+
+    return groups;
+  };
+
   const handleNotificationClick = (notification: Notification) => {
-    // Mark as read optimistically (update UI immediately)
-    if (!notification.read) {
-      markAsRead(notification.id);
-    }
-    // Navigate immediately without waiting
+    // Navigate first immediately (don't wait for mark as read)
     if (notification.link) {
-      window.location.href = notification.link;
+      // Mark as read in the background (fire and forget)
+      if (!notification.read) {
+        // Update UI optimistically
+        setNotifications((prev) =>
+          prev.map((n) => {
+            if (n.id === notification.id && !n.read) {
+              setUnreadCount((count) => Math.max(0, count - 1));
+              return { ...n, read: true };
+            }
+            return n;
+          })
+        );
+        // Call API in background without waiting
+        markNotificationAsRead(notification.id).catch((err) => {
+          console.error("Failed to mark notification as read:", err);
+          // Revert on error
+          setNotifications((prev) =>
+            prev.map((n) => {
+              if (n.id === notification.id) {
+                setUnreadCount((count) => count + 1);
+                return { ...n, read: false };
+              }
+              return n;
+            })
+          );
+        });
+      }
+      // Navigate immediately using router for smoother navigation
+      router.push(notification.link);
     }
   };
 
@@ -285,6 +347,62 @@ export default function NotificationsPage() {
               </select>
             </div>
 
+            {/* Quick Filter Buttons */}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  setFilter("all");
+                  setTypeFilter("all");
+                }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  filter === "all" && typeFilter === "all"
+                    ? "bg-gradient-to-r from-[#69773D] to-[#84B067] text-white shadow-md"
+                    : "bg-white border border-gray-300 text-gray-700 hover:border-[#69773D]"
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => {
+                  // Toggle: if already "unread", reset to "all"
+                  setFilter(filter === "unread" ? "all" : "unread");
+                }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  filter === "unread"
+                    ? "bg-gradient-to-r from-[#69773D] to-[#84B067] text-white shadow-md"
+                    : "bg-white border border-gray-300 text-gray-700 hover:border-[#69773D]"
+                }`}
+              >
+                Unread
+              </button>
+              <button
+                onClick={() => {
+                  // Toggle: if already "order", reset to "all"
+                  setTypeFilter(typeFilter === "order" ? "all" : "order");
+                }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  typeFilter === "order"
+                    ? "bg-gradient-to-r from-[#69773D] to-[#84B067] text-white shadow-md"
+                    : "bg-white border border-gray-300 text-gray-700 hover:border-[#69773D]"
+                }`}
+              >
+                Orders
+              </button>
+              <button
+                onClick={() => {
+                  // Toggle: if already "message", reset to "all"
+                  setTypeFilter(typeFilter === "message" ? "all" : "message");
+                }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  typeFilter === "message"
+                    ? "bg-gradient-to-r from-[#69773D] to-[#84B067] text-white shadow-md"
+                    : "bg-white border border-gray-300 text-gray-700 hover:border-[#69773D]"
+                }`}
+              >
+                Messages
+              </button>
+            </div>
+
             {/* Actions */}
             <div className="flex gap-2">
               {unreadCount > 0 && (
@@ -325,71 +443,89 @@ export default function NotificationsPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {filteredNotifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`bg-white rounded-lg shadow-sm p-5 transition hover:shadow-md ${
-                  !notification.read ? "border-l-4 border-[#8DB368]" : ""
-                } ${notification.link ? "cursor-pointer" : ""}`}
-                onClick={() => handleNotificationClick(notification)}
-              >
-                <div className="flex gap-4">
-                  {/* Icon */}
-                  <div className="flex-shrink-0 mt-1">
-                    {getNotificationIcon(notification.type)}
+          <div className="space-y-6">
+            {Object.entries(groupNotificationsByDate(filteredNotifications)).map(
+              ([groupKey, groupNotifications]) => (
+                <div key={groupKey} className="space-y-3">
+                  {/* Date Group Header */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-[#69773D]/10"></div>
+                    <h2 className="text-sm font-semibold text-[#69773D] bg-[#F6F2E5] px-3 py-1 rounded-full">
+                      {groupKey}
+                    </h2>
+                    <div className="flex-1 h-px bg-[#69773D]/10"></div>
                   </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-[#4A5130]">
-                            {notification.title}
-                          </h3>
-                          {!notification.read && (
-                            <span className="w-2 h-2 bg-[#8DB368] rounded-full"></span>
-                          )}
+                  {/* Notifications in this group */}
+                  {groupNotifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`bg-white rounded-lg shadow-sm p-5 transition-all duration-200 hover:shadow-md border-l-4 ${
+                        !notification.read 
+                          ? "bg-[#8DB368]/10 border-[#8DB368]" 
+                          : "border-transparent"
+                      } ${notification.link ? "cursor-pointer" : ""}`}
+                      onClick={() => handleNotificationClick(notification)}
+                    >
+                      <div className="flex gap-4">
+                        {/* Icon */}
+                        <div className="flex-shrink-0 mt-1">
+                          {getNotificationIcon(notification.type)}
                         </div>
-                        <p className="text-[#4A5130] text-sm mb-2">
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {formatTimestamp(notification.timestamp)}
-                        </p>
-                      </div>
 
-                      {/* Actions */}
-                      <div className="flex gap-2">
-                        {!notification.read && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              markAsRead(notification.id);
-                            }}
-                            className="p-2 text-[#8DB368] hover:bg-[#8DB368]/10 rounded-lg transition"
-                            title="Mark as read"
-                          >
-                            <CheckCheck className="w-4 h-4" />
-                          </button>
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteNotification(notification.id);
-                          }}
-                          className="p-2 text-[#780606] hover:bg-[#780606] rounded-lg transition"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-[#4A5130]">
+                                  {notification.title}
+                                </h3>
+                                {!notification.read && (
+                                  <span className="w-2 h-2 bg-[#8DB368] rounded-full animate-pulse"></span>
+                                )}
+                              </div>
+                              <p className="text-[#4A5130] text-sm mb-2">
+                                {notification.message}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {formatTimestamp(notification.timestamp)}
+                              </p>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-2">
+                              {!notification.read && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    markAsRead(notification.id);
+                                  }}
+                                  className="p-2 text-[#8DB368] hover:bg-[#8DB368]/10 rounded-lg transition-colors"
+                                  title="Mark as read"
+                                >
+                                  <CheckCheck className="w-4 h-4" />
+                                </button>
+                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteNotification(notification.id);
+                                }}
+                                className="p-2 text-[#780606] hover:bg-[#780606]/10 rounded-lg transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         )}
 

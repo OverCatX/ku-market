@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import Order from "../../data/models/Order";
 import Cart from "../../data/models/Cart";
 import mongoose from "mongoose";
@@ -47,9 +47,9 @@ export default class OrderController {
   /**
    * POST /api/orders/checkout - Create order from cart
    */
-  checkout = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  checkout = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       if (!userId) {
         return res.status(401).json({ success: false, error: "Unauthorized" });
       }
@@ -311,9 +311,9 @@ export default class OrderController {
   /**
    * GET /api/orders - Get buyer's orders
    */
-  getBuyerOrders = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  getBuyerOrders = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       if (!userId) {
         return res.status(401).json({ success: false, error: "Unauthorized" });
       }
@@ -370,9 +370,9 @@ export default class OrderController {
   /**
    * GET /api/orders/:id - Get order details
    */
-  getOrderDetails = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  getOrderDetails = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       const { id } = req.params;
 
       if (!userId) {
@@ -450,9 +450,9 @@ export default class OrderController {
   /**
    * POST /api/orders/:id/payment - Buyer submits payment notification
    */
-  submitPaymentNotification = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  submitPaymentNotification = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       const { id } = req.params;
 
       if (!userId) {
@@ -524,9 +524,9 @@ export default class OrderController {
   /**
    * POST /api/orders/:id/buyer-received - Buyer confirms they received the product
    */
-  buyerReceived = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  buyerReceived = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       const { id } = req.params;
 
       if (!userId) {
@@ -618,9 +618,9 @@ export default class OrderController {
   /**
    * GET /api/orders/:id/payment-qr - Get QR code data for PromptPay payment
    */
-  getPaymentQr = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  getPaymentQr = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       const { id } = req.params;
 
       if (!userId) {

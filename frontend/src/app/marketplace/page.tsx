@@ -1,15 +1,23 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import ItemCard from "@/components/Marketplace/ItemCard";
 import Link from "next/link";
 import Pagination from "@/components/Marketplace/Pagination";
 import debounce from "lodash.debounce";
 import { listItems, Item, ListItemsResponse } from "../../config/items";
 import { getCategories, Category } from "../../config/categories";
-import { getReviewSummary } from "../../config/reviews";
-import FooterSection from "@/components/home/FooterSection";
+import { getBatchReviewSummaries } from "../../config/reviews";
+import dynamic from "next/dynamic";
+import { HelpCircle } from "lucide-react";
+
+// Lazy load FooterSection to reduce initial bundle
+const FooterSection = dynamic(() => import("@/components/home/FooterSection"), {
+  ssr: false,
+  loading: () => <div className="h-32" />,
+});
 
 const LIGHT = "#f9f9f7";
 const GREEN = "#69773D";
@@ -28,26 +36,90 @@ interface ItemWithRating extends Item {
 }
 
 export default function MarketPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const prefersReducedMotion = useReducedMotion();
+
+  // Initialize state from URL params for better UX and shareable links
   const [items, setItems] = useState<Item[] | null>(null);
   const [itemsWithRating, setItemsWithRating] = useState<ItemWithRating[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [limit] = useState(12); // removed setLimit since it's not used
+  const [limit] = useState(12);
   const [totalPages, setTotalPages] = useState(1);
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [status, setStatus] = useState("");
-  const [sortBy, setSortBy] = useState<SortOptions>("");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [categories, setCategories] = useState<Category[]>([]);
 
+  // Get filter values from URL params
+  const currentPage = useMemo(() => {
+    const page = searchParams.get("page");
+    return page ? Math.max(1, parseInt(page, 10)) : 1;
+  }, [searchParams]);
+
+  const search = useMemo(
+    () => searchParams.get("search") || "",
+    [searchParams]
+  );
+  const category = useMemo(
+    () => searchParams.get("category") || "",
+    [searchParams]
+  );
+  const status = useMemo(
+    () => searchParams.get("status") || "",
+    [searchParams]
+  );
+  const sortBy = useMemo(
+    () => (searchParams.get("sortBy") || "") as SortOptions,
+    [searchParams]
+  );
+  const sortOrder = useMemo(
+    () => (searchParams.get("sortOrder") || "asc") as "asc" | "desc",
+    [searchParams]
+  );
+
   const abortControllerRef = useRef<AbortController | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Update URL params without causing navigation
+  const updateURLParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === "") {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      // Reset to page 1 when filters change (unless explicitly setting page)
+      if (
+        !updates.page &&
+        (updates.search !== undefined ||
+          updates.category !== undefined ||
+          updates.status !== undefined ||
+          updates.sortBy !== undefined)
+      ) {
+        params.set("page", "1");
+      }
+
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [router, pathname, searchParams]
+  );
 
   // Load categories on mount
   useEffect(() => {
     getCategories().then(setCategories).catch(console.error);
   }, []);
+
+  // Sync search input with URL param
+  useEffect(() => {
+    if (searchInputRef.current && searchInputRef.current.value !== search) {
+      searchInputRef.current.value = search;
+    }
+  }, [search]);
 
   const fetchItems = useCallback(async () => {
     // Cancel previous request
@@ -78,35 +150,32 @@ export default function MarketPage() {
       if (res.success) {
         setItems(res.data.items);
         setTotalPages(res.data.pagination.totalPages);
-        setCurrentPage(res.data.pagination.currentPage);
 
-        // Fetch review summaries for all items
+        // Sync page in URL if backend returned different page
+        if (res.data.pagination.currentPage !== currentPage) {
+          updateURLParams({ page: String(res.data.pagination.currentPage) });
+        }
+
+        // Fetch review summaries for all items using batch API (more efficient)
         const fetchRatings = async () => {
           try {
-            const ratingsPromises = res.data.items.map(async (item) => {
-              try {
-                const summary = await getReviewSummary(item._id);
-                return {
-                  ...item,
-                  rating: summary.averageRating,
-                  totalReviews: summary.totalReviews,
-                };
-              } catch {
-                // If review summary fails, return item without rating
-                return {
-                  ...item,
-                  rating: 0,
-                  totalReviews: 0,
-                };
-              }
+            const itemIds = res.data.items.map((item: Item) => item._id);
+            const summaries = await getBatchReviewSummaries(itemIds);
+
+            const itemsWithRatings = res.data.items.map((item: Item) => {
+              const summary = summaries[item._id];
+              return {
+                ...item,
+                rating: summary?.averageRating || 0,
+                totalReviews: summary?.totalReviews || 0,
+              };
             });
 
-            const itemsWithRatings = await Promise.all(ratingsPromises);
             setItemsWithRating(itemsWithRatings);
           } catch {
             // If fetching ratings fails, just use items without ratings
             setItemsWithRating(
-              res.data.items.map((item) => ({
+              res.data.items.map((item: Item) => ({
                 ...item,
                 rating: 0,
                 totalReviews: 0,
@@ -140,18 +209,26 @@ export default function MarketPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, limit, search, category, status, sortBy, sortOrder]);
+  }, [
+    currentPage,
+    limit,
+    search,
+    category,
+    status,
+    sortBy,
+    sortOrder,
+    updateURLParams,
+  ]);
+
+  // Optimized debounced search with URL update - faster for better UX
+  const debouncedSearch = useMemo(() => {
+    return debounce((val: string) => {
+      const trimmedVal = val.trim();
+      updateURLParams({ search: trimmedVal || null });
+    }, 300); // Optimized: 300ms for responsive feel while reducing API calls
+  }, [updateURLParams]);
 
   // Cleanup debounce on unmount
-  const debouncedSearch = useMemo(() => {
-    const fn = debounce((val: string) => {
-      setCurrentPage(1);
-      setSearch(val);
-    }, 500);
-
-    return fn;
-  }, []);
-
   useEffect(() => {
     return () => {
       debouncedSearch.cancel();
@@ -168,31 +245,112 @@ export default function MarketPage() {
     };
   }, [fetchItems]);
 
-  const statusOptions = ["", "available", "reserved", "sold"] as const;
-  const sortOptions: { label: string; value: SortOptions }[] = [
-    { label: "Sort By", value: "" },
-    { label: "Price", value: "price" },
-    { label: "Title", value: "title" },
-    { label: "Newest", value: "createAt" },
-    { label: "Updated", value: "updateAt" },
-    { label: "Relevance", value: "relevance" },
-  ];
+  // Memoize static options to prevent re-creation
+  const statusOptions = useMemo(
+    () => ["", "available", "reserved", "sold"] as const,
+    []
+  );
+  const sortOptions = useMemo<{ label: string; value: SortOptions }[]>(
+    () => [
+      { label: "Sort By", value: "" },
+      { label: "Newest Updated", value: "updateAt" }, // Default and most useful
+      { label: "Price", value: "price" },
+      { label: "Title", value: "title" },
+      { label: "Newest Created", value: "createAt" },
+      { label: "Relevance", value: "relevance" },
+    ],
+    []
+  );
 
-  const clearFilters = () => {
-    setSearch("");
-    setCategory("");
-    setStatus("");
-    setSortBy("");
-    setSortOrder("asc");
-    setCurrentPage(1);
-  };
+  // Optimized clear filters with URL update
+  const clearFilters = useCallback(() => {
+    updateURLParams({
+      search: null,
+      category: null,
+      status: null,
+      sortBy: null,
+      sortOrder: null,
+      page: null,
+    });
+    if (searchInputRef.current) {
+      searchInputRef.current.value = "";
+    }
+  }, [updateURLParams]);
 
-  const activeFilterChips = [
-    search ? { key: "search", label: `Search: ${search}` } : null,
-    category ? { key: "category", label: `Category: ${category}` } : null,
-    status ? { key: "status", label: `Status: ${status}` } : null,
-    sortBy ? { key: "sortBy", label: `Sort: ${sortBy} (${sortOrder})` } : null,
-  ].filter(Boolean) as { key: string; label: string }[];
+  // Memoize active filter chips
+  const activeFilterChips = useMemo(() => {
+    return [
+      search ? { key: "search", label: `Search: ${search}` } : null,
+      category ? { key: "category", label: `Category: ${category}` } : null,
+      status ? { key: "status", label: `Status: ${status}` } : null,
+      sortBy
+        ? { key: "sortBy", label: `Sort: ${sortBy} (${sortOrder})` }
+        : null,
+    ].filter(Boolean) as { key: string; label: string }[];
+  }, [search, category, status, sortBy, sortOrder]);
+
+  // Optimized filter handlers
+  const handleStatusChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      updateURLParams({ status: e.target.value || null });
+    },
+    [updateURLParams]
+  );
+
+  const handleCategoryChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      updateURLParams({ category: e.target.value || null });
+    },
+    [updateURLParams]
+  );
+
+  const handleSortByChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      updateURLParams({ sortBy: e.target.value || null });
+    },
+    [updateURLParams]
+  );
+
+  const handleSortOrderToggle = useCallback(() => {
+    updateURLParams({ sortOrder: sortOrder === "asc" ? "desc" : "asc" });
+  }, [sortOrder, updateURLParams]);
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      updateURLParams({ page: String(page) });
+      // Scroll to top smoothly when page changes
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [updateURLParams]
+  );
+
+  const handleRemoveFilter = useCallback(
+    (filterKey: string) => {
+      switch (filterKey) {
+        case "search":
+          updateURLParams({ search: null });
+          if (searchInputRef.current) {
+            searchInputRef.current.value = "";
+          }
+          break;
+        case "category":
+          updateURLParams({ category: null });
+          break;
+        case "status":
+          updateURLParams({ status: null });
+          break;
+        case "sortBy":
+          updateURLParams({ sortBy: null, sortOrder: null });
+          break;
+      }
+    },
+    [updateURLParams]
+  );
+
+  // Memoize display items to prevent unnecessary re-renders
+  const displayItems = useMemo(() => {
+    return itemsWithRating.length > 0 ? itemsWithRating : items || [];
+  }, [itemsWithRating, items]);
 
   return (
     <div className="min-h-screen" style={{ background: '#F6F2E5' }}>
@@ -205,26 +363,34 @@ export default function MarketPage() {
 
       {/* Container */}
       <main className="mx-auto max-w-6xl px-6 py-6 bg-white rounded-2xl shadow mt-6">
-        {/* Breadcrumb */}
-        <p className="text-sm text-gray-500 mb-6">
-          marketplace / <span className="text-gray-700">browse</span>
-        </p>
+        {/* Breadcrumb & Guide Button */}
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-sm text-gray-500">
+            marketplace / <span className="text-gray-700">browse</span>
+          </p>
+          <Link
+            href="/guide"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a632d] transition-colors text-sm font-medium shadow-sm hover:shadow-md"
+          >
+            <HelpCircle size={18} />
+            User Guide
+          </Link>
+        </div>
 
         {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between flex-wrap mb-6">
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Search items..."
+            defaultValue={search}
             onChange={(e) => debouncedSearch(e.target.value)}
             className="flex-1 p-3 rounded-xl border border-gray-300 bg-[#f7f5ed] focus:border-[#4A5130] focus:ring-2 focus:ring-[#4A5130] outline-none"
           />
           <div className="flex flex-wrap gap-2">
             <select
               value={status}
-              onChange={(e) => {
-                setCurrentPage(1);
-                setStatus(e.target.value);
-              }}
+              onChange={handleStatusChange}
               className="p-2 rounded-xl border border-gray-300 bg-white focus:border-[#4A5130] focus:ring-2 focus:ring-[#4A5130] outline-none"
             >
               {statusOptions.map((opt) => (
@@ -237,10 +403,7 @@ export default function MarketPage() {
             </select>
             <select
               value={category}
-              onChange={(e) => {
-                setCurrentPage(1);
-                setCategory(e.target.value);
-              }}
+              onChange={handleCategoryChange}
               className="p-2 rounded-xl border border-gray-300 bg-white focus:border-[#4A5130] focus:ring-2 focus:ring-[#4A5130] outline-none"
             >
               <option value="">All Categories</option>
@@ -252,10 +415,7 @@ export default function MarketPage() {
             </select>
             <select
               value={sortBy}
-              onChange={(e) => {
-                setCurrentPage(1);
-                setSortBy(e.target.value as SortOptions);
-              }}
+              onChange={handleSortByChange}
               className="p-2 rounded-xl border border-gray-300 bg-white focus:border-[#4A5130] focus:ring-2 focus:ring-[#4A5130] outline-none"
             >
               {sortOptions.map((opt) => (
@@ -266,9 +426,7 @@ export default function MarketPage() {
             </select>
             {sortBy && (
               <button
-                onClick={() =>
-                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                }
+                onClick={handleSortOrderToggle}
                 className="px-3 py-2 bg-[#e7efdb] rounded-xl hover:bg-[#d4e0c5] transition-colors"
                 aria-label={`Sort ${
                   sortOrder === "asc" ? "ascending" : "descending"
@@ -301,16 +459,7 @@ export default function MarketPage() {
                 {chip.label}
                 <button
                   className="text-gray-500 hover:text-gray-700"
-                  onClick={() => {
-                    if (chip.key === "search") setSearch("");
-                    if (chip.key === "category") setCategory("");
-                    if (chip.key === "status") setStatus("");
-                    if (chip.key === "sortBy") {
-                      setSortBy("");
-                      setSortOrder("asc");
-                    }
-                    setCurrentPage(1);
-                  }}
+                  onClick={() => handleRemoveFilter(chip.key)}
                   aria-label={`Remove ${chip.key}`}
                 >
                   ×
@@ -380,37 +529,42 @@ export default function MarketPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-4 lg:gap-5">
-            <AnimatePresence>
-              {(itemsWithRating.length > 0 ? itemsWithRating : items).map(
-                (item) => (
-                  <motion.div
-                    key={item._id}
-                    layout
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 12 }}
-                    whileHover={{ y: -4, scale: 1.01 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="h-full transition-shadow"
+            <AnimatePresence mode="popLayout">
+              {displayItems.map((item) => (
+                <motion.div
+                  key={item._id}
+                  layout={!prefersReducedMotion}
+                  initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+                  animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+                  whileHover={
+                    prefersReducedMotion ? {} : { y: -4, scale: 1.01 }
+                  }
+                  transition={
+                    prefersReducedMotion
+                      ? {}
+                      : { duration: 0.15, ease: "easeOut" }
+                  }
+                  className="h-full transition-shadow"
+                >
+                  <Link
+                    href={`/marketplace/${item._id}`}
+                    className="block h-full"
+                    prefetch={false}
                   >
-                    <Link
-                      href={`/marketplace/${item._id}`}
-                      className="block h-full"
-                    >
-                      <ItemCard
-                        id={item._id}
-                        title={item.title}
-                        description={item.description}
-                        price={item.price}
-                        photo={item.photo[0] || ""}
-                        status={item.status}
-                        rating={(item as ItemWithRating).rating}
-                        totalReviews={(item as ItemWithRating).totalReviews}
-                      />
-                    </Link>
-                  </motion.div>
-                )
-              )}
+                    <ItemCard
+                      id={item._id}
+                      title={item.title}
+                      description={item.description}
+                      price={item.price}
+                      photo={item.photo[0] || ""}
+                      status={item.status}
+                      rating={(item as ItemWithRating).rating}
+                      totalReviews={(item as ItemWithRating).totalReviews}
+                    />
+                  </Link>
+                </motion.div>
+              ))}
             </AnimatePresence>
           </div>
         )}
@@ -421,7 +575,7 @@ export default function MarketPage() {
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              onPageChange={handlePageChange}
             />
           </div>
         )}

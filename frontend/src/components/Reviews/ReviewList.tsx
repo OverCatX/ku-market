@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MessageSquare } from "lucide-react";
 import { Review, ReviewSummary as ReviewSummaryType } from "@/types/review";
 import ReviewSummary from "./ReviewSummary";
@@ -12,8 +12,9 @@ import { isAuthenticated as checkAuth, getAuthUser } from "@/lib/auth";
 interface ReviewListProps {
   reviews: Review[];
   summary: ReviewSummaryType;
-  onSubmitReview: (data: { rating: number; title?: string; comment: string }) => Promise<void>;
+  onSubmitReview: (data: { rating: number; title?: string; comment: string; images?: File[] }) => Promise<void>;
   onHelpful?: (reviewId: string, currentHasVoted: boolean) => Promise<{ helpful: number; hasVoted: boolean }>;
+  onDelete?: (reviewId: string) => Promise<void>;
 }
 
 export default function ReviewList({
@@ -21,10 +22,12 @@ export default function ReviewList({
   summary,
   onSubmitReview,
   onHelpful,
+  onDelete,
 }: ReviewListProps) {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [sortBy, setSortBy] = useState<"recent" | "helpful" | "rating">("recent");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
 
   // Check authentication on mount and listen for changes
   useEffect(() => {
@@ -60,17 +63,20 @@ export default function ReviewList({
     setShowReviewForm(true);
   };
 
-  const sortedReviews = [...reviews].sort((a, b) => {
-    switch (sortBy) {
-      case "helpful":
-        return b.helpful - a.helpful;
-      case "rating":
-        return b.rating - a.rating;
-      case "recent":
-      default:
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    }
-  });
+  // Memoize sorted reviews to avoid recalculating on every render
+  const sortedReviews = useMemo(() => {
+    return [...reviews].sort((a, b) => {
+      switch (sortBy) {
+        case "helpful":
+          return b.helpful - a.helpful;
+        case "rating":
+          return b.rating - a.rating;
+        case "recent":
+        default:
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
+  }, [reviews, sortBy]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -130,6 +136,7 @@ export default function ReviewList({
                 key={review._id || `review-${index}`}
                 review={review}
                 onHelpful={onHelpful}
+                onDelete={onDelete}
               />
             ))
           ) : (

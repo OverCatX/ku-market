@@ -2,12 +2,7 @@ import {Request, Response } from "express";
 import { uploadToCloudinary } from "../../lib/cloudinary";
 import Item, { IItem } from "../../data/models/Item"
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
-
-interface AuthenticatedRequest extends Request {
-    user?: {
-        id: string;
-    };
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 export default class ItemController {
     userUpload = async(req: Request, res: Response) => {
@@ -214,13 +209,30 @@ export default class ItemController {
                 filters.owner = new mongoose.Types.ObjectId(req.query.owner as string);
             }
             
-            // Search in title and description
-            if (req.query.search) {
-                filters.$text = { $search: req.query.search as string };
+            // Enhanced search: comprehensive regex-based search that finds everything
+            const searchQuery = req.query.search as string;
+            
+            if (searchQuery && searchQuery.trim()) {
+                const searchTerm = searchQuery.trim();
+                // Escape special regex characters for safe regex search
+                const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const searchRegex = new RegExp(escapedSearch, 'i');
+                
+                // Use regex search for comprehensive partial matching
+                // This finds results even with:
+                // - Partial words (e.g., "iph" finds "iPhone")
+                // - Anywhere in text (not just word boundaries)
+                // - Case-insensitive matching
+                // - Multiple fields (title, description, category)
+                filters.$or = [
+                    { title: searchRegex },
+                    { description: searchRegex },
+                    { category: searchRegex }
+                ];
             }
             
-            // Sorting
-            let sortOption: Record<string, 1 | -1 | { $meta: "textScore" }> = { createAt: -1 } as const;
+            // Sorting with optimized defaults
+            let sortOption: Record<string, 1 | -1 | { $meta: "textScore" }> = { updateAt: -1 } as const; // Default to newest updated
             
             if (req.query.sortBy) {
                 const sortBy = req.query.sortBy as string;
@@ -237,16 +249,21 @@ export default class ItemController {
                         sortOption = { createAt: sortOrder };
                         break;
                     case 'updateAt':
+                        // Optimized: use compound index for better performance
                         sortOption = { updateAt: sortOrder };
                         break;
                     case 'relevance':
-                        if (req.query.search) {
-                            sortOption = { score: { $meta: "textScore" } };
-                        }
+                        // For relevance, use updateAt as primary sort (newest first)
+                        // Regex search already finds relevant items, so we sort by recency
+                        sortOption = { updateAt: -1 };
                         break;
+                    default:
+                        // Default to newest updated if invalid sortBy
+                        sortOption = { updateAt: -1 };
                 }
             }
             
+            // Build pipeline with optimized stages
             const pipeline: PipelineStage[] = [
                 { $match: filters },
                 { $sort: sortOption },
@@ -259,7 +276,7 @@ export default class ItemController {
                         foreignField: "_id",
                         as: "ownerInfo",
                         pipeline: [
-                            { $project: { name: 1, email: 1 } }
+                            { $project: { name: 1, kuEmail: 1, profilePicture: 1 } }
                         ]
                     }
                 },
@@ -322,7 +339,7 @@ export default class ItemController {
             }
     
             // Find the item and populate owner details
-            const item = await Item.findById(id).populate('owner', 'name email');
+            const item = await Item.findById(id).populate('owner', 'name kuEmail profilePicture');
             
             if (!item) {
                 return res.status(404).json({ 

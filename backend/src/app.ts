@@ -1,6 +1,9 @@
 import express, { Application } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
+import session from "express-session";
+import cookieParser from "cookie-parser";
+import passport from "./lib/passport";
 import authRoutes from "./application/routes/auth";
 import profileRoutes from "./application/routes/profile";
 import itemRoutes from "./application/routes/items";
@@ -31,8 +34,20 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(express.json());
+
+if (process.env.SESSION_SECRET) {
+  app.use(session({
+    secret: process.env.SESSION_SECRET as string,
+    resave: false,
+    saveUninitialized: false
+  }));
+  
+  app.use(passport.initialize());
+  app.use(passport.session());
+}
 
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);

@@ -1,6 +1,14 @@
 import { Request, Response } from "express";
 import User from "../../data/models/User";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { sendPasswordResetOtp } from "../../lib/email";
+
+interface GoogleProfile {
+    kuEmail?: string;
+    email?: string;
+    [key: string]: unknown;
+}
 
 export default class AuthController {
     userSignup = async(req: Request, res: Response) =>{
@@ -77,6 +85,260 @@ export default class AuthController {
         } catch (err : unknown) {
             const message = err instanceof Error ? err.message : "Bad request";
             return res.status(400).json({ error: message });
+        }
+    }
+
+    googleOAuth = async (req: Request, res: Response): Promise<Response | void> => {
+        try {
+            const profile = req.user as GoogleProfile;
+
+            if (!profile || !profile.kuEmail) {
+                const errorMessage = "No email found from Google account";
+                // Check if request wants JSON
+                if (req.headers.accept && req.headers.accept.includes("application/json")) {
+                    return res.status(400).json({ error: errorMessage });
+                }
+                const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+                return res.redirect(`${frontendUrl}/auth/google/callback?error=${encodeURIComponent(errorMessage)}`);
+            }
+
+            // Double check email domain (additional validation)
+            if (!profile.kuEmail.endsWith("@ku.th")) {
+                const errorMessage = "Email must be @ku.th domain. Please use your KU email address.";
+                // Check if request wants JSON
+                if (req.headers.accept && req.headers.accept.includes("application/json")) {
+                    return res.status(400).json({ error: errorMessage });
+                }
+                const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+                return res.redirect(`${frontendUrl}/auth/google/callback?error=${encodeURIComponent(errorMessage)}`);
+            }
+
+            // Create JWT token
+            const tokenPayload = {
+                id: profile._id,
+                email: profile.kuEmail,
+                role: profile.role,
+                isVerified: profile.isVerified || false,
+            };
+
+            const token = jwt.sign(tokenPayload, process.env.JWT_SECRET || "secret", { expiresIn: "1h" });
+
+            // Prepare user data for frontend
+            const userData = {
+                id: profile._id,
+                name: profile.name,
+                email: profile.kuEmail,
+                faculty: profile.faculty,
+                contact: profile.contact,
+                role: profile.role,
+                isVerified: profile.isVerified || false,
+            };
+
+            // Check if request wants JSON (from frontend callback page)
+            if (req.headers.accept && req.headers.accept.includes("application/json")) {
+                return res.status(200).json({
+                    token,
+                    user: userData,
+                });
+            }
+
+            // Store token and user data in httpOnly cookie temporarily
+            // Frontend callback page will fetch from a special endpoint that reads the cookie
+            res.cookie("google_oauth_token", token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                maxAge: 60000, // 1 minute
+            });
+            res.cookie("google_oauth_user", JSON.stringify(userData), {
+                httpOnly: false, // Frontend needs to read this
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                maxAge: 60000, // 1 minute
+            });
+
+            // Redirect to frontend callback page
+            const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+            return res.redirect(`${frontendUrl}/auth/google/callback`);
+
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Server error";
+            // Check if request wants JSON
+            if (req.headers.accept && req.headers.accept.includes("application/json")) {
+                return res.status(500).json({ error: message });
+            }
+            const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+            return res.redirect(`${frontendUrl}/auth/google/callback?error=${encodeURIComponent(message)}`);
+        }
+    }
+
+    getGoogleOAuthData = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const cookies = (req as { cookies?: { google_oauth_token?: string; google_oauth_user?: string } }).cookies;
+            const token = cookies?.google_oauth_token;
+            const userDataStr = cookies?.google_oauth_user;
+
+            if (!token || !userDataStr) {
+                return res.status(404).json({ error: "OAuth data not found. Please try logging in again." });
+            }
+
+            const userData = JSON.parse(userDataStr);
+
+            // Clear cookies after reading
+            res.clearCookie("google_oauth_token");
+            res.clearCookie("google_oauth_user");
+
+            return res.status(200).json({
+                token,
+                user: userData,
+            });
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
+        }
+    }
+
+    forgotPassword = async (req: Request, res: Response): Promise<Response> => {
+        const { email } = req.body;
+
+        try {
+            if (!email) {
+                return res.status(400).json({ error: "Email is required" });
+            }
+
+            // Normalize email (trim and lowercase)
+            const normalizedEmail = email.trim().toLowerCase();
+
+            // Find user by email
+            const user = await User.findOne({ kuEmail: normalizedEmail });
+
+            // Check if user exists
+            if (!user) {
+                return res.status(404).json({ 
+                    error: "No account found with this email address. Please check your email and try again." 
+                });
+            }
+
+            // Generate 6-digit OTP
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const otpExpiry = new Date();
+            otpExpiry.setSeconds(otpExpiry.getSeconds() + 60); // OTP expires in 60 seconds
+
+            // Save OTP to user
+            user.resetPasswordOtp = otp;
+            user.resetPasswordOtpExpires = otpExpiry;
+            await user.save();
+
+            // Send OTP email
+            try {
+                await sendPasswordResetOtp(user.kuEmail, otp, user.name);
+            } catch (emailError) {
+                console.error("Error sending password reset OTP:", emailError);
+                return res.status(500).json({ 
+                    error: "Failed to send OTP email. Please try again later." 
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "OTP has been sent to your email. Please check your inbox.",
+            });
+        } catch (err: unknown) {
+            console.error("Forgot password error:", err);
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
+        }
+    }
+
+    verifyOtp = async (req: Request, res: Response): Promise<Response> => {
+        const { email, otp } = req.body;
+
+        try {
+            if (!email || !otp) {
+                return res.status(400).json({ error: "Email and OTP are required" });
+            }
+
+            // Normalize email
+            const normalizedEmail = email.trim().toLowerCase();
+
+            // Find user by email
+            const user = await User.findOne({ kuEmail: normalizedEmail });
+
+            if (!user) {
+                return res.status(404).json({ 
+                    error: "No account found with this email address." 
+                });
+            }
+
+            // Check if OTP matches and is not expired
+            if (user.resetPasswordOtp !== otp) {
+                return res.status(400).json({ error: "Invalid OTP. Please check and try again." });
+            }
+
+            if (!user.resetPasswordOtpExpires || user.resetPasswordOtpExpires < new Date()) {
+                return res.status(400).json({ error: "OTP has expired. Please request a new OTP." });
+            }
+
+            // OTP is valid - generate a temporary token for password reset
+            const resetToken = crypto.randomBytes(32).toString("hex");
+            const resetTokenExpiry = new Date();
+            resetTokenExpiry.setMinutes(resetTokenExpiry.getMinutes() + 10); // Token valid for 10 minutes
+
+            // Save reset token and clear OTP
+            user.resetPasswordToken = resetToken;
+            user.resetPasswordExpires = resetTokenExpiry;
+            user.resetPasswordOtp = undefined;
+            user.resetPasswordOtpExpires = undefined;
+            await user.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "OTP verified successfully",
+                resetToken: resetToken, // Return token for frontend to use
+            });
+        } catch (err: unknown) {
+            console.error("Verify OTP error:", err);
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
+        }
+    }
+
+    resetPassword = async (req: Request, res: Response): Promise<Response> => {
+        const { token, new_password } = req.body;
+
+        try {
+            if (!token || !new_password) {
+                return res.status(400).json({ error: "Token and new password are required" });
+            }
+
+            if (new_password.length < 8) {
+                return res.status(400).json({ error: "Password must be at least 8 characters long" });
+            }
+
+            // Find user by reset token and check if token is not expired
+            const user = await User.findOne({
+                resetPasswordToken: token,
+                resetPasswordExpires: { $gt: new Date() }, // Token must not be expired
+            });
+
+            if (!user) {
+                return res.status(400).json({ error: "Invalid or expired reset token" });
+            }
+
+            // Update password
+            user.password = new_password;
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpires = undefined;
+            await user.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Password has been reset successfully",
+            });
+        } catch (err: unknown) {
+            console.error("Reset password error:", err);
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import Item from "../../data/models/Item";
 import Shop from "../../data/models/Shop";
 import Order from "../../data/models/Order";
@@ -11,9 +11,9 @@ export default class SellerController {
   /**
    * Get seller dashboard statistics
    */
-  getStats = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  getStats = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -58,9 +58,9 @@ export default class SellerController {
   /**
    * Get seller's orders
    */
-  getOrders = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  getOrders = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -135,9 +135,9 @@ export default class SellerController {
   /**
    * Get a single order detail for the seller
    */
-  getOrderDetail = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  getOrderDetail = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       const { orderId } = req.params;
 
       if (!userId) {
@@ -225,9 +225,9 @@ export default class SellerController {
   /**
    * Confirm an order
    */
-  confirmOrder = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  confirmOrder = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       const { orderId } = req.params;
 
       if (!userId) {
@@ -298,9 +298,9 @@ export default class SellerController {
   /**
    * Reject an order
    */
-  rejectOrder = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  rejectOrder = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       const { orderId } = req.params;
 
       if (!userId) {
@@ -374,9 +374,9 @@ export default class SellerController {
   /**
    * Get seller's items
    */
-  getItems = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  getItems = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -416,9 +416,9 @@ export default class SellerController {
   /**
    * Update item availability status
    */
-  updateItemStatus = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  updateItemStatus = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       const { itemId } = req.params;
       const { status } = req.body as { status?: string };
 
@@ -468,9 +468,9 @@ export default class SellerController {
   /**
    * POST /api/seller/orders/:orderId/delivered - Seller confirms they delivered the product
    */
-  markDelivered = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  markDelivered = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const userId = req.user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       const { orderId } = req.params;
 
       if (!userId) {

@@ -14,6 +14,11 @@ export interface IUser extends Document {
   contact?: string;
   isVerified?: boolean;
   verificationDate?: Date;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
+  resetPasswordOtp?: string;
+  resetPasswordOtpExpires?: Date;
+  profilePicture?: string;
   comparePassword(password: string): Promise<boolean>;
 }
 
@@ -49,7 +54,12 @@ const userSchema: Schema<IUser> = new Schema({
   faculty: { type: String, required: true},
   contact: { type: String, required: true, unique: true, match: /^0\d{9}$/},
   isVerified: { type: Boolean, default: false },
-  verificationDate: { type: Date }
+  verificationDate: { type: Date },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
+  resetPasswordOtp: { type: String },
+  resetPasswordOtpExpires: { type: Date },
+  profilePicture: { type: String }
 }, { timestamps: true });
 
 // Hash password before save

@@ -66,6 +66,7 @@ export default function ReviewsPage() {
     rating: number;
     title?: string;
     comment: string;
+    images?: File[];
   }) => {
     // Authentication check is done in createReview API function
     // It will automatically handle expired tokens
@@ -111,6 +112,11 @@ export default function ReviewsPage() {
         });
       } else if (errorMessage.includes("already reviewed")) {
         toast.error("You have already reviewed this item");
+      } else if (errorMessage.includes("Too many") || errorMessage.includes("rate limit") || errorMessage.includes("per hour")) {
+        toast.error(errorMessage, {
+          duration: 6000,
+          icon: "⏱️",
+        });
       } else {
         toast.error(errorMessage);
       }
@@ -135,6 +141,28 @@ export default function ReviewsPage() {
 
       toast.success(currentHasVoted ? "Removed helpful vote" : "Thank you for your feedback!");
       return result;
+    } catch (error) {
+      // Error handling is done in ReviewItem component
+      throw error;
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string): Promise<void> => {
+    try {
+      const { deleteReview, getReviewSummary } = await import("@/config/reviews");
+      await deleteReview(reviewId);
+      
+      // Remove review from list
+      setReviews((prev) =>
+        prev.filter((review) => {
+          const reviewIdValue = review._id || (review as { id?: string }).id || "";
+          return reviewIdValue !== reviewId;
+        })
+      );
+
+      // Fetch updated summary
+      const updatedSummary = await getReviewSummary(String(slug));
+      setReviewSummary(updatedSummary);
     } catch (error) {
       // Error handling is done in ReviewItem component
       throw error;
@@ -233,6 +261,7 @@ export default function ReviewsPage() {
               summary={reviewSummary}
               onSubmitReview={handleSubmitReview}
               onHelpful={handleHelpful}
+              onDelete={handleDeleteReview}
             />
           </div>
         </div>

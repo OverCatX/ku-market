@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { aboutColors } from "@/components/aboutus/SectionColors";
 import Modal from "@/components/ui/Modal";
+import { API_BASE } from "@/config/constants";
 
 type Props = {
   open: boolean;
@@ -35,16 +36,23 @@ export default function ResetPasswordModal({ open, onClose, token }: Props) {
       setSubmitting(true);
       setError(null);
 
-      const res = await fetch("/api/auth/reset-password", {
+      const res = await fetch(`${API_BASE}/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ token, new_password: password }),
       });
 
+      // Check if response is JSON
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Server returned an invalid response. Please try again.");
+      }
+
+      const data = await res.json();
+
       if (!res.ok) {
-        const msg = await res.text().catch(() => "");
-        throw new Error(msg || "Reset failed");
+        throw new Error(data.error || "Reset failed");
       }
 
       setDone(true);

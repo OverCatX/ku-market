@@ -3,14 +3,51 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShoppingCart, Bell, User, Menu, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { NotificationBell } from "@/components/notifications";
+import { useCallback, useEffect, useState, useMemo, memo } from "react";
+import dynamic from "next/dynamic";
 import { useCart } from "@/contexts/CartContext";
 
-export function Header() {
+// Lazy load NotificationBell to reduce initial bundle
+const NotificationBell = dynamic(
+  () =>
+    import("@/components/notifications").then((mod) => ({
+      default: mod.NotificationBell,
+    })),
+  { ssr: false }
+);
+
+// Memoize links array to prevent re-creation
+const NAV_LINKS = [
+  { href: "/marketplace", label: "marketplace" },
+  { href: "/chats", label: "chats" },
+  { href: "/aboutus", label: "about us" },
+  { href: "/report", label: "report" },
+] as const;
+
+// Memoize cart badge component - client-side only to prevent hydration mismatch
+const CartBadge = memo(function CartBadge({
+  count,
+  mounted,
+}: {
+  count: number;
+  mounted: boolean;
+}) {
+  // Don't render on server to prevent hydration mismatch
+  if (!mounted || count <= 0) return null;
+  return (
+    <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-[#780606] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+});
+
+CartBadge.displayName = "CartBadge";
+
+export const Header = memo(function Header() {
   const pathName = usePathname();
   const [profileLink, setProfileLink] = useState("/login");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { getTotalItems } = useCart();
 
   const linkClasses = useCallback(
@@ -22,17 +59,12 @@ export function Header() {
   );
 
   useEffect(() => {
+    setMounted(true);
     const token = localStorage.getItem("authentication");
     setProfileLink(token ? "/profile" : "/login");
   }, []);
 
-  const links = [
-    // { href: "/", label: "home" },
-    { href: "/marketplace", label: "marketplace" },
-    { href: "/chats", label: "chats" },
-    { href: "/aboutus", label: "about us" },
-    { href: "/report", label: "report" },
-  ];
+  const totalItems = useMemo(() => getTotalItems(), [getTotalItems]);
 
   return (
     <header className="bg-gradient-to-b from-white to-green-50/30 backdrop-blur-xl sticky top-0 left-0 w-full z-50 border-b border-[#69773D]/10 shadow-lg shadow-green-900/5">
@@ -50,7 +82,7 @@ export function Header() {
 
           {/* Desktop Navigation - Centered with even spacing */}
           <nav className="hidden lg:flex flex-1 justify-center items-center gap-9">
-            {links.map((link) => (
+            {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -76,11 +108,7 @@ export function Header() {
               title="Cart"
             >
               <ShoppingCart className="w-5 h-5 text-[#4A5130] group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
-              {getTotalItems() > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-[#780606] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
-                  {getTotalItems() > 9 ? "9+" : getTotalItems()}
-                </span>
-              )}
+              <CartBadge count={totalItems} mounted={mounted} />
             </Link>
 
             <div className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-[#69773D]/20 transition-all duration-300 border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5">
@@ -115,7 +143,7 @@ export function Header() {
           <div className="lg:hidden border-t border-gray-100 py-4 animate-in slide-in-from-top duration-300">
             {/* Navigation Links */}
             <div className="space-y-1 mb-4">
-              {links.map((link, index) => (
+              {NAV_LINKS.map((link, index) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -145,9 +173,9 @@ export function Header() {
                   <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   <span className="font-medium">Cart</span>
                 </div>
-                {getTotalItems() > 0 && (
+                {totalItems > 0 && mounted && (
                   <span className="min-w-[24px] h-6 px-2 bg-[#780606] text-white text-xs rounded-full flex items-center justify-center font-bold shadow-md">
-                    {getTotalItems() > 9 ? "9+" : getTotalItems()}
+                    {totalItems > 9 ? "9+" : totalItems}
                   </span>
                 )}
               </Link>
@@ -175,4 +203,6 @@ export function Header() {
       </div>
     </header>
   );
-}
+});
+
+Header.displayName = "Header";

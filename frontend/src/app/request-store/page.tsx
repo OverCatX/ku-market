@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
+import React, { useState, ChangeEvent, FormEvent, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -75,6 +75,7 @@ export default function BecomeASeller() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [showImageModal, setShowImageModal] = useState<string | null>(null);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const mainDark = "#4B5D34";
   const mainLight = "#7BAA5F";
@@ -210,15 +211,31 @@ export default function BecomeASeller() {
     setPreviews((prev) => ({ ...prev, [fieldName]: null }));
   };
 
+  // Real-time validation
+  const isValidEmail = useMemo(() => {
+    if (!form.email) return null;
+    return /^[^\s@]+@ku\.th$/.test(form.email);
+  }, [form.email]);
+
+  const isValidPhone = useMemo(() => {
+    if (!form.phone) return null;
+    return /^\d{9,10}$/.test(form.phone);
+  }, [form.phone]);
+
+  const businessNameLength = useMemo(() => form.businessName.trim().length, [form.businessName]);
+  const businessDescriptionLength = useMemo(() => form.businessDescription.trim().length, [form.businessDescription]);
+
   const validateStep = () => {
     const newErrors: Record<string, string> = {};
 
     if (step === 1) {
       if (!form.fullName.trim()) newErrors.fullName = "Full name is required";
       if (!form.email.trim()) newErrors.email = "Email is required";
-      else if (!/\S+@\S+\.\S+/.test(form.email))
-        newErrors.email = "Invalid email format";
+      else if (!/^[^\s@]+@ku\.th$/.test(form.email))
+        newErrors.email = "Email must end with @ku.th";
       if (!form.phone.trim()) newErrors.phone = "Phone number is required";
+      else if (!/^\d{9,10}$/.test(form.phone))
+        newErrors.phone = "Phone number must be 9-10 digits";
     }
 
     if (step === 2) {
@@ -661,16 +678,41 @@ export default function BecomeASeller() {
                     >
                       Full Name *
                     </label>
-                    <input
-                      name="fullName"
-                      value={form.fullName}
-                      onChange={handleChange}
-                      placeholder="Enter your full name"
-                      className="w-full p-2 sm:p-3 text-sm sm:text-base rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
-                      style={{ borderColor, backgroundColor: "white" }}
-                    />
+                    <div className="relative">
+                      <input
+                        name="fullName"
+                        value={form.fullName}
+                        onChange={handleChange}
+                        onFocus={() => setFocusedField("fullName")}
+                        onBlur={() => setFocusedField(null)}
+                        placeholder="Enter your full name"
+                        className={`w-full p-2 sm:p-3 pr-10 text-sm sm:text-base rounded-lg border transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                          focusedField === "fullName" ? "shadow-sm" : ""
+                        } ${
+                          form.fullName && form.fullName.trim()
+                            ? "border-green-500"
+                            : errors.fullName
+                            ? "border-red-400"
+                            : ""
+                        }`}
+                        style={{
+                          borderColor: focusedField === "fullName" ? mainDark : errors.fullName ? "#ef4444" : form.fullName && form.fullName.trim() ? "#10b981" : borderColor,
+                          backgroundColor: "white"
+                        }}
+                      />
+                      {form.fullName && form.fullName.trim() && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
                     {errors.fullName && (
-                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
                         {errors.fullName}
                       </p>
                     )}
@@ -683,17 +725,58 @@ export default function BecomeASeller() {
                     >
                       Email Address *
                     </label>
-                    <input
-                      name="email"
-                      type="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      placeholder="your.email@example.com"
-                      className="w-full p-2 sm:p-3 text-sm sm:text-base rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
-                      style={{ borderColor, backgroundColor: "white" }}
-                    />
+                    <div className="relative">
+                      <input
+                        name="email"
+                        type="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        onFocus={() => setFocusedField("email")}
+                        onBlur={() => setFocusedField(null)}
+                        placeholder="your.email@ku.th"
+                        className={`w-full p-2 sm:p-3 pr-10 text-sm sm:text-base rounded-lg border transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                          focusedField === "email" ? "shadow-sm" : ""
+                        } ${
+                          isValidEmail === true
+                            ? "border-green-500"
+                            : isValidEmail === false && form.email
+                            ? "border-red-400"
+                            : errors.email
+                            ? "border-red-400"
+                            : ""
+                        }`}
+                        style={{
+                          borderColor: focusedField === "email" ? mainDark : isValidEmail === true ? "#10b981" : isValidEmail === false && form.email ? "#ef4444" : errors.email ? "#ef4444" : borderColor,
+                          backgroundColor: "white"
+                        }}
+                      />
+                      {form.email && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          {isValidEmail ? (
+                            <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5 text-red-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {form.email && isValidEmail === false && !errors.email && (
+                      <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Email must end with @ku.th
+                      </p>
+                    )}
                     {errors.email && (
-                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
                         {errors.email}
                       </p>
                     )}
@@ -706,17 +789,58 @@ export default function BecomeASeller() {
                     >
                       Phone Number *
                     </label>
-                    <input
-                      name="phone"
-                      type="tel"
-                      value={form.phone}
-                      onChange={handleChange}
-                      placeholder="Enter your phone number"
-                      className="w-full p-2 sm:p-3 text-sm sm:text-base rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
-                      style={{ borderColor, backgroundColor: "white" }}
-                    />
+                    <div className="relative">
+                      <input
+                        name="phone"
+                        type="tel"
+                        value={form.phone}
+                        onChange={handleChange}
+                        onFocus={() => setFocusedField("phone")}
+                        onBlur={() => setFocusedField(null)}
+                        placeholder="Phone number (9-10 digits)"
+                        className={`w-full p-2 sm:p-3 pr-10 text-sm sm:text-base rounded-lg border transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                          focusedField === "phone" ? "shadow-sm" : ""
+                        } ${
+                          isValidPhone === true
+                            ? "border-green-500"
+                            : isValidPhone === false && form.phone
+                            ? "border-red-400"
+                            : errors.phone
+                            ? "border-red-400"
+                            : ""
+                        }`}
+                        style={{
+                          borderColor: focusedField === "phone" ? mainDark : isValidPhone === true ? "#10b981" : isValidPhone === false && form.phone ? "#ef4444" : errors.phone ? "#ef4444" : borderColor,
+                          backgroundColor: "white"
+                        }}
+                      />
+                      {form.phone && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          {isValidPhone ? (
+                            <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5 text-red-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {form.phone && isValidPhone === false && !errors.phone && (
+                      <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Phone number must be 9-10 digits
+                      </p>
+                    )}
                     {errors.phone && (
-                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
                         {errors.phone}
                       </p>
                     )}
@@ -734,16 +858,53 @@ export default function BecomeASeller() {
                     >
                       Business/Shop Name *
                     </label>
-                    <input
-                      name="businessName"
-                      value={form.businessName}
-                      onChange={handleChange}
-                      placeholder="Enter your business name"
-                      className="w-full p-2 sm:p-3 text-sm sm:text-base rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
-                      style={{ borderColor, backgroundColor: "white" }}
-                    />
+                    <div className="relative">
+                      <input
+                        name="businessName"
+                        value={form.businessName}
+                        onChange={handleChange}
+                        onFocus={() => setFocusedField("businessName")}
+                        onBlur={() => setFocusedField(null)}
+                        placeholder="Enter your business name"
+                        className={`w-full p-2 sm:p-3 ${
+                          businessNameLength >= 2 ? "pr-10" : ""
+                        } text-sm sm:text-base rounded-lg border transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                          focusedField === "businessName" ? "shadow-sm" : ""
+                        } ${
+                          businessNameLength >= 2
+                            ? "border-green-500"
+                            : businessNameLength > 0 && businessNameLength < 2
+                            ? "border-red-400"
+                            : errors.businessName
+                            ? "border-red-400"
+                            : ""
+                        }`}
+                        style={{
+                          borderColor: focusedField === "businessName" ? mainDark : businessNameLength >= 2 ? "#10b981" : businessNameLength > 0 && businessNameLength < 2 ? "#ef4444" : errors.businessName ? "#ef4444" : borderColor,
+                          backgroundColor: "white"
+                        }}
+                      />
+                      {businessNameLength >= 2 && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    {businessNameLength > 0 && businessNameLength < 2 && !errors.businessName && (
+                      <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Business name must be at least 2 characters
+                      </p>
+                    )}
                     {errors.businessName && (
-                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
                         {errors.businessName}
                       </p>
                     )}
@@ -814,20 +975,72 @@ export default function BecomeASeller() {
                     >
                       Business Description *
                     </label>
-                    <textarea
-                      name="businessDescription"
-                      value={form.businessDescription}
-                      onChange={handleChange}
-                      placeholder="Tell us about your business and products..."
-                      rows={4}
-                      className="w-full p-2 sm:p-3 text-sm sm:text-base rounded-lg border resize-none transition-all focus:outline-none focus:ring-2 focus:ring-offset-1"
-                      style={{ borderColor, backgroundColor: "white" }}
-                    />
-                    {errors.businessDescription && (
-                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
-                        {errors.businessDescription}
-                      </p>
-                    )}
+                    <div className="relative">
+                      <textarea
+                        name="businessDescription"
+                        value={form.businessDescription}
+                        onChange={handleChange}
+                        onFocus={() => setFocusedField("businessDescription")}
+                        onBlur={() => setFocusedField(null)}
+                        placeholder="Tell us about your business and products..."
+                        rows={4}
+                        className={`w-full p-2 sm:p-3 text-sm sm:text-base rounded-lg border resize-none transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                          focusedField === "businessDescription" ? "shadow-sm" : ""
+                        } ${
+                          businessDescriptionLength >= 10 && businessDescriptionLength <= 1000
+                            ? "border-green-500"
+                            : businessDescriptionLength > 0 && (businessDescriptionLength < 10 || businessDescriptionLength > 1000)
+                            ? "border-red-400"
+                            : errors.businessDescription
+                            ? "border-red-400"
+                            : ""
+                        }`}
+                        style={{
+                          borderColor: focusedField === "businessDescription" ? mainDark : businessDescriptionLength >= 10 && businessDescriptionLength <= 1000 ? "#10b981" : businessDescriptionLength > 0 && (businessDescriptionLength < 10 || businessDescriptionLength > 1000) ? "#ef4444" : errors.businessDescription ? "#ef4444" : borderColor,
+                          backgroundColor: "white"
+                        }}
+                      />
+                      {businessDescriptionLength >= 10 && businessDescriptionLength <= 1000 && (
+                        <div className="absolute bottom-3 right-3">
+                          <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between mt-1">
+                      <div>
+                        {businessDescriptionLength > 0 && businessDescriptionLength < 10 && !errors.businessDescription && (
+                          <p className="text-[#780606] text-xs sm:text-sm flex items-center animate-fade-in">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            Description must be at least 10 characters
+                          </p>
+                        )}
+                        {businessDescriptionLength > 1000 && !errors.businessDescription && (
+                          <p className="text-[#780606] text-xs sm:text-sm flex items-center animate-fade-in">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            Description must not exceed 1000 characters
+                          </p>
+                        )}
+                        {errors.businessDescription && (
+                          <p className="text-[#780606] text-xs sm:text-sm flex items-center animate-fade-in">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            {errors.businessDescription}
+                          </p>
+                        )}
+                      </div>
+                      <span className={`text-xs ${
+                        businessDescriptionLength > 1000 ? "text-[#780606]" : businessDescriptionLength >= 10 ? "text-[#69773D]" : "text-gray-500"
+                      }`}>
+                        {businessDescriptionLength}/1000
+                      </span>
+                    </div>
                   </div>
                 </>
               )}

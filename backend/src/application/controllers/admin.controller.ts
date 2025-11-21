@@ -7,12 +7,7 @@ import Review, { IReview } from "../../data/models/Review";
 import MeetupPreset from "../../data/models/MeetupPreset";
 import mongoose from "mongoose";
 import { createNotification } from "../../lib/notifications";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 export default class AdminController {
   // GET /api/admin/verifications - Get all verification requests
@@ -258,7 +253,7 @@ export default class AdminController {
         "system",
         "Shop Approved",
         "Your shop has been approved! You can now start selling items.",
-        "/shop"
+        "/seller/dashboard"
       );
 
       return res.json({
@@ -304,7 +299,7 @@ export default class AdminController {
         "system",
         "Shop Rejected",
         `Your shop request was rejected. Reason: ${reason}`,
-        "/shop"
+        "/seller/dashboard"
       );
 
       return res.json({
@@ -355,7 +350,7 @@ export default class AdminController {
   };
 
   // POST /api/admin/users/:userId/promote - Promote user to admin
-  promoteToAdmin = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  promoteToAdmin = async (req: Request, res: Response): Promise<Response> => {
     try {
       const { userId } = req.params;
 

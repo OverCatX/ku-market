@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   ShoppingBag,
   CheckCircle,
@@ -9,11 +10,16 @@ import {
   RefreshCw,
   Printer,
   MapPin,
+  ExternalLink,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { API_BASE } from "@/config/constants";
 import toast from "react-hot-toast";
+
+const StaticMap = dynamic(() => import("@/components/maps/StaticMap"), {
+  ssr: false,
+});
 
 interface OrderItem {
   itemId: string;
@@ -62,6 +68,94 @@ interface OrderData {
   buyerReceivedAt?: string;
   sellerDelivered?: boolean;
   sellerDeliveredAt?: string;
+}
+
+function PickupLocationSection({
+  pickupDetails,
+}: {
+  pickupDetails: OrderData["pickupDetails"];
+}) {
+  const [showMap, setShowMap] = useState(false);
+
+  if (!pickupDetails) return null;
+
+  return (
+    <div className="mt-2 pt-2 border-t border-gray-200">
+      <p className="font-medium flex items-center gap-1 text-green-700 mb-2">
+        <MapPin size={14} />
+        Meetup Point
+      </p>
+      <div className="space-y-2">
+        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-start gap-2">
+            <MapPin size={16} className="mt-0.5 text-gray-500 flex-shrink-0" />
+            <div className="text-sm flex-1">
+              <p className="font-semibold text-gray-900">{pickupDetails.locationName}</p>
+              {pickupDetails.address && (
+                <p className="text-gray-600 text-xs mt-0.5">
+                  {pickupDetails.address}
+                </p>
+              )}
+              {pickupDetails.coordinates && (
+                <div className="mt-1 flex items-center gap-2 flex-wrap">
+                  <p className="text-gray-500 text-xs font-mono">
+                    {pickupDetails.coordinates.lat.toFixed(6)}, {pickupDetails.coordinates.lng.toFixed(6)}
+                  </p>
+                  <a
+                    href={`https://www.google.com/maps?q=${pickupDetails.coordinates.lat},${pickupDetails.coordinates.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline transition"
+                  >
+                    <ExternalLink size={12} />
+                    Open in Google Maps
+                  </a>
+                </div>
+              )}
+              {pickupDetails.preferredTime && (
+                <p className="text-sm text-blue-600 mt-1">
+                  <Clock size={12} className="inline mr-1" />
+                  Preferred time: {new Date(pickupDetails.preferredTime).toLocaleString("th-TH", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              )}
+              {pickupDetails.note && (
+                <p className="text-sm text-gray-600 italic mt-1">
+                  Note: {pickupDetails.note}
+                </p>
+              )}
+              {pickupDetails.coordinates && (
+                <button
+                  onClick={() => setShowMap(!showMap)}
+                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#84B067] hover:text-[#73995a] hover:bg-white rounded-md transition"
+                >
+                  <MapPin size={14} />
+                  {showMap ? "Hide Map" : "Show Map"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        {showMap && pickupDetails.coordinates && (
+          <div className="mt-2 relative z-0">
+            <StaticMap
+              position={{
+                lat: pickupDetails.coordinates.lat,
+                lng: pickupDetails.coordinates.lng,
+              }}
+              locationName={pickupDetails.locationName}
+              height="200px"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function SellerOrders() {
@@ -366,10 +460,10 @@ export default function SellerOrders() {
                         <MapPin size={14} className="text-[#69773D]" />
                         Meetup Point
                       </p>
-                      <div className="mt-1 space-y-1 text-gray-700">
+                      <div className="mt-1 space-y-1 text-[#69773D]">
                         <p className="font-semibold text-[#4A5130]">{order.pickupDetails.locationName}</p>
                         {order.pickupDetails.address && (
-                          <p className="text-sm">{order.pickupDetails.address}</p>
+                          <p className="text-sm text-[#69773D]">{order.pickupDetails.address}</p>
                         )}
                         {order.pickupDetails.preferredTime && (
                           <p className="text-sm text-[#69773D]">
@@ -384,12 +478,12 @@ export default function SellerOrders() {
                           </p>
                         )}
                         {order.pickupDetails.coordinates && (
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-[#69773D]">
                             📍 {order.pickupDetails.coordinates.lat.toFixed(5)}, {order.pickupDetails.coordinates.lng.toFixed(5)}
                           </p>
                         )}
                         {order.pickupDetails.note && (
-                          <p className="text-sm text-gray-600 italic">
+                          <p className="text-sm text-[#69773D] italic">
                             Note: {order.pickupDetails.note}
                           </p>
                         )}

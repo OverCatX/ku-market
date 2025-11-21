@@ -6,6 +6,7 @@ export interface IReview extends Document {
   rating: number; // 1-5
   title?: string;
   comment: string;
+  images?: string[]; // Array of image URLs
   helpful: number;
   verified: boolean; // verified purchase
   createAt: Date;
@@ -43,6 +44,14 @@ const reviewSchema: Schema<IReview> = new Schema(
       required: true,
       trim: true,
       maxlength: 2000,
+    },
+    images: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: (v: string[]) => v.length <= 5,
+        message: "Maximum 5 images allowed",
+      },
     },
     helpful: {
       type: Number,

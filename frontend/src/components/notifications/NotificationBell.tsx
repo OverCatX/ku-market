@@ -28,9 +28,10 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch notifications from backend (only recent ones for dropdown)
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (showNotification = false) => {
     const token = localStorage.getItem("authentication");
     if (!token) {
       setNotifications([]);
@@ -40,16 +41,84 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
     try {
       // Only fetch first 20 notifications for dropdown (recent ones)
       const data = await getNotifications(1, 20);
-      setNotifications(data.notifications);
+      const newUnreadCount = data.notifications.filter(n => !n.read).length;
+      
+      // Check if there are new unread notifications
+      if (showNotification) {
+        setNotifications((currentNotifications) => {
+          const currentUnreadCount = currentNotifications.filter(n => !n.read).length;
+          if (newUnreadCount > currentUnreadCount && currentUnreadCount > 0) {
+            // Show browser notification if permission granted
+            if ("Notification" in window && Notification.permission === "granted") {
+              const newNotifications = data.notifications.filter(
+                n => !n.read && !currentNotifications.find(existing => existing.id === n.id)
+              );
+              if (newNotifications.length > 0) {
+                new Notification(newNotifications[0].title, {
+                  body: newNotifications[0].message,
+                  icon: "/favicon.ico",
+                  tag: newNotifications[0].id,
+                });
+              }
+            }
+          }
+          return data.notifications;
+        });
+      } else {
+        setNotifications(data.notifications);
+      }
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
       // Keep existing notifications on error
     }
   }, []);
 
+  // Request notification permission on mount
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
   // Fetch on mount and when dropdown opens
   useEffect(() => {
     fetchNotifications();
+  }, [fetchNotifications]);
+
+  // Smart background polling: poll every 60s when page is visible, pause when hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Page is hidden, stop polling
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+      } else {
+        // Page is visible, start polling
+        if (!pollingIntervalRef.current) {
+          pollingIntervalRef.current = setInterval(() => {
+            fetchNotifications(true); // Show browser notifications for new items
+          }, 60000); // Poll every 60 seconds
+        }
+      }
+    };
+
+    // Start polling if page is visible
+    if (!document.hidden) {
+      pollingIntervalRef.current = setInterval(() => {
+        fetchNotifications(true);
+      }, 60000);
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [fetchNotifications]);
 
   // Auto-refresh notifications every 30 seconds when dropdown is open
@@ -82,27 +151,6 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAsRead = async (notificationId: string) => {
-    // Update UI optimistically (immediately)
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === notificationId ? { ...n, read: true } : n
-      )
-    );
-    // Call API in background
-    try {
-      await markNotificationAsRead(notificationId);
-    } catch (err) {
-      console.error("Failed to mark notification as read:", err);
-      // Revert on error
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notificationId ? { ...n, read: false } : n
-        )
-      );
-    }
-  };
-
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
@@ -115,30 +163,40 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
   };
 
   const handleDeleteNotification = async (notificationId: string) => {
+    // Update UI optimistically (immediately)
+    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+    // Call API in background
     try {
       await deleteNotification(notificationId);
-      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
     } catch (err) {
       console.error("Failed to delete notification:", err);
+      // On error, we could optionally refetch to restore state
+      // But for now, we'll leave it deleted
     }
   };
 
   const handleClearAll = async () => {
     try {
-      await clearAllNotifications();
+      // Update UI optimistically (immediately)
       setNotifications([]);
+      // Call API in background
+      await clearAllNotifications();
     } catch (err) {
       console.error("Failed to clear all notifications:", err);
+      // On error, we could optionally refetch to restore state
+      // But for now, we'll leave it cleared
     }
   };
 
   const getNotificationIcon = (type: Notification["type"]) => {
     switch (type) {
       case "order":
+<<<<<<< HEAD
         return <Package className="w-5 h-5 text-[#8DB368]" />;
       case "message":
-        return <MessageCircle className="w-5 h-5 text-green-500" />;
+        return <MessageCircle className="w-5 h-5 text-[#84B067]" />;
       case "item":
+<<<<<<< HEAD
         return <ShoppingBag className="w-5 h-5 text-[#69773D]" />;
       case "system":
         return <AlertCircle className="w-5 h-5 text-[#780606]" />;
@@ -162,12 +220,27 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    // Mark as read optimistically (update UI immediately)
-    if (!notification.read) {
-      markAsRead(notification.id);
-    }
-    // Navigate immediately without waiting
+    // Navigate first immediately (don't wait for mark as read)
     if (notification.link) {
+      // Mark as read in the background (fire and forget)
+      if (!notification.read) {
+        // Update UI optimistically
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
+        );
+        // Call API in background without waiting
+        markNotificationAsRead(notification.id).catch((err) => {
+          console.error("Failed to mark notification as read:", err);
+          // Revert on error
+          setNotifications((prev) =>
+            prev.map((n) =>
+              n.id === notification.id ? { ...n, read: false } : n
+            )
+          );
+        });
+      }
+      // Close dropdown and navigate immediately
+      setIsOpen(false);
       window.location.href = notification.link;
     }
   };
@@ -186,9 +259,9 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
         className="relative flex items-center justify-center w-full h-full transition-all duration-300 group"
         aria-label="Notifications"
       >
-        <Bell className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] transition-all duration-300" />
+        <Bell className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] transition-all duration-300 z-10" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-gradient-to-br from-yellow-400 to-yellow-500 text-black text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
+          <span className="absolute top-0 right-0 min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-[#69773D] to-[#84B067] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white z-20 animate-pulse translate-x-1/2 -translate-y-1/2">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -204,7 +277,8 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="text-xs text-[#8DB368] hover:text-[#7ba05a] font-medium"
+<<<<<<< HEAD
+                  className="text-xs text-[#8DB368] hover:text-[#7ba05a] font-medium transition-colors"
                   title="Mark all as read"
                 >
                   <CheckCheck className="w-4 h-4" />
@@ -213,7 +287,8 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
               {notifications.length > 0 && (
                 <button
                   onClick={handleClearAll}
-                  className="text-xs text-[#780606] hover:text-[#780606] font-medium"
+<<<<<<< HEAD
+                  className="text-xs text-[#780606] hover:text-[#780606] font-medium transition-colors"
                   title="Clear all"
                 >
                   Clear All
@@ -234,8 +309,9 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-4 hover:bg-[#F6F2E5] transition cursor-pointer relative ${
-                      !notification.read ? "bg-[#8DB368]/10" : "bg-[#F6F2E5]"
+<<<<<<< HEAD
+                    className={`p-4 hover:bg-[#F6F2E5] transition-all duration-200 cursor-pointer relative border-l-4 ${
+                      !notification.read ? "bg-[#8DB368]/10 border-[#8DB368]" : "bg-[#F6F2E5] border-transparent"
                     }`}
                     onClick={() => handleNotificationClick(notification)}
                   >
@@ -245,7 +321,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
                         e.stopPropagation();
                         handleDeleteNotification(notification.id);
                       }}
-                      className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition"
+                      className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition-colors"
                       title="Delete notification"
                     >
                       <X className="w-3 h-3 text-gray-400" />
@@ -261,7 +337,8 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
                             {notification.title}
                           </h4>
                           {!notification.read && (
-                            <span className="w-2 h-2 bg-[#8DB368] rounded-full ml-2 mt-1.5"></span>
+<<<<<<< HEAD
+                            <span className="w-2 h-2 bg-[#8DB368] rounded-full ml-2 mt-1.5 animate-pulse"></span>
                           )}
                         </div>
                         <p className="text-sm text-[#4A5130] mt-1 line-clamp-2">
@@ -283,7 +360,8 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
             <div className="p-3 border-t border-gray-200 text-center">
               <a
                 href="/notifications"
-                className="text-sm text-[#4A5130] hover:text-[#3a4025] font-medium"
+<<<<<<< HEAD
+                className="text-sm text-[#4A5130] hover:text-[#3a4025] font-medium transition-colors"
               >
                 View all notifications
               </a>

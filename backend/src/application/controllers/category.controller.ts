@@ -1,13 +1,7 @@
 import { Request, Response } from "express";
 import Category from "../../data/models/Category";
 import mongoose from "mongoose";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-  };
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 export default class CategoryController {
   // GET /api/categories - Get all active categories (public)

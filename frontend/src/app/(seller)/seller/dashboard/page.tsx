@@ -9,6 +9,7 @@ import {
   TrendingUp,
   Clock,
   CheckCircle,
+  HelpCircle,
 } from "lucide-react";
 import { API_BASE } from "@/config/constants";
 
@@ -188,10 +189,19 @@ export default function SellerDashboard() {
 
       {/* Quick Actions */}
       <div className="bg-white rounded-xl shadow-md p-6 mb-8 border border-gray-100">
-        <h2 className="text-xl font-bold text-[#4A5130] mb-5 flex items-center gap-2">
-          <div className="w-1 h-6 bg-gradient-to-b from-[#8B9B6E] via-[#6B7B4E] to-[#2d3220] rounded-full"></div>
-          Quick Actions
-        </h2>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-xl font-bold text-[#4A5130] flex items-center gap-2">
+            <div className="w-1 h-6 bg-gradient-to-b from-[#8B9B6E] via-[#6B7B4E] to-[#2d3220] rounded-full"></div>
+            Quick Actions
+          </h2>
+          <Link
+            href="/guide"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a632d] transition-colors text-sm font-medium shadow-sm hover:shadow-md"
+          >
+            <HelpCircle size={18} />
+            User Guide
+          </Link>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link
             href="/seller/add-item"
