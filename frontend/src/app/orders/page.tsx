@@ -578,7 +578,7 @@ export default function OrdersPage() {
               },
               {
                 label: "Pending",
-                value: currentStatusCounts.pending_seller_confirmation,
+                value: statusCounts.pending_seller_confirmation,
                 color: "#eab308",
                 borderColor: "#eab308",
                 titleColor: "#eab308",
@@ -586,7 +586,7 @@ export default function OrdersPage() {
               },
               {
                 label: "Confirmed",
-                value: currentStatusCounts.confirmed,
+                value: statusCounts.confirmed,
                 color: "#724a24",
                 borderColor: "#724a24",
                 titleColor: "#724a24",
@@ -594,7 +594,7 @@ export default function OrdersPage() {
               },
               {
                 label: "Completed",
-                value: currentStatusCounts.completed,
+                value: statusCounts.completed,
                 color: "#69773D",
                 borderColor: "#69773D",
                 titleColor: "#69773D",

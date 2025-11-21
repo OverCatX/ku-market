@@ -10,7 +10,6 @@ type Delivery = "Meet-up" | "Shipping" | "Both";
 
 const MAX_IMAGES = 3;
 const GREEN = "#69773D";
-const LIGHT = "#f7f4f1";
 
 export default function NewItemPage() {
   const [title, setTitle] = useState("");

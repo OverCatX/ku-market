@@ -9,8 +9,6 @@ import { getItem } from "@/config/items";
 import { getItemReviews, getReviewSummary } from "@/config/reviews";
 import toast from "react-hot-toast";
 
-const LIGHT = "#f7f4f1";
-
 export default function ReviewsPage() {
   const { slug } = useParams<{ slug: string }>();
   const [itemTitle, setItemTitle] = useState<string>("");

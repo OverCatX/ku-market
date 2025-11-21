@@ -19,7 +19,6 @@ const FooterSection = dynamic(() => import("@/components/home/FooterSection"), {
   loading: () => <div className="h-32" />,
 });
 
-const LIGHT = "#f9f9f7";
 const GREEN = "#69773D";
 
 type SortOptions =

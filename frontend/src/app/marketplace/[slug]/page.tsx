@@ -18,7 +18,6 @@ import {
 } from "@/lib/auth";
 
 const GREEN = "#69773D";
-const LIGHT = "#f7f4f1";
 const BORDER = "rgba(122,74,34,0.25)";
 
 // Type for populated owner object

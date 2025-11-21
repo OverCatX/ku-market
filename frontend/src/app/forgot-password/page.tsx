@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Modal from "@/components/ui/Modal";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
-import { aboutColors } from "@/components/aboutus/SectionColors";
 import { useRouter } from "next/navigation";
 
 export default function ForgotPasswordPage() {
