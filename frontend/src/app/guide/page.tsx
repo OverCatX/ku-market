@@ -13,8 +13,6 @@ import {
   Package,
   CreditCard,
   MapPin,
-  FileCheck,
-  Flag,
   ArrowRight,
   X,
   Sparkles,
@@ -597,9 +595,7 @@ function TrackOrdersDescription() {
 
 export default function GuidePage() {
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState<
-    "buyer" | "seller"
-  >("buyer");
+  const [selectedRole, setSelectedRole] = useState<"buyer" | "seller">("buyer");
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {

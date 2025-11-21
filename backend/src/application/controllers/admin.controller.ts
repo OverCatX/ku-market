@@ -6,7 +6,6 @@ import Item from "../../data/models/Item";
 import Review, { IReview } from "../../data/models/Review";
 import MeetupPreset from "../../data/models/MeetupPreset";
 import ActivityLog from "../../data/models/ActivityLog";
-import Order from "../../data/models/Order";
 import mongoose from "mongoose";
 import { createNotification } from "../../lib/notifications";
 import { AuthenticatedRequest } from "../middlewares/authentication";

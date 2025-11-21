@@ -9,16 +9,11 @@ import {
 } from "@/config/admin";
 import toast from "react-hot-toast";
 import {
-  Activity,
   RefreshCw,
   Search,
   Filter,
-  Calendar,
-  User,
-  FileText,
   ChevronLeft,
   ChevronRight,
-  Download,
 } from "lucide-react";
 import { format } from "date-fns";
 
