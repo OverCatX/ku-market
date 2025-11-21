@@ -124,11 +124,11 @@ function PickupLocationSection({
             className="mt-0.5 text-gray-500 flex-shrink-0"
           />
           <div className="text-sm flex-1">
-            <p className="font-medium text-gray-900">
+            <p className="font-medium text-[#4A5130]">
               {pickupDetails.locationName}
             </p>
             {pickupDetails.address && (
-              <p className="text-gray-600 text-xs mt-0.5">
+              <p className="text-[#69773D] text-xs mt-0.5">
                 {pickupDetails.address}
               </p>
             )}
@@ -518,8 +518,8 @@ export default function OrdersPage() {
         <section className="rounded-3xl bg-white/90 border border-[#e4ecd7] shadow-xl shadow-[#c8d3ba]/30 p-6 sm:p-8 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
-              <p className="mt-1 text-sm text-gray-500">
+              <h1 className="text-3xl font-bold text-[#4A5130]">My Orders</h1>
+              <p className="mt-1 text-sm text-[#69773D]">
                 Manage and track your orders
               </p>
             </div>
@@ -527,7 +527,7 @@ export default function OrdersPage() {
               <button
                 onClick={loadOrders}
                 disabled={loading}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-300 text-[#4A5130] text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
               >
                 <RefreshCw
                   size={16}
@@ -629,7 +629,7 @@ export default function OrdersPage() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === option.value
                   ? "bg-[#5C8140] text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                  : "bg-white text-[#4A5130] hover:bg-gray-50 border border-gray-200"
               }`}
             >
               {option.label}
@@ -642,7 +642,7 @@ export default function OrdersPage() {
 
         {/* Orders List */}
         {loading ? (
-          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-gray-500">
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-[#4A5130]">
             <RefreshCw size={24} className="animate-spin mx-auto mb-2" />
             <p>Loading orders...</p>
           </div>
@@ -651,10 +651,10 @@ export default function OrdersPage() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-400">
               <Package size={32} />
             </div>
-            <p className="text-lg font-semibold text-gray-900 mb-1">
+            <p className="text-lg font-semibold text-[#4A5130] mb-1">
               No orders found
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[#69773D]">
               Start shopping to see your orders here
             </p>
           </div>
@@ -703,9 +703,9 @@ export default function OrdersPage() {
                             normalizedPaymentStatus ?? undefined
                           )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#69773D]">
                           <span>
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium text-[#4A5130]">
                               {order.totalPrice.toLocaleString()} THB
                             </span>
                           </span>
@@ -716,14 +716,14 @@ export default function OrdersPage() {
                           <span className="text-gray-300">•</span>
                           <span>{formatPaymentMethod(order.paymentMethod)}</span>
                           <span className="text-gray-300">•</span>
-                          <span className="text-gray-500">
+                          <span className="text-[#69773D]">
                             {formatDate(order.createdAt)}
                           </span>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-600">
-                        <span className="text-gray-500">Seller:</span>{" "}
-                        <span className="font-medium text-gray-900">
+                      <div className="text-sm text-[#69773D]">
+                        <span className="text-[#69773D]">Seller:</span>{" "}
+                        <span className="font-medium text-[#4A5130]">
                           {order.seller?.name || "Unknown"}
                         </span>
                       </div>
@@ -745,10 +745,10 @@ export default function OrdersPage() {
                             className="w-14 h-14 rounded-md object-cover border border-gray-200"
                         />
                           <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium text-gray-900 truncate">
+                          <div className="text-sm font-medium text-[#4A5130] truncate">
                             {it.title}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-[#69773D]">
                               {it.quantity} × {it.price.toLocaleString()} THB
                           </div>
                         </div>
@@ -757,7 +757,7 @@ export default function OrdersPage() {
                     </div>
 
                     {order.items.length > 3 && (
-                      <p className="text-xs text-gray-500 mb-4">
+                      <p className="text-xs text-[#69773D] mb-4">
                         +{order.items.length - 3} more item
                         {order.items.length - 3 > 1 ? "s" : ""}
                       </p>
@@ -786,7 +786,7 @@ export default function OrdersPage() {
                           className={`px-4 py-2 text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition ${
                             submittingPaymentOrderId === order.id
                               ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
-                              : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                              : "bg-white border-gray-300 text-[#4A5130] hover:bg-gray-50"
                           }`}
                         >
                           <CreditCard size={16} />
@@ -802,7 +802,7 @@ export default function OrdersPage() {
                         className={`px-4 py-2 text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition ${
                           contactingOrderId === order.id
                             ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                            : "bg-white border-gray-300 text-[#4A5130] hover:bg-gray-50"
                         }`}
                       >
                         <MessageCircle size={16} />
