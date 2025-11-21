@@ -76,10 +76,10 @@ const calculatePasswordStrength = (password: string): PasswordStrength => {
 
   const strengths: PasswordStrength[] = [
     { score: 0, label: "Very Weak", color: "bg-red-500" },
-    { score: 1, label: "Weak", color: "bg-orange-500" },
+    { score: 1, label: "Weak", color: "bg-[#780606]" },
     { score: 2, label: "Fair", color: "bg-yellow-500" },
     { score: 3, label: "Good", color: "bg-blue-500" },
-    { score: 4, label: "Strong", color: "bg-green-500" },
+    { score: 4, label: "Strong", color: "bg-[#69773D]" },
   ];
 
   return strengths[finalScore] || strengths[0];
@@ -288,13 +288,13 @@ export function SignUpForm() {
                     : "border-gray-300 hover:border-gray-400"
                 } ${
                   field === "kuEmail" && isValidEmail === true
-                    ? "border-green-500"
+                    ? "border-[#69773D]"
                     : field === "kuEmail" && isValidEmail === false && formData.kuEmail
                     ? "border-red-400"
                     : ""
                 } ${
                   field === "contact" && isValidPhone === true
-                    ? "border-green-500"
+                    ? "border-[#69773D]"
                     : field === "contact" && isValidPhone === false && formData.contact
                     ? "border-red-400"
                     : ""
@@ -304,7 +304,7 @@ export function SignUpForm() {
               {field === "kuEmail" && formData.kuEmail && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   {isValidEmail ? (
-                    <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-[#69773D] animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   ) : (
@@ -317,7 +317,7 @@ export function SignUpForm() {
               {field === "contact" && formData.contact && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   {isValidPhone ? (
-                    <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-[#69773D] animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   ) : (
@@ -394,34 +394,34 @@ export function SignUpForm() {
                 </div>
                 <div className="mt-2 space-y-1">
                   <div className="flex items-center text-xs">
-                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${formData.password.length >= 8 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}>
+                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${formData.password.length >= 8 ? "bg-[#69773D] text-white" : "bg-gray-300 text-gray-600"}`}>
                       {formData.password.length >= 8 ? "✓" : ""}
                     </span>
-                    <span className={formData.password.length >= 8 ? "text-green-600" : "text-gray-500"}>
+                    <span className={formData.password.length >= 8 ? "text-[#69773D]" : "text-gray-500"}>
                       At least 8 characters
                     </span>
                   </div>
                   <div className="flex items-center text-xs">
-                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${/[a-z]/.test(formData.password) && /[A-Z]/.test(formData.password) ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}>
+                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${/[a-z]/.test(formData.password) && /[A-Z]/.test(formData.password) ? "bg-[#69773D] text-white" : "bg-gray-300 text-gray-600"}`}>
                       {/[a-z]/.test(formData.password) && /[A-Z]/.test(formData.password) ? "✓" : ""}
                     </span>
-                    <span className={/[a-z]/.test(formData.password) && /[A-Z]/.test(formData.password) ? "text-green-600" : "text-gray-500"}>
+                    <span className={/[a-z]/.test(formData.password) && /[A-Z]/.test(formData.password) ? "text-[#69773D]" : "text-gray-500"}>
                       Upper and lowercase letters
                     </span>
                   </div>
                   <div className="flex items-center text-xs">
-                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${/[0-9]/.test(formData.password) ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}>
+                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${/[0-9]/.test(formData.password) ? "bg-[#69773D] text-white" : "bg-gray-300 text-gray-600"}`}>
                       {/[0-9]/.test(formData.password) ? "✓" : ""}
                     </span>
-                    <span className={/[0-9]/.test(formData.password) ? "text-green-600" : "text-gray-500"}>
+                    <span className={/[0-9]/.test(formData.password) ? "text-[#69773D]" : "text-gray-500"}>
                       At least one number
                     </span>
                   </div>
                   <div className="flex items-center text-xs">
-                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${/[^a-zA-Z0-9]/.test(formData.password) ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}>
+                    <span className={`w-4 h-4 mr-2 flex items-center justify-center rounded-full ${/[^a-zA-Z0-9]/.test(formData.password) ? "bg-[#69773D] text-white" : "bg-gray-300 text-gray-600"}`}>
                       {/[^a-zA-Z0-9]/.test(formData.password) ? "✓" : ""}
                     </span>
-                    <span className={/[^a-zA-Z0-9]/.test(formData.password) ? "text-green-600" : "text-gray-500"}>
+                    <span className={/[^a-zA-Z0-9]/.test(formData.password) ? "text-[#69773D]" : "text-gray-500"}>
                       At least one special character (!@#$%^&*)
                     </span>
                   </div>
@@ -446,7 +446,7 @@ export function SignUpForm() {
                   />
                 </div>
                 {formData.password === formData.confirmPassword && formData.confirmPassword && (
-                  <div className="mt-1 flex items-center text-green-600 text-xs animate-fade-in">
+                  <div className="mt-1 flex items-center text-[#69773D] text-xs animate-fade-in">
                     <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
@@ -472,7 +472,6 @@ export function SignUpForm() {
               </p>
             )}
             {errors[field] && (
-<<<<<<< HEAD
               <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
                 <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -516,7 +515,6 @@ export function SignUpForm() {
         </button>
 
         {apiError && (
-<<<<<<< HEAD
           <div className="p-3 bg-[#780606]/10 rounded-lg text-[#780606] text-center text-sm mt-1 animate-fade-in">
             <p className="flex items-center justify-center">
               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -545,7 +543,7 @@ export function SignUpForm() {
 
         <Link
           href="/login"
-          className="mt-4 w-full bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-green-50 transition-all duration-200 ease-out group"
+          className="mt-4 w-full bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-[#69773D]/10 transition-all duration-200 ease-out group"
           style={{ color: aboutColors.oliveDark, border: `1px solid ${aboutColors.oliveDark}` }}
         >
           <span>Already have an account?</span>

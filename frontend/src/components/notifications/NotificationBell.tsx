@@ -191,12 +191,10 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
   const getNotificationIcon = (type: Notification["type"]) => {
     switch (type) {
       case "order":
-<<<<<<< HEAD
         return <Package className="w-5 h-5 text-[#8DB368]" />;
       case "message":
         return <MessageCircle className="w-5 h-5 text-[#84B067]" />;
       case "item":
-<<<<<<< HEAD
         return <ShoppingBag className="w-5 h-5 text-[#69773D]" />;
       case "system":
         return <AlertCircle className="w-5 h-5 text-[#780606]" />;
@@ -277,7 +275,6 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-<<<<<<< HEAD
                   className="text-xs text-[#8DB368] hover:text-[#7ba05a] font-medium transition-colors"
                   title="Mark all as read"
                 >
@@ -287,7 +284,6 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
               {notifications.length > 0 && (
                 <button
                   onClick={handleClearAll}
-<<<<<<< HEAD
                   className="text-xs text-[#780606] hover:text-[#780606] font-medium transition-colors"
                   title="Clear all"
                 >
@@ -309,7 +305,6 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-<<<<<<< HEAD
                     className={`p-4 hover:bg-[#F6F2E5] transition-all duration-200 cursor-pointer relative border-l-4 ${
                       !notification.read ? "bg-[#8DB368]/10 border-[#8DB368]" : "bg-[#F6F2E5] border-transparent"
                     }`}
@@ -337,7 +332,6 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
                             {notification.title}
                           </h4>
                           {!notification.read && (
-<<<<<<< HEAD
                             <span className="w-2 h-2 bg-[#8DB368] rounded-full ml-2 mt-1.5 animate-pulse"></span>
                           )}
                         </div>
@@ -360,7 +354,6 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
             <div className="p-3 border-t border-gray-200 text-center">
               <a
                 href="/notifications"
-<<<<<<< HEAD
                 className="text-sm text-[#4A5130] hover:text-[#3a4025] font-medium transition-colors"
               >
                 View all notifications

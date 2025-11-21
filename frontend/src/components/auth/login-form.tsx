@@ -268,7 +268,7 @@ export function LoginForm() {
                   : "border-gray-300 hover:border-gray-400"
               } ${
                 isValidEmail === true
-                  ? "border-green-500"
+                  ? "border-[#69773D]"
                   : isValidEmail === false && email
                   ? "border-red-400"
                   : ""
@@ -279,7 +279,7 @@ export function LoginForm() {
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                 {isValidEmail ? (
                   <svg
-                    className="w-5 h-5 text-green-500 animate-fade-in"
+                    className="w-5 h-5 text-[#69773D] animate-fade-in"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -622,7 +622,7 @@ export function LoginForm() {
 
         <Link
           href="/signup"
-          className="mt-2 w-full bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-green-50 transition-all duration-200 ease-out group"
+          className="mt-2 w-full bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-[#69773D]/10 transition-all duration-200 ease-out group"
           style={{
             color: aboutColors.oliveDark,
             border: `1px solid ${aboutColors.oliveDark}`,
