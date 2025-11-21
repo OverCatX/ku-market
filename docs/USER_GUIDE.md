@@ -308,12 +308,44 @@ After approval:
 
 ⚠️ **Cannot delete or demote yourself!**
 
-### 7. Admin Best Practices
+### 7. View Activity Logs
+
+The Activity Logs page provides a comprehensive audit trail of all actions performed on the platform:
+
+1. Go to `/admin/activity-logs`
+2. View all logged activities with:
+   - Timestamp
+   - User information (name, email, role)
+   - Action type
+   - Entity details (order, item, review, etc.)
+   - IP address and user agent
+   - Additional metadata
+3. Filter by:
+   - Action type (e.g., payment_submitted, order_created, review_deleted)
+   - Entity type (Order, Item, Review, User, etc.)
+   - User ID
+4. Use pagination to navigate through logs
+
+**Important Actions Logged:**
+
+- All payment transactions (especially QR code payments)
+- Order creation, confirmation, rejection, completion
+- Review creation and deletion
+- Item creation, updates, deletion
+- Shop creation, updates, deletion
+- User login/logout
+- Admin actions (approvals, rejections, user management)
+- Report submissions
+
+This comprehensive logging system helps prevent repudiation and provides full auditability for security and compliance purposes.
+
+### 8. Admin Best Practices
 
 - ✅ Verify documents carefully
 - ✅ Check shop information completeness
 - ✅ Provide clear rejection reasons
 - ✅ Monitor suspicious activities
+- ✅ Regularly review activity logs for security
 - ❌ Never share admin credentials
 - ❌ Don't approve incomplete submissions
 
@@ -360,6 +392,66 @@ KU Market implements multiple layers of protection to ensure review authenticity
 - **User Accountability**: Reviews are tied to verified user accounts
 
 These measures ensure that reviews are authentic, helpful, and trustworthy for all users.
+
+## Security & Activity Logging
+
+KU Market implements comprehensive activity logging to ensure security, prevent repudiation, and provide full auditability:
+
+### 🔍 What Gets Logged
+
+**User Actions:**
+
+- Login and logout events
+- Order creation and management
+- Payment submissions (especially QR code payments)
+- Review creation and deletion
+- Report submissions
+
+**Seller Actions:**
+
+- Item creation, updates, and deletion
+- Shop creation, updates, and deletion
+- Order confirmation and rejection
+- Delivery confirmations
+
+**Admin Actions:**
+
+- Verification approvals and rejections
+- Shop approvals and rejections
+- Item approvals, rejections, updates, and deletions
+- Review deletions
+- User management (promote, demote, delete)
+- Meetup preset management
+- Order management (mark paid, mark completed, cancel)
+
+**Payment Transactions:**
+
+- QR code generation for PromptPay payments
+- Payment submission notifications
+- Payment confirmations
+- All payment-related metadata (amount, method, order ID)
+
+### 📊 Log Information
+
+Each log entry includes:
+
+- **Timestamp** - Exact time of the action
+- **User Information** - Name, email, role
+- **Action Type** - Specific action performed
+- **Entity Details** - Related order, item, review, etc.
+- **IP Address** - For security tracking
+- **User Agent** - Browser/device information
+- **Metadata** - Additional context (amounts, statuses, etc.)
+
+### 🔒 Security Benefits
+
+- **Non-Repudiation** - Users cannot deny performing actions
+- **Audit Trail** - Complete history of all platform activities
+- **Fraud Prevention** - Track suspicious patterns
+- **Compliance** - Meet regulatory requirements
+- **Payment Security** - Comprehensive logging of all payment transactions
+
+All logs are accessible to administrators through the Activity Logs page in the admin panel.
 
 ## Need Help?
 

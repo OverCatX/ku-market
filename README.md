@@ -13,12 +13,14 @@ An online marketplace platform for Kasetsart University students to buy and sell
 
 - **Authentication** - Email validation (@ku.th users, @ku.ac.th admins), Google OAuth login, OTP password reset, identity verification
 - **Marketplace** - Browse, search, filter items. Create branded shops with custom categories
-- **Payments** - Cash, PromptPay QR, Bank Transfer with instant QR generation
+- **Payments** - Cash, PromptPay QR, Bank Transfer with instant QR generation and comprehensive payment logging
 - **Delivery** - Pickup at meetup points or home delivery with interactive maps
 - **Communication** - Real-time notifications, live chat between buyers/sellers
-- **Orders** - Two-step confirmation workflow, complete order tracking
-- **Reviews & Ratings** - Product reviews with verified purchase badges, rate limiting, and anti-abuse protection
-- **Admin Panel** - Dashboard, verification management, shop moderation, meetup preset manager
+- **Orders** - Two-step confirmation workflow, complete order tracking with detailed status updates
+- **Reviews & Ratings** - Product reviews with verified purchase badges, rate limiting (5 reviews/hour), and anti-abuse protection
+- **Admin Panel** - Dashboard, verification management, shop moderation, meetup preset manager, comprehensive activity logging
+- **Activity Logging** - Complete audit trail of all user, seller, and admin actions with IP tracking and timestamps for security and non-repudiation
+- **Security & Compliance** - Rate limiting, identity verification, payment transaction logging, and comprehensive activity monitoring
 
 ## Quick Start
 
