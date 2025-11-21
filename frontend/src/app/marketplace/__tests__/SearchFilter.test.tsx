@@ -114,13 +114,16 @@ Object.defineProperty(window, "scrollTo", {
 
 // Helper function to wait for categories to load
 const waitForCategories = async () => {
-  await waitFor(() => {
-    const categorySelect = screen.getAllByRole("combobox")[1];
-    const electronicsOption = Array.from(categorySelect.querySelectorAll("option")).find(
-      (opt) => opt.getAttribute("value") === "electronics"
-    );
-    expect(electronicsOption).toBeInTheDocument();
-  }, { timeout: 3000 });
+  await waitFor(
+    () => {
+      const categorySelect = screen.getAllByRole("combobox")[1];
+      const electronicsOption = Array.from(
+        categorySelect.querySelectorAll("option")
+      ).find((opt) => opt.getAttribute("value") === "electronics");
+      expect(electronicsOption).toBeInTheDocument();
+    },
+    { timeout: 3000 }
+  );
 };
 
 describe("MarketPage Tests", () => {
@@ -207,7 +210,6 @@ describe("MarketPage Tests", () => {
       );
     });
 
-
     it("should not show pagination on empty results", async () => {
       mockListItems.mockResolvedValue(createMockResponse([]));
       render(<MarketPage />);
@@ -236,6 +238,5 @@ describe("MarketPage Tests", () => {
         );
       });
     });
-
   });
 });
