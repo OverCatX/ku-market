@@ -14,7 +14,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --runInBand",
     "test:integration": "jest --testPathPatterns=integration --runInBand",
-    "test:unit": "jest --testPathPattern=unit --runInBand"
+    "test:unit": "jest --testPathPattern=unit --runInBand",
+    "bootstrap-admin": "ts-node src/scripts/bootstrap-admin.ts"
   },
   "keywords": [],
   "author": "",
