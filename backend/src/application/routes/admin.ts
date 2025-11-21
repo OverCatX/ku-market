@@ -56,5 +56,9 @@ router.post("/meetup-presets", authenticate, adminMiddleware, adminController.cr
 router.patch("/meetup-presets/:id", authenticate, adminMiddleware, adminController.updateMeetupPreset);
 router.delete("/meetup-presets/:id", authenticate, adminMiddleware, adminController.deleteMeetupPreset);
 
+// Activity logs
+router.get("/activity-logs", authenticate, adminMiddleware, adminController.getActivityLogs);
+router.get("/activity-logs/stats", authenticate, adminMiddleware, adminController.getActivityLogStats);
+
 export default router;
 

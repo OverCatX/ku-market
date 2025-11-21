@@ -4,6 +4,7 @@ import Report, { ReportStatus } from "../../data/models/Report";
 import Item from "../../data/models/Item";
 import { AuthenticatedRequest } from "../middlewares/authentication";
 import { uploadToCloudinary } from "../../lib/cloudinary";
+import { logActivity } from "../../lib/activityLogger";
 
 const ALLOWED_STATUSES: ReportStatus[] = [
   "pending",
@@ -68,6 +69,20 @@ export default class ReportController {
       });
 
       await report.save();
+
+      // Log report submission
+      await logActivity({
+        req,
+        activityType: "report_submitted",
+        entityType: "system",
+        entityId: String(report._id),
+        description: `User submitted general report: ${category}`,
+        metadata: {
+          reportId: String(report._id),
+          reportType: "general",
+          category: category.trim(),
+        },
+      });
 
       return res.status(201).json({
         success: true,
@@ -164,6 +179,22 @@ export default class ReportController {
       });
 
       await report.save();
+
+      // Log item report submission
+      await logActivity({
+        req,
+        activityType: "report_item_submitted",
+        entityType: "system",
+        entityId: String(report._id),
+        description: `User reported item "${item.title}": ${reasonRaw.trim()}`,
+        metadata: {
+          reportId: String(report._id),
+          reportType: "item",
+          itemId: String(item._id),
+          itemTitle: item.title,
+          reason: reasonRaw.trim(),
+        },
+      });
 
       return res.status(201).json({
         success: true,

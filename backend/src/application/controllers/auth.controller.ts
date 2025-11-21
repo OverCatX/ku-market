@@ -3,6 +3,8 @@ import User from "../../data/models/User";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendPasswordResetOtp } from "../../lib/email";
+import { logActivity } from "../../lib/activityLogger";
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 interface GoogleProfile {
     kuEmail?: string;
@@ -76,6 +78,19 @@ export default class AuthController {
                 role: user.role,
                 isVerified: user.isVerified || false
             };
+
+            // Log user login
+            await logActivity({
+                req,
+                activityType: "user_login",
+                entityType: "user",
+                entityId: String(user._id),
+                description: `User logged in via email/password`,
+                metadata: {
+                    loginMethod: "email_password",
+                    userEmail: user.kuEmail,
+                },
+            });
             
             return res.json({
                 token,
@@ -142,6 +157,19 @@ export default class AuthController {
                 });
             }
 
+            // Log Google OAuth login
+            await logActivity({
+                req,
+                activityType: "user_login",
+                entityType: "user",
+                entityId: String(profile._id),
+                description: `User logged in via Google OAuth`,
+                metadata: {
+                    loginMethod: "google_oauth",
+                    userEmail: profile.kuEmail,
+                },
+            });
+
             // Store token and user data in httpOnly cookie temporarily
             // Frontend callback page will fetch from a special endpoint that reads the cookie
             res.cookie("google_oauth_token", token, {
@@ -171,6 +199,43 @@ export default class AuthController {
             return res.redirect(`${frontendUrl}/auth/google/callback?error=${encodeURIComponent(message)}`);
         }
     }
+
+    userLogout = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const userId = (req as AuthenticatedRequest).user?.id;
+            
+            if (!userId) {
+                return res.status(401).json({ success: false, error: "Unauthorized" });
+            }
+
+            // Get user info for logging
+            const user = await User.findById(userId).select("kuEmail name role").lean();
+            
+            if (user) {
+                // Log user logout
+                await logActivity({
+                    req,
+                    activityType: "user_logout",
+                    entityType: "user",
+                    entityId: String(userId),
+                    description: `User logged out`,
+                    metadata: {
+                        userEmail: user.kuEmail,
+                        userName: user.name,
+                        userRole: user.role,
+                    },
+                });
+            }
+
+            return res.json({
+                success: true,
+                message: "Logged out successfully",
+            });
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ success: false, error: message });
+        }
+    };
 
     getGoogleOAuthData = async (req: Request, res: Response): Promise<Response> => {
         try {

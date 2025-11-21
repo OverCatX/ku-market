@@ -6,6 +6,7 @@ import User from "../../data/models/User";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../middlewares/authentication";
 import { createNotification } from "../../lib/notifications";
+import { logActivity } from "../../lib/activityLogger";
 
 export default class SellerController {
   /**
@@ -272,6 +273,23 @@ export default class SellerController {
       }
       await order.save();
 
+      // Log order confirmation
+      const { logActivity } = await import("../../lib/activityLogger");
+      await logActivity({
+        req,
+        activityType: "order_confirmed",
+        entityType: "order",
+        entityId: String(order._id),
+        description: `Seller confirmed order ${order._id} - Payment method: ${order.paymentMethod === "promptpay" ? "PromptPay QR" : order.paymentMethod === "transfer" ? "Bank Transfer" : "Cash"}`,
+        metadata: {
+          orderId: String(order._id),
+          orderTotal: order.totalPrice,
+          paymentMethod: order.paymentMethod,
+          paymentStatus: order.paymentStatus,
+          requiresPayment: order.paymentMethod === "promptpay" || order.paymentMethod === "transfer",
+        },
+      });
+
       // Notify buyer that order is confirmed
       await createNotification(
         order.buyer,
@@ -344,6 +362,21 @@ export default class SellerController {
         order.rejectionReason = reason;
       }
       await order.save();
+
+      // Log order rejection
+      const { logActivity: logRejection } = await import("../../lib/activityLogger");
+      await logRejection({
+        req,
+        activityType: "order_rejected",
+        entityType: "order",
+        entityId: String(order._id),
+        description: `Seller rejected order ${order._id}${reason ? `: ${reason}` : ""}`,
+        metadata: {
+          orderId: String(order._id),
+          orderTotal: order.totalPrice,
+          rejectionReason: reason || "No reason provided",
+        },
+      });
 
       // Notify buyer that order is rejected
       await createNotification(
@@ -445,8 +478,24 @@ export default class SellerController {
         return res.status(404).json({ error: "Item not found" });
       }
 
+      const previousStatus = item.status;
       item.status = status as typeof allowedStatuses[number];
       await item.save();
+
+      // Log seller action
+      await logActivity({
+        req,
+        activityType: "item_updated",
+        entityType: "item",
+        entityId: itemId,
+        description: `Seller updated item status: "${item.title}" from ${previousStatus} to ${item.status}`,
+        metadata: {
+          itemId: itemId,
+          itemTitle: item.title,
+          previousStatus: previousStatus,
+          newStatus: item.status,
+        },
+      });
 
       return res.json({
         message: "Item status updated successfully",
@@ -518,10 +567,37 @@ export default class SellerController {
       order.sellerDelivered = true;
       order.sellerDeliveredAt = new Date();
 
+      // Log seller delivered
+      const { logActivity } = await import("../../lib/activityLogger");
+      await logActivity({
+        req,
+        activityType: "seller_delivered",
+        entityType: "order",
+        entityId: String(order._id),
+        description: `Seller confirmed delivering order ${order._id}`,
+        metadata: {
+          orderId: String(order._id),
+          orderTotal: order.totalPrice,
+        },
+      });
+
       // If both buyer and seller confirmed, complete the order
       if (order.buyerReceived && order.sellerDelivered) {
         order.status = "completed";
         order.completedAt = new Date();
+
+        // Log order completion
+        await logActivity({
+          req,
+          activityType: "order_completed",
+          entityType: "order",
+          entityId: String(order._id),
+          description: `Order ${order._id} completed`,
+          metadata: {
+            orderId: String(order._id),
+            orderTotal: order.totalPrice,
+          },
+        });
 
         // Notify both parties
         await createNotification(
