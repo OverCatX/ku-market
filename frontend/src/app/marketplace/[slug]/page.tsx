@@ -340,6 +340,11 @@ export default function Page() {
         toast.error("Please login to submit a review");
       } else if (errorMessage.includes("already reviewed")) {
         toast.error("You have already reviewed this item");
+      } else if (errorMessage.includes("Too many") || errorMessage.includes("rate limit") || errorMessage.includes("per hour")) {
+        toast.error(errorMessage, {
+          duration: 6000,
+          icon: "⏱️",
+        });
       } else {
         toast.error(errorMessage);
       }

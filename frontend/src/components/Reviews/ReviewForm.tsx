@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Image as ImageIcon, Trash2 } from "lucide-react";
+import { X, Image as ImageIcon, Trash2, Shield, Info } from "lucide-react";
 import StarRating from "./StarRating";
 import toast from "react-hot-toast";
 import {
@@ -199,10 +199,10 @@ export default function ReviewForm({
     if (imagePreviews[index]) {
       URL.revokeObjectURL(imagePreviews[index]);
     }
-    
+
     const newImages = images.filter((_, i) => i !== index);
     const newPreviews = imagePreviews.filter((_, i) => i !== index);
-    
+
     setImages(newImages);
     setImagePreviews(newPreviews);
   };
@@ -264,6 +264,23 @@ export default function ReviewForm({
           >
             Verify Identity Now →
           </a>
+        </div>
+      )}
+
+      {/* Security info - shown when authenticated and verified */}
+      {isAuthenticated && isVerified && (
+        <div className="mb-4 p-2.5 sm:p-3 bg-green-50 border border-[#84B067]/30 rounded-lg">
+          <div className="flex items-start gap-2">
+            <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-[#69773D] mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs sm:text-sm text-[#69773D]">
+                <span className="font-medium">Protected Reviews:</span> All
+                reviews are verified and protected. You can submit up to 5
+                reviews per hour. Reviews from verified purchases are marked
+                with a badge.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -373,16 +390,17 @@ export default function ReviewForm({
           <span className="text-sm">Add Photos</span>
         </label>
         {images.length > 0 && (
-          <p className="text-xs text-gray-500 mt-1">
-            {images.length}/5 images
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{images.length}/5 images</p>
         )}
-        
+
         {/* Image Previews */}
         {imagePreviews.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
             {imagePreviews.map((preview, index) => (
-              <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+              <div
+                key={index}
+                className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200"
+              >
                 <Image
                   src={preview}
                   alt={`Preview ${index + 1}`}
