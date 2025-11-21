@@ -3,12 +3,24 @@ import ReviewController from "../controllers/review.controller";
 import { authenticate } from "../middlewares/authentication";
 import { optionalAuthenticate } from "../middlewares/optionalAuth";
 import { upload } from "../../lib/upload";
+import {
+  createReviewLimiter,
+  helpfulVoteLimiter,
+  deleteReviewLimiter,
+} from "../middlewares/rateLimit";
 
 const router = express.Router();
 const reviewController = new ReviewController();
 
 // POST /api/reviews - Create a review (authenticated, with optional image uploads)
-router.post("/", authenticate, upload.array("images", 5), reviewController.createReview);
+// Rate limit: 5 reviews per hour per user
+router.post(
+  "/",
+  authenticate,
+  createReviewLimiter,
+  upload.array("images", 5),
+  reviewController.createReview
+);
 
 // GET /api/reviews/item/:itemId - Get all reviews for an item (public, but checks auth for hasVoted)
 router.get("/item/:itemId", optionalAuthenticate, reviewController.getItemReviews);
@@ -21,11 +33,13 @@ router.post("/summaries/batch", reviewController.getBatchReviewSummaries);
 
 // POST /api/reviews/:id/helpful - Mark review as helpful (authenticated)
 // DELETE /api/reviews/:id/helpful - Unmark review as helpful (authenticated)
-router.post("/:id/helpful", authenticate, reviewController.markHelpful);
-router.delete("/:id/helpful", authenticate, reviewController.markHelpful);
+// Rate limit: 20 helpful votes per hour per user
+router.post("/:id/helpful", authenticate, helpfulVoteLimiter, reviewController.markHelpful);
+router.delete("/:id/helpful", authenticate, helpfulVoteLimiter, reviewController.markHelpful);
 
 // DELETE /api/reviews/:id - Delete own review (authenticated)
-router.delete("/:id", authenticate, reviewController.deleteReview);
+// Rate limit: 10 deletions per hour per user
+router.delete("/:id", authenticate, deleteReviewLimiter, reviewController.deleteReview);
 
 export default router;
 

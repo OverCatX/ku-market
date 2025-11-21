@@ -77,6 +77,10 @@ export async function createReview(
       // User not verified
       throw new Error("You must verify your identity before submitting a review. Please complete identity verification first.");
     }
+    if (response.status === 429) {
+      // Rate limit exceeded
+      throw new Error(errorMessage || "Too many review submissions. Please try again later. You can submit up to 5 reviews per hour.");
+    }
     // Only show "already reviewed" error if user is authenticated
     // (if not authenticated, 401 would have been caught above)
     if (response.status === 400 && errorMessage.includes("already reviewed")) {
@@ -219,6 +223,10 @@ export async function toggleHelpful(reviewId: string, currentHasVoted: boolean):
       clearAuthTokens();
       throw new Error("Please login to mark review as helpful");
     }
+    if (response.status === 429) {
+      // Rate limit exceeded
+      throw new Error(errorMessage || "Too many helpful votes. Please try again later. You can vote up to 20 times per hour.");
+    }
     
     throw new Error(errorMessage);
   }
@@ -272,6 +280,10 @@ export async function deleteReview(reviewId: string): Promise<void> {
     }
     if (response.status === 403) {
       throw new Error("You can only delete your own reviews");
+    }
+    if (response.status === 429) {
+      // Rate limit exceeded
+      throw new Error(errorMessage || "Too many review deletions. Please try again later. You can delete up to 10 reviews per hour.");
     }
     
     throw new Error(errorMessage);
