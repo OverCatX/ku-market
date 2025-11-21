@@ -253,7 +253,7 @@ export default class AdminController {
         "system",
         "Shop Approved",
         "Your shop has been approved! You can now start selling items.",
-        "/shop"
+        "/seller/dashboard"
       );
 
       return res.json({
@@ -299,7 +299,7 @@ export default class AdminController {
         "system",
         "Shop Rejected",
         `Your shop request was rejected. Reason: ${reason}`,
-        "/shop"
+        "/seller/dashboard"
       );
 
       return res.json({
