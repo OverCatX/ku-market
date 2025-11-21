@@ -45,29 +45,36 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
       const newUnreadCount = data.notifications.filter(n => !n.read).length;
       
       // Check if there are new unread notifications
-      if (showNotification && newUnreadCount > previousUnreadCount && previousUnreadCount > 0) {
-        // Show browser notification if permission granted
-        if ("Notification" in window && Notification.permission === "granted") {
-          const newNotifications = data.notifications.filter(
-            n => !n.read && !notifications.find(existing => existing.id === n.id)
-          );
-          if (newNotifications.length > 0) {
-            new Notification(newNotifications[0].title, {
-              body: newNotifications[0].message,
-              icon: "/favicon.ico",
-              tag: newNotifications[0].id,
-            });
+      if (showNotification) {
+        setNotifications((currentNotifications) => {
+          const currentUnreadCount = currentNotifications.filter(n => !n.read).length;
+          if (newUnreadCount > currentUnreadCount && currentUnreadCount > 0) {
+            // Show browser notification if permission granted
+            if ("Notification" in window && Notification.permission === "granted") {
+              const newNotifications = data.notifications.filter(
+                n => !n.read && !currentNotifications.find(existing => existing.id === n.id)
+              );
+              if (newNotifications.length > 0) {
+                new Notification(newNotifications[0].title, {
+                  body: newNotifications[0].message,
+                  icon: "/favicon.ico",
+                  tag: newNotifications[0].id,
+                });
+              }
+            }
           }
-        }
+          return data.notifications;
+        });
+        setPreviousUnreadCount(newUnreadCount);
+      } else {
+        setNotifications(data.notifications);
+        setPreviousUnreadCount(newUnreadCount);
       }
-      
-      setNotifications(data.notifications);
-      setPreviousUnreadCount(newUnreadCount);
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
       // Keep existing notifications on error
     }
-  }, [previousUnreadCount, notifications]);
+  }, []);
 
   // Request notification permission on mount
   useEffect(() => {
@@ -180,20 +187,28 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
   };
 
   const handleDeleteNotification = async (notificationId: string) => {
+    // Update UI optimistically (immediately)
+    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+    // Call API in background
     try {
       await deleteNotification(notificationId);
-      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
     } catch (err) {
       console.error("Failed to delete notification:", err);
+      // On error, we could optionally refetch to restore state
+      // But for now, we'll leave it deleted
     }
   };
 
   const handleClearAll = async () => {
     try {
-      await clearAllNotifications();
+      // Update UI optimistically (immediately)
       setNotifications([]);
+      // Call API in background
+      await clearAllNotifications();
     } catch (err) {
       console.error("Failed to clear all notifications:", err);
+      // On error, we could optionally refetch to restore state
+      // But for now, we'll leave it cleared
     }
   };
 
