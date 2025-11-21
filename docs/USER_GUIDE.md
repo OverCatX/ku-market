@@ -88,17 +88,42 @@ How to use KU Market platform.
 5. Confirm order
 6. Wait for seller confirmation
 
-### 6. Order Management
+### 6. Track Orders
 
-1. Go to `/orders` to view your orders
-2. For **PromptPay/Transfer** orders:
-   - After seller confirms, click "Show QR Code" to pay
-   - Submit payment notification
-3. For **Pickup** orders:
-   - After payment (if applicable), click "I received the product"
-   - Wait for seller to confirm delivery
-   - Order completes when both parties confirm
-4. View order details and pickup location on map
+Visit `/orders` to view and track your orders.
+
+#### Order Status Flow
+
+- **Pending** - Waiting for seller to confirm your order
+- **Confirmed** - Seller approved! For PromptPay/Transfer: Click "Show QR Code" to pay
+- **Completed** - Order finished successfully
+
+#### Pickup Orders
+
+For pickup orders, you'll meet the seller at a designated **meetup point**. The location name, address, preferred time, and coordinates are shown in your order details. You can view the map and open the location in Google Maps directly from the order page.
+
+**Cash Payment Flow:**
+
+1. After seller **confirms** your order, check the order details for the **meetup point** location, address, and **preferred time**.
+2. Go to the **meetup point** at the scheduled time. You can click "Show Map" to view the location or "Open in Google Maps" for directions.
+3. Meet the seller and **pay in cash** when you receive the product. Verify the items match your order.
+4. Click the **"I received the product"** button in your order details to confirm receipt.
+5. Wait for the seller to click **"Mark as delivered"**. The order will be marked as **completed** when both parties have confirmed.
+
+**PromptPay/Transfer Payment Flow:**
+
+1. After seller **confirms** your order, click the **"Show QR Code"** button to view the payment QR code.
+2. Scan the QR code with your banking app and **complete the payment**. Then click "Make Payment" to submit the payment notification.
+3. Check your order details for the **meetup point** location, address, and **preferred time**. Go to the location at the scheduled time.
+4. You can use "Show Map" to view the location or **"Open in Google Maps"** for navigation directions.
+5. Meet the seller and **receive your product**. Verify the items match your order.
+6. Click the **"I received the product"** button to confirm receipt.
+7. Wait for the seller to click **"Mark as delivered"**. The order will be marked as **completed** when both parties have confirmed.
+
+#### Delivery Orders
+
+1. After payment, wait for the seller to **ship your order**. You'll receive updates on the shipping status.
+2. The order will be marked as **completed** automatically after the delivery is confirmed. No additional action is required from you.
 
 ### 7. Manage Profile
 
@@ -241,8 +266,18 @@ After approval:
 
 ---
 
+## Interactive User Guide
+
+For a visual, interactive guide with step-by-step instructions, visit the **User Guide** page in the application:
+
+- Navigate to `/guide` from the Marketplace, Seller Dashboard, or Admin Dashboard
+- The guide provides role-specific instructions (Buyer, Seller, Admin)
+- Includes detailed order tracking workflows with visual status indicators
+- Interactive elements and animations for better understanding
+
 ## Need Help?
 
 - Check [Installation Guide](INSTALLATION.md) for technical issues
+- Visit the interactive [User Guide](/guide) in the application
 - Visit [GitHub Issues](https://github.com/OverCatX/ku-market/issues)
 - Contact support team

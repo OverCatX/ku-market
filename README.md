@@ -61,6 +61,8 @@ npm install && npm run dev
 - [API Documentation](docs/API.md) - API reference
 - [Project Wiki](https://github.com/OverCatX/ku-market/wiki) - Project overview
 
+**Interactive Guide:** Visit `/guide` in the application for a visual, step-by-step guide with role-specific instructions (Buyer, Seller, Admin) and detailed order tracking workflows.
+
 ## Tech Stack
 
 **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS  
