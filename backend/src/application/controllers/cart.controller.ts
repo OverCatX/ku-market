@@ -97,6 +97,8 @@ export default class CartController {
           .json({ success: false, error: "You cannot purchase your own item" });
       }
 
+      const MAX_QUANTITY_PER_ITEM = 10;
+
       let cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
 
       if (!cart) {
@@ -107,6 +109,13 @@ export default class CartController {
       } else {
         const existingIndex = cart.items.findIndex(i => i.itemId.toString() === itemId);
         if (existingIndex > -1) {
+          // Check if adding one more would exceed max quantity
+          if (cart.items[existingIndex].quantity >= MAX_QUANTITY_PER_ITEM) {
+            return res.status(400).json({ 
+              success: false, 
+              error: `Maximum quantity per item is ${MAX_QUANTITY_PER_ITEM}. You already have ${cart.items[existingIndex].quantity} in your cart.` 
+            });
+          }
           cart.items[existingIndex].quantity += 1;
         } else {
           cart.items.push({ itemId: new mongoose.Types.ObjectId(itemId), quantity: 1, addedAt: new Date() });
@@ -130,6 +139,8 @@ export default class CartController {
       }
       const { itemId, quantity } = req.body;
 
+      const MAX_QUANTITY_PER_ITEM = 10;
+
       const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
       if (!cart) {
         return res.status(404).json({ success: false, error: "Cart not found" });
@@ -138,6 +149,14 @@ export default class CartController {
       if (quantity === 0) {
         cart.items = cart.items.filter(i => i.itemId.toString() !== itemId);
       } else {
+        // Validate maximum quantity
+        if (quantity > MAX_QUANTITY_PER_ITEM) {
+          return res.status(400).json({ 
+            success: false, 
+            error: `Maximum quantity per item is ${MAX_QUANTITY_PER_ITEM}.` 
+          });
+        }
+
         const index = cart.items.findIndex(i => i.itemId.toString() === itemId);
         if (index > -1) {
           cart.items[index].quantity = quantity;

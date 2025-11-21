@@ -157,9 +157,18 @@ export default function Page() {
   }, [slug]);
 
   const handleAddToCart = async () => {
+    const MAX_QUANTITY_PER_ITEM = 10;
+    
     if (!isMounted || !item) return;
     if (isOwnItem) {
       toast.error("You cannot add your own item");
+      return;
+    }
+
+    // Validate quantity before adding
+    if (qty > MAX_QUANTITY_PER_ITEM) {
+      toast.error(`Maximum quantity per item is ${MAX_QUANTITY_PER_ITEM}.`);
+      setQty(MAX_QUANTITY_PER_ITEM);
       return;
     }
 
@@ -185,6 +194,11 @@ export default function Page() {
       const message = error instanceof Error ? error.message : "";
       if (message.toLowerCase().includes("own item")) {
         toast.error("You cannot add your own item");
+        return;
+      }
+      if (message.toLowerCase().includes("maximum quantity")) {
+        toast.error(message);
+        setQty(MAX_QUANTITY_PER_ITEM);
         return;
       }
       console.error("Add to cart error:", error);
@@ -614,22 +628,28 @@ export default function Page() {
                   >
                     <button
                       type="button"
-                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
+                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={() => setQty((q) => Math.max(1, q - 1))}
+                      disabled={qty <= 1}
                       aria-label="Decrease quantity"
                     >
                       —
                     </button>
 
-                    <div className="min-w-[3.5rem] px-4 py-2 flex items-center justify-center font-semibold text-gray-800 bg-white">
-                      {qty}
+                    <div className="min-w-[3.5rem] px-4 py-2 flex flex-col items-center justify-center font-semibold text-gray-800 bg-white">
+                      <span>{qty}</span>
+                      {qty >= 10 && (
+                        <span className="text-xs text-gray-500 font-normal">(max)</span>
+                      )}
                     </div>
 
                     <button
                       type="button"
-                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition"
-                      onClick={() => setQty((q) => q + 1)}
+                      className="px-4 py-2 text-gray-600 bg-white hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => setQty((q) => Math.min(10, q + 1))}
+                      disabled={qty >= 10}
                       aria-label="Increase quantity"
+                      title={qty >= 10 ? "Maximum quantity is 10" : "Increase quantity"}
                     >
                       +
                     </button>
