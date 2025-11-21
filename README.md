@@ -62,6 +62,7 @@ npm install && npm run dev
 - [Installation Guide](docs/INSTALLATION.md) - Setup instructions
 - [User Guide](docs/USER_GUIDE.md) - How to use the platform
 - [API Documentation](docs/API.md) - API reference
+- [Code Guidelines](docs/CODE_GUIDELINES.md) - Performance optimization techniques and coding standards
 - [Project Wiki](https://github.com/OverCatX/ku-market/wiki) - Project overview
 
 **Interactive Guide:** Visit `/guide` in the application for a visual, step-by-step guide with role-specific instructions (Buyer, Seller, Admin) and detailed order tracking workflows.
