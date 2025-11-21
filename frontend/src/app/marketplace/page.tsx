@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import ItemCard from "@/components/Marketplace/ItemCard";
 import Link from "next/link";
 import Pagination from "@/components/Marketplace/Pagination";
@@ -10,8 +10,14 @@ import debounce from "lodash.debounce";
 import { listItems, Item, ListItemsResponse } from "../../config/items";
 import { getCategories, Category } from "../../config/categories";
 import { getBatchReviewSummaries } from "../../config/reviews";
-import FooterSection from "@/components/home/FooterSection";
+import dynamic from "next/dynamic";
 import { HelpCircle } from "lucide-react";
+
+// Lazy load FooterSection to reduce initial bundle
+const FooterSection = dynamic(() => import("@/components/home/FooterSection"), {
+  ssr: false,
+  loading: () => <div className="h-32" />,
+});
 
 const LIGHT = "#f9f9f7";
 const GREEN = "#69773D";
@@ -33,6 +39,7 @@ export default function MarketPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const prefersReducedMotion = useReducedMotion();
 
   // Initialize state from URL params for better UX and shareable links
   const [items, setItems] = useState<Item[] | null>(null);
@@ -526,12 +533,12 @@ export default function MarketPage() {
               {displayItems.map((item) => (
                 <motion.div
                   key={item._id}
-                  layout
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 12 }}
-                  whileHover={{ y: -4, scale: 1.01 }}
-                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  layout={!prefersReducedMotion}
+                  initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+                  animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+                  whileHover={prefersReducedMotion ? {} : { y: -4, scale: 1.01 }}
+                  transition={prefersReducedMotion ? {} : { duration: 0.15, ease: "easeOut" }}
                   className="h-full transition-shadow"
                 >
                   <Link

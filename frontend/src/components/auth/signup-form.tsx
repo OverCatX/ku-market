@@ -5,6 +5,7 @@ import { useState, useMemo } from "react";
 import { signup } from "@/config/auth";
 import toast from "react-hot-toast";
 import { aboutColors } from "@/components/aboutus/SectionColors";
+import PrivacyPolicyModal from "@/components/modals/PrivacyPolicyModal";
 
 
 type FormDataType = {
@@ -85,6 +86,7 @@ const calculatePasswordStrength = (password: string): PasswordStrength => {
 };
 
 export function SignUpForm() {
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [formData, setFormData] = useState<FormDataType>({
     name: "",
     kuEmail: "",
@@ -525,10 +527,19 @@ export function SignUpForm() {
 
         <div className="text-center text-sm text-gray-500 animate-fade-in">
           When you click Submit, you agree to our{" "}
-          <Link href="/privacy" className="text-blue-500 hover:text-blue-600 hover:underline transition-colors duration-200 font-medium">
+          <button
+            type="button"
+            onClick={() => setIsPrivacyModalOpen(true)}
+            className="text-blue-500 hover:text-blue-600 hover:underline transition-colors duration-200 font-medium"
+          >
             Privacy Terms
-          </Link>
+          </button>
         </div>
+
+        <PrivacyPolicyModal
+          isOpen={isPrivacyModalOpen}
+          onClose={() => setIsPrivacyModalOpen(false)}
+        />
 
         <Link
           href="/login"
