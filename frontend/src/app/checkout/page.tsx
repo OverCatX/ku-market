@@ -1310,9 +1310,15 @@ export default function CheckoutPage() {
                         <div className="text-sm text-blue-800">
                           <p className="font-medium mb-1">PromptPay Payment:</p>
                           <ul className="list-disc list-inside space-y-1 text-xs">
-                            <li>QR code will be available after seller confirms your order</li>
+                            <li>
+                              QR code will be available after seller confirms
+                              your order
+                            </li>
                             <li>You can make payment from the Orders page</li>
-                            <li>Please transfer within 24 hours after order confirmation</li>
+                            <li>
+                              Please transfer within 24 hours after order
+                              confirmation
+                            </li>
                           </ul>
                         </div>
                       </div>
