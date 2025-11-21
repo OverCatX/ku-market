@@ -36,7 +36,7 @@ interface OrderItem {
 
 interface OrderData {
   id: string;
-  seller: { id: string; name?: string };
+  seller: { id: string; name?: string; contact?: string };
   items: OrderItem[];
   totalPrice: number;
   status:
@@ -65,6 +65,14 @@ interface OrderData {
     preferredTime?: string;
   };
   createdAt?: string;
+}
+
+interface StatusCounts {
+  pending_seller_confirmation: number;
+  confirmed: number;
+  completed: number;
+  rejected: number;
+  cancelled: number;
 }
 
 const normalizePaymentMethod = (
@@ -197,6 +205,13 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [statusCounts, setStatusCounts] = useState<StatusCounts>({
+    pending_seller_confirmation: 0,
+    confirmed: 0,
+    completed: 0,
+    rejected: 0,
+    cancelled: 0,
+  });
   const itemsPerPage = 10;
 
   const loadOrders = useCallback(async (): Promise<void> => {
@@ -225,6 +240,10 @@ export default function OrdersPage() {
       setOrders(data.orders || []);
       setTotalPages(data.pagination?.totalPages || 1);
       setTotalItems(data.pagination?.total || 0);
+      // Use status counts from backend if available, otherwise fallback to calculating from current page
+      if (data.statusCounts) {
+        setStatusCounts(data.statusCounts);
+      }
     } catch (error) {
       console.error("Failed to load orders:", error);
       toast.error("Failed to load orders");
@@ -370,27 +389,8 @@ export default function OrdersPage() {
     }
   };
 
-  // Orders are already filtered and sorted by backend
-  // No need for client-side filtering/sorting
-  // Status counts will be calculated from current page orders (can be improved with separate count endpoint)
-  const currentStatusCounts = useMemo(() => {
-    const counts: Record<OrderData["status"], number> = {
-      pending_seller_confirmation: 0,
-      confirmed: 0,
-      completed: 0,
-      rejected: 0,
-      cancelled: 0,
-    };
-
-    orders.forEach((order) => {
-      const normalized = normalizeStatus(order.status);
-      if (normalized) {
-        counts[normalized] += 1;
-      }
-    });
-
-    return counts;
-  }, [orders]);
+  // Status counts are now provided by backend
+  // Use backend status counts for accurate totals across all pages
 
   const formatDate = (date?: string) => {
     if (!date) return "Unknown";
@@ -406,30 +406,30 @@ export default function OrdersPage() {
       {
         value: "pending_seller_confirmation" as const,
         label: "Pending",
-        count: currentStatusCounts.pending_seller_confirmation,
+        count: statusCounts.pending_seller_confirmation,
       },
       {
         value: "confirmed" as const,
         label: "Confirmed",
-        count: currentStatusCounts.confirmed,
+        count: statusCounts.confirmed,
       },
       {
         value: "completed" as const,
         label: "Completed",
-        count: currentStatusCounts.completed,
+        count: statusCounts.completed,
       },
       {
         value: "rejected" as const,
         label: "Rejected",
-        count: currentStatusCounts.rejected,
+        count: statusCounts.rejected,
       },
       {
         value: "cancelled" as const,
         label: "Cancelled",
-        count: currentStatusCounts.cancelled,
+        count: statusCounts.cancelled,
       },
     ],
-    [totalItems, currentStatusCounts]
+    [totalItems, statusCounts]
   );
 
   const statusBadge = (status: OrderData["status"]) => {
@@ -577,19 +577,19 @@ export default function OrdersPage() {
               },
               {
                 label: "Pending",
-                value: currentStatusCounts.pending_seller_confirmation,
+                value: statusCounts.pending_seller_confirmation,
                 color: "text-yellow-600",
                 Icon: Clock,
               },
               {
                 label: "Confirmed",
-                value: currentStatusCounts.confirmed,
+                value: statusCounts.confirmed,
                 color: "text-blue-600",
                 Icon: Package,
               },
               {
                 label: "Completed",
-                value: currentStatusCounts.completed,
+                value: statusCounts.completed,
                 color: "text-green-600",
                 Icon: CheckCircle,
               },

@@ -22,6 +22,7 @@ interface PopulatedItem {
 interface PopulatedSeller {
   _id: mongoose.Types.ObjectId;
   name?: string;
+  contact?: string;
 }
 
 interface PopulatedBuyer {
@@ -351,15 +352,29 @@ export default class OrderController {
       const limitNum = Math.min(parseInt(limit || "10", 10), 50); // Max 50 per page
       const skip = (pageNum - 1) * limitNum;
 
-      // Get total count and paginated orders in parallel
-      const [total, orders] = await Promise.all([
+      // Get total count, status counts, and paginated orders in parallel
+      const [total, orders, statusCounts] = await Promise.all([
         Order.countDocuments(filter),
         Order.find(filter)
-          .populate("seller", "name")
+          .populate("seller", "name contact")
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limitNum)
           .lean(),
+        // Get status counts for all buyer orders (not filtered by status)
+        Promise.all([
+          Order.countDocuments({ buyer: new mongoose.Types.ObjectId(userId), status: "pending_seller_confirmation" }),
+          Order.countDocuments({ buyer: new mongoose.Types.ObjectId(userId), status: "confirmed" }),
+          Order.countDocuments({ buyer: new mongoose.Types.ObjectId(userId), status: "completed" }),
+          Order.countDocuments({ buyer: new mongoose.Types.ObjectId(userId), status: "rejected" }),
+          Order.countDocuments({ buyer: new mongoose.Types.ObjectId(userId), status: "cancelled" }),
+        ]).then(([pending, confirmed, completed, rejected, cancelled]) => ({
+          pending_seller_confirmation: pending,
+          confirmed,
+          completed,
+          rejected,
+          cancelled,
+        })),
       ]);
 
       return res.json({
@@ -369,6 +384,7 @@ export default class OrderController {
           seller: {
             id: (order.seller as unknown as PopulatedSeller)._id,
             name: (order.seller as unknown as PopulatedSeller).name,
+            contact: (order.seller as unknown as PopulatedSeller).contact,
           },
           items: order.items,
           totalPrice: order.totalPrice,
@@ -396,6 +412,7 @@ export default class OrderController {
           total,
           totalPages: Math.ceil(total / limitNum),
         },
+        statusCounts,
       });
     } catch (error) {
       console.error("Get buyer orders error:", error);
@@ -424,7 +441,7 @@ export default class OrderController {
 
       const order = await Order.findById(id)
         .populate("buyer", "name kuEmail")
-        .populate("seller", "name");
+        .populate("seller", "name contact");
 
       if (!order) {
         return res.status(404).json({ success: false, error: "Order not found" });
@@ -454,6 +471,7 @@ export default class OrderController {
           seller: {
             id: (order.seller as unknown as PopulatedSeller)._id,
             name: (order.seller as unknown as PopulatedSeller).name,
+            contact: (order.seller as unknown as PopulatedSeller).contact,
           },
           items: order.items,
           totalPrice: order.totalPrice,

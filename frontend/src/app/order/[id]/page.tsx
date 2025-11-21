@@ -36,6 +36,7 @@ interface OrderItem {
 interface SellerDetails {
   id: string;
   name?: string;
+  contact?: string;
 }
 
 interface ShippingAddress {
@@ -868,13 +869,15 @@ export default function OrderDetailPage({
               </div>
               <div className="rounded-2xl border border-[#e4ecd7] bg-white p-4">
                 <h3 className="text-sm font-semibold text-[#3d4a29]">
-                  Buyer contact
+                  Seller contact
                 </h3>
                 <div className="mt-2 text-sm text-gray-600">
                   <p className="font-semibold text-gray-900">
-                    {order.buyerContact.fullName}
+                    {order.seller?.name || "Unknown"}
                   </p>
-                  <p>{order.buyerContact.phone}</p>
+                  {order.seller?.contact && (
+                    <p>{order.seller.contact}</p>
+                  )}
                 </div>
                 <div className="mt-4">
                   <button
