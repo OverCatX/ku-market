@@ -15,6 +15,7 @@ import {
   CreditCard,
   MapPin,
   ExternalLink,
+  HelpCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { ComponentType } from "react";
@@ -533,6 +534,13 @@ export default function OrdersPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Link
+                href="/guide"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a632d] transition-colors text-sm font-medium shadow-sm hover:shadow-md"
+              >
+                <HelpCircle size={18} />
+                User Guide
+              </Link>
               <button
                 onClick={loadOrders}
                 disabled={loading}

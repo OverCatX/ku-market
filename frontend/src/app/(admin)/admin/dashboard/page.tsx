@@ -11,6 +11,7 @@ import {
   UserCog,
   FolderTree,
   Flag,
+  HelpCircle,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -137,6 +138,17 @@ export default function AdminDashboard() {
 
       {/* Quick Actions */}
       <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900">Quick Actions</h2>
+          <Link
+            href="/guide"
+            className="inline-flex items-center gap-2 px-3 md:px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a632d] transition-colors text-xs md:text-sm font-medium shadow-sm hover:shadow-md"
+          >
+            <HelpCircle size={16} className="md:w-[18px] md:h-[18px]" />
+            <span className="hidden sm:inline">User Guide</span>
+            <span className="sm:hidden">Guide</span>
+          </Link>
+        </div>
         <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
           Quick Actions
         </h2>

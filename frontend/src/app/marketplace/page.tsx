@@ -11,6 +11,7 @@ import { listItems, Item, ListItemsResponse } from "../../config/items";
 import { getCategories, Category } from "../../config/categories";
 import { getBatchReviewSummaries } from "../../config/reviews";
 import FooterSection from "@/components/home/FooterSection";
+import { HelpCircle } from "lucide-react";
 
 const LIGHT = "#f9f9f7";
 const GREEN = "#69773D";
@@ -355,10 +356,19 @@ export default function MarketPage() {
 
       {/* Container */}
       <main className="mx-auto max-w-6xl px-6 py-6 bg-white rounded-2xl shadow mt-6">
-        {/* Breadcrumb */}
-        <p className="text-sm text-gray-500 mb-6">
-          marketplace / <span className="text-gray-700">browse</span>
-        </p>
+        {/* Breadcrumb & Guide Button */}
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-sm text-gray-500">
+            marketplace / <span className="text-gray-700">browse</span>
+          </p>
+          <Link
+            href="/guide"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a632d] transition-colors text-sm font-medium shadow-sm hover:shadow-md"
+          >
+            <HelpCircle size={18} />
+            User Guide
+          </Link>
+        </div>
 
         {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between flex-wrap mb-6">
