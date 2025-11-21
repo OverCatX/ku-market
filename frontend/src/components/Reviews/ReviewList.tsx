@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MessageSquare } from "lucide-react";
 import { Review, ReviewSummary as ReviewSummaryType } from "@/types/review";
 import ReviewSummary from "./ReviewSummary";
@@ -63,17 +63,20 @@ export default function ReviewList({
     setShowReviewForm(true);
   };
 
-  const sortedReviews = [...reviews].sort((a, b) => {
-    switch (sortBy) {
-      case "helpful":
-        return b.helpful - a.helpful;
-      case "rating":
-        return b.rating - a.rating;
-      case "recent":
-      default:
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    }
-  });
+  // Memoize sorted reviews to avoid recalculating on every render
+  const sortedReviews = useMemo(() => {
+    return [...reviews].sort((a, b) => {
+      switch (sortBy) {
+        case "helpful":
+          return b.helpful - a.helpful;
+        case "rating":
+          return b.rating - a.rating;
+        case "recent":
+        default:
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
+  }, [reviews, sortBy]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
