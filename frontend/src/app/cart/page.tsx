@@ -68,7 +68,7 @@ export default function CartPage() {
   // Show loading state during SSR
   if (!isMounted || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
@@ -89,17 +89,17 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen py-12" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <ShoppingCart className="w-16 h-16 text-[#69773D] mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-[#4A5130] mb-2">
               Your cart is empty
             </h2>
-            <p className="text-gray-600 mb-6">Add some items to get started!</p>
+            <p className="text-[#69773D] mb-6">Add some items to get started!</p>
             <Link
               href="/marketplace"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#69773D] text-[#F6F2E5] rounded-lg hover:bg-[#84B067] transition"
             >
               Continue Shopping
               <ArrowRight className="w-4 h-4" />
@@ -111,16 +111,16 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+          <h1 className="text-3xl font-bold text-[#4A5130]">Shopping Cart</h1>
           <button
             onClick={refreshCart}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+            className="flex items-center gap-2 px-4 py-2 text-[#4A5130] hover:bg-[#4A5130]/60 hover:text-[#F6F2E5] rounded-lg transition group"
             aria-label="Refresh cart"
           >
-            <RefreshCw className="w-5 h-5" />
+            <RefreshCw className="w-5 h-5 text-[#4A5130] group-hover:text-[#F6F2E5]" />
             <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
@@ -150,13 +150,13 @@ export default function CartPage() {
                 {/* Product Details */}
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">
+                    <h3 className="font-semibold text-[#4A5130] mb-1">
                       {item.title}
                     </h3>
                     <p className="text-sm text-gray-600">
                       Sold by {item.sellerName}
                     </p>
-                    <p className="text-lg font-bold text-[#84B067] mt-2">
+                    <p className="text-lg font-bold text-[#69773D] mt-2">
                       ฿{item.price.toLocaleString()}
                     </p>
                   </div>
@@ -196,10 +196,10 @@ export default function CartPage() {
                     <button
                       onClick={() => handleRemoveItem(item.id)}
                       disabled={actionLoading === item.id}
-                      className="text-red-600 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                      className="text-[#780606] p-2 hover:bg-[#780606]/60 rounded-lg transition disabled:opacity-50 group"
                       aria-label="Remove item"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-5 h-5 text-[#780606] group-hover:text-[#F6F2E5]" />
                     </button>
                   </div>
                 </div>
@@ -210,7 +210,7 @@ export default function CartPage() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-24">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
+              <h2 className="text-xl font-bold text-[#4A5130] mb-4">
                 Order Summary
               </h2>
 
@@ -224,11 +224,11 @@ export default function CartPage() {
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
-                  <span className="text-green-600">Free</span>
+                  <span className="text-[#69773D]">Free</span>
                 </div>
-                <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-900">
-                  <span>Total</span>
-                  <span className="text-[#84B067]">
+                <div className="border-t pt-3 flex justify-between text-lg font-bold">
+                  <span className="text-[#4A5130]">Total</span>
+                  <span className="text-[#69773D]">
                     ฿{getTotalPrice().toLocaleString()}
                   </span>
                 </div>
@@ -236,7 +236,7 @@ export default function CartPage() {
 
               <Link
                 href="/checkout"
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition font-semibold"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#84B067] transition font-semibold"
               >
                 Proceed to Checkout
                 <ArrowRight className="w-5 h-5" />

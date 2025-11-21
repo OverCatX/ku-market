@@ -11,7 +11,7 @@ export default function FooterSection() {
 
   return (
     <>
-      <footer className="bg-white border-t border-gray-200 py-8 px-6 md:px-20">
+      <footer className="bg-[#F6F2E5] border-t border-gray-200 py-8 px-6 md:px-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

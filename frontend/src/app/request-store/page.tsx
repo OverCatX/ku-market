@@ -385,7 +385,7 @@ export default function BecomeASeller() {
   // Show loading while checking authentication
   if (isChecking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F6F2E5' }}>
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
@@ -397,7 +397,7 @@ export default function BecomeASeller() {
   // Show status page if user has already applied
   if (shopStatus.status) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#F6F2E5' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -409,31 +409,31 @@ export default function BecomeASeller() {
                 <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Clock className="w-10 h-10 text-yellow-600" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                <h2 className="text-3xl font-bold text-[#A0704F] mb-2">
                   Application Pending
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-[#A0704F]">
                   Your shop request is waiting for admin approval
                 </p>
               </>
             )}
             {shopStatus.status === "approved" && (
               <>
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-10 h-10 text-green-600" />
+                <div className="w-20 h-20 bg-[#69773D]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-10 h-10 text-[#69773D]" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                <h2 className="text-3xl font-bold text-[#4A5130] mb-2">
                   Shop Approved!
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-[#69773D]">
                   Congratulations! Your shop has been approved
                 </p>
               </>
             )}
             {shopStatus.status === "rejected" && (
               <>
-                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <XCircle className="w-10 h-10 text-red-600" />
+                <div className="w-20 h-20 bg-[#780606] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <XCircle className="w-10 h-10 text-[#780606]" />
                 </div>
                 <h2 className="text-3xl font-bold text-gray-800 mb-2">
                   Application Rejected
@@ -445,7 +445,7 @@ export default function BecomeASeller() {
             )}
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-6 mb-6 space-y-3">
+          <div className="bg-[#A0704F]/10 rounded-xl p-6 mb-6 space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-600">Shop Name:</span>
               <span className="font-semibold text-gray-800">
@@ -469,7 +469,7 @@ export default function BecomeASeller() {
             {shopStatus.rejectionReason && (
               <div className="pt-3 border-t border-gray-200">
                 <p className="text-gray-600 mb-2">Rejection Reason:</p>
-                <p className="text-red-600 font-medium">
+                <p className="text-[#780606] font-medium">
                   {shopStatus.rejectionReason}
                 </p>
               </div>
@@ -485,7 +485,7 @@ export default function BecomeASeller() {
                 className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
                   loading
                     ? "bg-gray-300 cursor-not-allowed"
-                    : "bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg"
+                    : "bg-[#780606] hover:bg-[#780606] text-white shadow-md hover:shadow-lg"
                 }`}
               >
                 {loading ? "Canceling..." : "Cancel & Apply Again"}
@@ -493,7 +493,7 @@ export default function BecomeASeller() {
             )}
             <button
               onClick={() => (window.location.href = "/profile")}
-              className="flex-1 py-3 px-6 rounded-xl font-semibold bg-gray-200 hover:bg-gray-300 text-gray-800 transition-all shadow-md hover:shadow-lg"
+              className="flex-1 py-3 px-6 rounded-xl font-semibold bg-[#69773D] hover:bg-[#5a6530] text-white transition-all shadow-md hover:shadow-lg"
             >
               Back to Profile
             </button>
@@ -571,9 +571,9 @@ export default function BecomeASeller() {
               <button
                 type="button"
                 onClick={() => removeFile(name)}
-                className="p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-all"
+                className="p-2 bg-white rounded-full shadow-lg hover:bg-[#780606] transition-all"
               >
-                <X size={18} className="text-red-500" />
+                <X size={18} className="text-[#780606]" />
               </button>
             </div>
           </div>
@@ -583,7 +583,7 @@ export default function BecomeASeller() {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50 p-2 sm:p-4 md:p-6">
+    <div className="min-h-screen flex items-center justify-center p-2 sm:p-4 md:p-6" style={{ backgroundColor: '#F6F2E5' }}>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -679,13 +679,13 @@ export default function BecomeASeller() {
                       Full Name *
                     </label>
                     <div className="relative">
-                      <input
-                        name="fullName"
-                        value={form.fullName}
-                        onChange={handleChange}
+                    <input
+                      name="fullName"
+                      value={form.fullName}
+                      onChange={handleChange}
                         onFocus={() => setFocusedField("fullName")}
                         onBlur={() => setFocusedField(null)}
-                        placeholder="Enter your full name"
+                      placeholder="Enter your full name"
                         className={`w-full p-2 sm:p-3 pr-10 text-sm sm:text-base rounded-lg border transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-1 ${
                           focusedField === "fullName" ? "shadow-sm" : ""
                         } ${
@@ -699,7 +699,7 @@ export default function BecomeASeller() {
                           borderColor: focusedField === "fullName" ? mainDark : errors.fullName ? "#ef4444" : form.fullName && form.fullName.trim() ? "#10b981" : borderColor,
                           backgroundColor: "white"
                         }}
-                      />
+                    />
                       {form.fullName && form.fullName.trim() && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
@@ -709,7 +709,7 @@ export default function BecomeASeller() {
                       )}
                     </div>
                     {errors.fullName && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
                         <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
@@ -726,11 +726,11 @@ export default function BecomeASeller() {
                       Email Address *
                     </label>
                     <div className="relative">
-                      <input
-                        name="email"
-                        type="email"
-                        value={form.email}
-                        onChange={handleChange}
+                    <input
+                      name="email"
+                      type="email"
+                      value={form.email}
+                      onChange={handleChange}
                         onFocus={() => setFocusedField("email")}
                         onBlur={() => setFocusedField(null)}
                         placeholder="your.email@ku.th"
@@ -773,7 +773,7 @@ export default function BecomeASeller() {
                       </p>
                     )}
                     {errors.email && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
                         <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
@@ -790,11 +790,11 @@ export default function BecomeASeller() {
                       Phone Number *
                     </label>
                     <div className="relative">
-                      <input
-                        name="phone"
-                        type="tel"
-                        value={form.phone}
-                        onChange={handleChange}
+                    <input
+                      name="phone"
+                      type="tel"
+                      value={form.phone}
+                      onChange={handleChange}
                         onFocus={() => setFocusedField("phone")}
                         onBlur={() => setFocusedField(null)}
                         placeholder="Phone number (9-10 digits)"
@@ -837,7 +837,7 @@ export default function BecomeASeller() {
                       </p>
                     )}
                     {errors.phone && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
                         <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
@@ -859,13 +859,13 @@ export default function BecomeASeller() {
                       Business/Shop Name *
                     </label>
                     <div className="relative">
-                      <input
-                        name="businessName"
-                        value={form.businessName}
-                        onChange={handleChange}
+                    <input
+                      name="businessName"
+                      value={form.businessName}
+                      onChange={handleChange}
                         onFocus={() => setFocusedField("businessName")}
                         onBlur={() => setFocusedField(null)}
-                        placeholder="Enter your business name"
+                      placeholder="Enter your business name"
                         className={`w-full p-2 sm:p-3 ${
                           businessNameLength >= 2 ? "pr-10" : ""
                         } text-sm sm:text-base rounded-lg border transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-1 ${
@@ -883,7 +883,7 @@ export default function BecomeASeller() {
                           borderColor: focusedField === "businessName" ? mainDark : businessNameLength >= 2 ? "#10b981" : businessNameLength > 0 && businessNameLength < 2 ? "#ef4444" : errors.businessName ? "#ef4444" : borderColor,
                           backgroundColor: "white"
                         }}
-                      />
+                    />
                       {businessNameLength >= 2 && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
@@ -901,7 +901,7 @@ export default function BecomeASeller() {
                       </p>
                     )}
                     {errors.businessName && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1 flex items-center animate-fade-in">
                         <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
@@ -931,7 +931,7 @@ export default function BecomeASeller() {
                       <option value="Brand">Brand/Manufacturer</option>
                     </select>
                     {errors.businessType && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.businessType}
                       </p>
                     )}
@@ -962,7 +962,7 @@ export default function BecomeASeller() {
                       <option value="Others">Others</option>
                     </select>
                     {errors.productCategory && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.productCategory}
                       </p>
                     )}
@@ -976,14 +976,14 @@ export default function BecomeASeller() {
                       Business Description *
                     </label>
                     <div className="relative">
-                      <textarea
-                        name="businessDescription"
-                        value={form.businessDescription}
-                        onChange={handleChange}
+                    <textarea
+                      name="businessDescription"
+                      value={form.businessDescription}
+                      onChange={handleChange}
                         onFocus={() => setFocusedField("businessDescription")}
                         onBlur={() => setFocusedField(null)}
-                        placeholder="Tell us about your business and products..."
-                        rows={4}
+                      placeholder="Tell us about your business and products..."
+                      rows={4}
                         className={`w-full p-2 sm:p-3 text-sm sm:text-base rounded-lg border resize-none transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-1 ${
                           focusedField === "businessDescription" ? "shadow-sm" : ""
                         } ${
@@ -1011,7 +1011,7 @@ export default function BecomeASeller() {
                     <div className="flex items-center justify-between mt-1">
                       <div>
                         {businessDescriptionLength > 0 && businessDescriptionLength < 10 && !errors.businessDescription && (
-                          <p className="text-red-500 text-xs sm:text-sm flex items-center animate-fade-in">
+                          <p className="text-[#780606] text-xs sm:text-sm flex items-center animate-fade-in">
                             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
@@ -1019,24 +1019,24 @@ export default function BecomeASeller() {
                           </p>
                         )}
                         {businessDescriptionLength > 1000 && !errors.businessDescription && (
-                          <p className="text-red-500 text-xs sm:text-sm flex items-center animate-fade-in">
+                          <p className="text-[#780606] text-xs sm:text-sm flex items-center animate-fade-in">
                             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
                             Description must not exceed 1000 characters
                           </p>
                         )}
-                        {errors.businessDescription && (
-                          <p className="text-red-500 text-xs sm:text-sm flex items-center animate-fade-in">
+                    {errors.businessDescription && (
+                          <p className="text-[#780606] text-xs sm:text-sm flex items-center animate-fade-in">
                             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
-                            {errors.businessDescription}
-                          </p>
-                        )}
+                        {errors.businessDescription}
+                      </p>
+                    )}
                       </div>
                       <span className={`text-xs ${
-                        businessDescriptionLength > 1000 ? "text-red-500" : businessDescriptionLength >= 10 ? "text-green-600" : "text-gray-500"
+                        businessDescriptionLength > 1000 ? "text-[#780606]" : businessDescriptionLength >= 10 ? "text-[#69773D]" : "text-gray-500"
                       }`}>
                         {businessDescriptionLength}/1000
                       </span>
@@ -1065,7 +1065,7 @@ export default function BecomeASeller() {
                       style={{ borderColor, backgroundColor: "white" }}
                     />
                     {errors.whySell && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.whySell}
                       </p>
                     )}
@@ -1079,7 +1079,7 @@ export default function BecomeASeller() {
                       icon={Store}
                     />
                     {errors.profileImage && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-1">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-1">
                         {errors.profileImage}
                       </p>
                     )}
@@ -1124,7 +1124,7 @@ export default function BecomeASeller() {
                       </span>
                     </label>
                     {errors.agreeToTerms && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-2 ml-8">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-2 ml-8">
                         {errors.agreeToTerms}
                       </p>
                     )}
@@ -1152,13 +1152,13 @@ export default function BecomeASeller() {
                       </h4>
                       <ul className="space-y-1 text-gray-700">
                         <li>
-                          <strong>Name:</strong> {form.fullName}
+                          <strong className="text-[#4A5130]">Name:</strong> {form.fullName}
                         </li>
                         <li>
-                          <strong>Email:</strong> {form.email}
+                          <strong className="text-[#4A5130]">Email:</strong> {form.email}
                         </li>
                         <li>
-                          <strong>Phone:</strong> {form.phone}
+                          <strong className="text-[#4A5130]">Phone:</strong> {form.phone}
                         </li>
                       </ul>
                     </div>
@@ -1172,16 +1172,16 @@ export default function BecomeASeller() {
                       </h4>
                       <ul className="space-y-1 text-gray-700">
                         <li>
-                          <strong>Business Name:</strong> {form.businessName}
+                          <strong className="text-[#4A5130]">Business Name:</strong> {form.businessName}
                         </li>
                         <li>
-                          <strong>Type:</strong> {form.businessType}
+                          <strong className="text-[#4A5130]">Type:</strong> {form.businessType}
                         </li>
                         <li>
-                          <strong>Category:</strong> {form.productCategory}
+                          <strong className="text-[#4A5130]">Category:</strong> {form.productCategory}
                         </li>
                         <li>
-                          <strong>Description:</strong>{" "}
+                          <strong className="text-[#4A5130]">Description:</strong>{" "}
                           {form.businessDescription}
                         </li>
                       </ul>
@@ -1313,7 +1313,7 @@ export default function BecomeASeller() {
                       </span>
                     </label>
                     {errors.confirmed && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-2 ml-8">
+                      <p className="text-[#780606] text-xs sm:text-sm mt-2 ml-8">
                         {errors.confirmed}
                       </p>
                     )}

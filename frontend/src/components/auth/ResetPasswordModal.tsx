@@ -145,11 +145,11 @@ export default function ResetPasswordModal({ open, onClose, token }: Props) {
                 </button>
               </div>
               {confirm && confirm !== password && (
-                <p className="mt-2 text-[12px] text-red-600">Passwords do not match.</p>
+                <p className="mt-2 text-[12px] text-[#780606]">Passwords do not match.</p>
               )}
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-[#780606]">{error}</p>}
 
             <div className="pt-1 flex items-center gap-4">
               <button

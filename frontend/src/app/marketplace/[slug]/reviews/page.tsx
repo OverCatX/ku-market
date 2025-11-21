@@ -9,8 +9,6 @@ import { getItem } from "@/config/items";
 import { getItemReviews, getReviewSummary } from "@/config/reviews";
 import toast from "react-hot-toast";
 
-const LIGHT = "#f7f4f1";
-
 export default function ReviewsPage() {
   const { slug } = useParams<{ slug: string }>();
   const [itemTitle, setItemTitle] = useState<string>("");
@@ -177,7 +175,7 @@ export default function ReviewsPage() {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: LIGHT }}
+        style={{ background: '#F6F2E5' }}
       >
         Loading...
       </div>
@@ -185,7 +183,7 @@ export default function ReviewsPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: LIGHT }}>
+    <div className="min-h-screen" style={{ background: '#F6F2E5' }}>
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3 sm:py-4">
@@ -198,7 +196,7 @@ export default function ReviewsPage() {
             <span className="sm:hidden">Back</span>
           </button>
 
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Customer Reviews</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#4A5130]">Customer Reviews</h1>
           {itemTitle && (
             <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-1">for {itemTitle}</p>
           )}

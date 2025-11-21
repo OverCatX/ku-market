@@ -10,6 +10,7 @@ import FooterSection from "@/components/home/FooterSection";
 import { API_BASE } from "@/config/constants";
 import { getAuthToken, clearAuthTokens } from "@/lib/auth";
 import Link from "next/link";
+import { aboutColors } from "@/components/aboutus/SectionColors";
 
 const NAV_H = 64;
 
@@ -114,7 +115,10 @@ export default function ChatPage() {
 
   if (!authChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f8f1] text-sm text-gray-500">
+      <div
+        className="min-h-screen flex items-center justify-center text-sm text-gray-500"
+        style={{ backgroundColor: "#F6F2E5" }}
+      >
         Loading chats...
       </div>
     );
@@ -122,13 +126,20 @@ export default function ChatPage() {
 
   if (!isAuthenticatedState) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f5f8f1] text-center px-6">
-        <p className="text-lg font-semibold text-gray-700 mb-3">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center text-center px-6"
+        style={{ backgroundColor: "#F6F2E5" }}
+      >
+        <p
+          className="text-lg font-semibold mb-3"
+          style={{ color: aboutColors.oliveDark }}
+        >
           Please login to access chats.
         </p>
         <Link
           href="/login?redirect=/chats"
-          className="px-4 py-2 rounded-lg bg-[#69773D] text-white font-medium shadow hover:shadow-lg transition"
+          className="px-4 py-2 rounded-lg bg-[#69773D] font-medium shadow hover:shadow-lg transition"
+          style={{ color: "#F6F2E5" }}
         >
           Go to login
         </Link>

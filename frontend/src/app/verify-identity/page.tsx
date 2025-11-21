@@ -169,7 +169,7 @@ export default function VerifyIdentityPage() {
         );
       case "rejected":
         return (
-          <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200">
+          <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-[#780606] text-[#780606] border border-[#780606]">
             <XCircle className="w-4 h-4 mr-2" />
             Rejected
           </span>
@@ -181,15 +181,15 @@ export default function VerifyIdentityPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F6F2E5' }}>
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#4A5130]"></div>
       </div>
     );
   }
 
   if (isVerified) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#F6F2E5' }}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -198,10 +198,10 @@ export default function VerifyIdentityPage() {
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <ShieldCheck className="w-10 h-10 text-green-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          <h2 className="text-2xl font-bold text-[#4A5130] mb-2">
             Already Verified
           </h2>
-          <p className="text-gray-600">
+          <p className="text-[#4A5130]">
             Your identity has been verified. Redirecting to profile...
           </p>
         </motion.div>
@@ -210,12 +210,12 @@ export default function VerifyIdentityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#F6F2E5' }}>
       <div className="max-w-3xl mx-auto">
         {/* Back button */}
         <button
           onClick={() => router.push("/profile")}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6 transition-colors"
+          className="flex items-center gap-2 text-[#4A5130] hover:text-[#3a4025] mb-6 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Profile</span>
@@ -227,14 +227,14 @@ export default function VerifyIdentityPage() {
           className="bg-white rounded-2xl shadow-xl overflow-hidden"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
+          <div className="bg-gradient-to-r from-[#4A5130] to-[#4A5130] p-8 text-[#F6F2E5]">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <h1 className="text-3xl font-bold">Identity Verification</h1>
             </div>
-            <p className="text-blue-100">
+            <p className="text-[#F6F2E5]">
               Verify your identity to build trust and unlock special features
             </p>
           </div>
@@ -247,25 +247,25 @@ export default function VerifyIdentityPage() {
                 animate={{ opacity: 1 }}
                 className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200"
               >
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                <h3 className="text-lg font-semibold text-[#4A5130] mb-3">
                   Verification Status
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Status:</span>
+                    <span className="text-[#4A5130]">Status:</span>
                     {getStatusBadge(verificationStatus.status)}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Document Type:</span>
-                    <span className="font-medium text-gray-800">
+                    <span className="text-[#4A5130]">Document Type:</span>
+                    <span className="font-medium text-[#4A5130]">
                       {verificationStatus.documentType === "student_id"
                         ? "Student ID"
                         : "Citizen ID"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Submitted:</span>
-                    <span className="font-medium text-gray-800">
+                    <span className="text-[#4A5130]">Submitted:</span>
+                    <span className="font-medium text-[#4A5130]">
                       {new Date(
                         verificationStatus.submittedAt
                       ).toLocaleDateString("en-US", {
@@ -276,14 +276,14 @@ export default function VerifyIdentityPage() {
                     </span>
                   </div>
                   {verificationStatus.rejectionReason && (
-                    <div className="mt-3 p-4 bg-red-50 rounded-lg border border-red-200">
+                    <div className="mt-3 p-4 bg-[#780606] rounded-lg border border-[#780606]">
                       <div className="flex items-start gap-2">
-                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <AlertCircle className="w-5 h-5 text-[#780606] flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-medium text-red-800 mb-1">
+                          <p className="font-medium text-[#780606] mb-1">
                             Rejection Reason:
                           </p>
-                          <p className="text-red-700 text-sm">
+                          <p className="text-[#780606] text-sm">
                             {verificationStatus.rejectionReason}
                           </p>
                         </div>
@@ -295,10 +295,10 @@ export default function VerifyIdentityPage() {
             )}
 
             {/* Info Box */}
-            <div className="mb-8 p-5 bg-blue-50 rounded-xl border border-blue-200">
+            <div className="mb-8 p-5 bg-[#4A5130]/10 rounded-xl border border-[#4A5130]/30">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-800">
+                <AlertCircle className="w-5 h-5 text-[#4A5130] flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-[#4A5130]">
                   <p className="font-medium mb-2">Important Information:</p>
                   <ul className="list-disc list-inside space-y-1">
                     <li>
@@ -322,7 +322,7 @@ export default function VerifyIdentityPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Document Type Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-[#4A5130] mb-3">
                     Document Type
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -331,7 +331,7 @@ export default function VerifyIdentityPage() {
                       onClick={() => setDocumentType("student_id")}
                       className={`p-4 rounded-xl border-2 transition-all ${
                         documentType === "student_id"
-                          ? "border-blue-600 bg-blue-50"
+                          ? "border-[#4A5130] bg-[#4A5130]/10"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
@@ -339,20 +339,20 @@ export default function VerifyIdentityPage() {
                         <div
                           className={`w-12 h-12 rounded-full flex items-center justify-center ${
                             documentType === "student_id"
-                              ? "bg-blue-100"
+                              ? "bg-[#4A5130]/20"
                               : "bg-gray-100"
                           }`}
                         >
                           <FileText
                             className={`w-6 h-6 ${
                               documentType === "student_id"
-                                ? "text-blue-600"
-                                : "text-gray-600"
+                                ? "text-[#4A5130]"
+                                : "text-[#4A5130]"
                             }`}
                           />
                         </div>
                         <div className="text-left">
-                          <p className="font-semibold text-gray-800">
+                          <p className="font-semibold text-[#4A5130]">
                             Student ID
                           </p>
                           <p className="text-xs text-gray-500">
@@ -367,7 +367,7 @@ export default function VerifyIdentityPage() {
                       onClick={() => setDocumentType("citizen_id")}
                       className={`p-4 rounded-xl border-2 transition-all ${
                         documentType === "citizen_id"
-                          ? "border-blue-600 bg-blue-50"
+                          ? "border-[#4A5130] bg-[#4A5130]/10"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
@@ -375,20 +375,20 @@ export default function VerifyIdentityPage() {
                         <div
                           className={`w-12 h-12 rounded-full flex items-center justify-center ${
                             documentType === "citizen_id"
-                              ? "bg-blue-100"
+                              ? "bg-[#4A5130]/20"
                               : "bg-gray-100"
                           }`}
                         >
                           <FileText
                             className={`w-6 h-6 ${
                               documentType === "citizen_id"
-                                ? "text-blue-600"
-                                : "text-gray-600"
+                                ? "text-[#4A5130]"
+                                : "text-[#4A5130]"
                             }`}
                           />
                         </div>
                         <div className="text-left">
-                          <p className="font-semibold text-gray-800">
+                          <p className="font-semibold text-[#4A5130]">
                             Citizen ID
                           </p>
                           <p className="text-xs text-gray-500">
@@ -402,7 +402,7 @@ export default function VerifyIdentityPage() {
 
                 {/* File Upload */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-[#4A5130] mb-3">
                     Upload Document
                   </label>
                   <div className="relative">
@@ -415,7 +415,7 @@ export default function VerifyIdentityPage() {
                     />
                     <label
                       htmlFor="document-upload"
-                      className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all"
+                      className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-[#4A5130] hover:bg-[#4A5130]/10 transition-all"
                     >
                       {preview ? (
                         <div className="relative w-full h-full p-4">
@@ -430,7 +430,7 @@ export default function VerifyIdentityPage() {
                       ) : (
                         <div className="flex flex-col items-center">
                           <Upload className="w-12 h-12 text-gray-400 mb-3" />
-                          <p className="text-sm font-medium text-gray-700">
+                          <p className="text-sm font-medium text-[#4A5130]">
                             Click to upload file
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
@@ -443,8 +443,8 @@ export default function VerifyIdentityPage() {
                   {selectedFile && (
                     <div className="mt-3 flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-gray-600" />
-                        <span className="text-sm text-gray-700">
+                        <FileText className="w-5 h-5 text-[#4A5130]" />
+                        <span className="text-sm text-[#4A5130]">
                           {selectedFile.name}
                         </span>
                       </div>
@@ -454,7 +454,7 @@ export default function VerifyIdentityPage() {
                           setSelectedFile(null);
                           setPreview("");
                         }}
-                        className="text-red-600 hover:text-red-700 text-sm font-medium"
+                        className="text-[#780606] hover:text-[#780606] text-sm font-medium"
                       >
                         Remove
                       </button>
@@ -466,7 +466,7 @@ export default function VerifyIdentityPage() {
                 <button
                   type="submit"
                   disabled={submitting || !selectedFile}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-semibold"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#4A5130] text-white rounded-xl hover:bg-[#3a4025] disabled:bg-gray-300 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-semibold"
                 >
                   {submitting ? (
                     <>
@@ -488,10 +488,10 @@ export default function VerifyIdentityPage() {
                 <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Clock className="w-10 h-10 text-yellow-600" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                <h3 className="text-xl font-bold text-[#4A5130] mb-2">
                   Your Request is Pending Approval
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-[#4A5130]">
                   Admin is reviewing your documents. Please wait for
                   notification from us.
                 </p>

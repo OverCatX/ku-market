@@ -49,12 +49,12 @@ const StatusBadge = memo(function StatusBadge({ status }: StatusBadgeProps) {
       label: "Pending",
     },
     approved: {
-      className: "bg-green-100 text-green-800 border-green-200",
+      className: "bg-[#69773D]/10 text-[#69773D] border-[#69773D]/30",
       icon: CheckCircle,
       label: "Approved",
     },
     rejected: {
-      className: "bg-red-100 text-red-800 border-red-200",
+      className: "bg-[#780606]/10 text-[#780606] border-[#780606]/30",
       icon: XCircle,
       label: "Rejected",
     },
@@ -247,12 +247,12 @@ const ItemCard = memo(function ItemCard({
         </div>
         <div className="p-4">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="font-bold text-gray-900 flex-1 text-sm">{item.title}</h3>
+            <h3 className="font-bold text-[#4A5130] flex-1 text-sm">{item.title}</h3>
             <StatusBadge status={item.approvalStatus} />
           </div>
           <p className="text-xs text-gray-600 mb-3 line-clamp-2">{item.description}</p>
           <div className="flex justify-between items-center mb-3">
-            <span className="text-lg font-bold text-green-600">
+            <span className="text-lg font-bold text-[#4A5130]">
               ฿{item.price.toLocaleString()}
             </span>
             <span className="text-xs text-gray-500">{item.category}</span>
@@ -260,7 +260,7 @@ const ItemCard = memo(function ItemCard({
           <div className="border-t pt-3 space-y-2">
             <div className="text-xs text-gray-600">
               <p>
-                <span className="font-medium">Seller:</span> {item.owner.name}
+                <span className="font-medium">Seller:</span> <span className="text-[#4A5130]">{item.owner.name}</span>
               </p>
               <p>
                 <span className="font-medium">Email:</span> {item.owner.email}
@@ -273,14 +273,14 @@ const ItemCard = memo(function ItemCard({
                 {formatDate(item.createdAt)}
               </p>
               {item.rejectionReason && (
-                <p className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-800">
+                <p className="mt-2 p-2 bg-[#780606]/10 border border-[#780606]/30 rounded text-xs text-[#780606]">
                   <span className="font-medium">Rejection Reason:</span> {item.rejectionReason}
                 </p>
               )}
             </div>
             <button
               onClick={() => setShowDetails(!showDetails)}
-              className="w-full text-xs text-blue-600 hover:text-blue-800 font-medium"
+              className="w-full text-xs text-[#69773D] hover:text-[#5a6530] font-medium"
             >
               {showDetails ? "Hide" : "Show"} Details{" "}
               <Eye size={12} className="inline ml-1" />
@@ -314,69 +314,94 @@ const ItemCard = memo(function ItemCard({
               </div>
             )}
           </div>
-          <div className="flex gap-2 mt-3 pt-3 border-t">
-            <button
-              onClick={async () => {
-                setShowReviewsModal(true);
-                setLoadingReviews(true);
-                try {
-                  const token = localStorage.getItem("token");
-                  if (!token) {
-                    toast.error("Please login first");
-                    return;
+          <div className="mt-3 pt-3 border-t space-y-2">
+            <div className="flex gap-2 flex-wrap justify-center">
+              <button
+                onClick={async () => {
+                  setShowReviewsModal(true);
+                  setLoadingReviews(true);
+                  try {
+                    const token = localStorage.getItem("token");
+                    if (!token) {
+                      toast.error("Please login first");
+                      return;
+                    }
+                    const itemReviews = await getItemReviews(token, item.id);
+                    setReviews(itemReviews);
+                  } catch (error) {
+                    toast.error(
+                      error instanceof Error ? error.message : "Failed to load reviews"
+                    );
+                    setReviews([]);
+                  } finally {
+                    setLoadingReviews(false);
                   }
-                  const itemReviews = await getItemReviews(token, item.id);
-                  setReviews(itemReviews);
-                } catch (error) {
-                  toast.error(
-                    error instanceof Error ? error.message : "Failed to load reviews"
-                  );
-                  setReviews([]);
-                } finally {
-                  setLoadingReviews(false);
-                }
-              }}
-              className="flex-1 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium flex items-center justify-center gap-1"
-            >
-              <MessageSquare size={14} />
-              Reviews
-            </button>
+                }}
+                className="px-4 py-2.5 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors text-xs font-medium flex items-center justify-center gap-1.5 whitespace-nowrap"
+              >
+                <MessageSquare size={14} />
+                Reviews
+              </button>
+              {item.approvalStatus === "pending" ? (
+                <>
+                  <button
+                    onClick={handleApprove}
+                    disabled={processing}
+                    className="px-4 py-2.5 bg-[#5C8140] text-white rounded-lg hover:bg-[#4a6b33] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium flex items-center justify-center gap-1.5 whitespace-nowrap"
+                  >
+                    <CheckCircle size={14} />
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => setShowRejectModal(true)}
+                    disabled={processing}
+                    className="px-4 py-2.5 bg-[#780606] text-white rounded-lg hover:bg-[#780606]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium flex items-center justify-center gap-1.5 whitespace-nowrap"
+                  >
+                    <XCircle size={14} />
+                    Reject
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setShowEditModal(true)}
+                    disabled={processing}
+                    className="px-4 py-2.5 bg-[#69773D]/10 text-[#69773D] rounded-lg hover:bg-[#69773D]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium flex items-center justify-center whitespace-nowrap"
+                    title="Edit item"
+                  >
+                    <Edit size={14} />
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    disabled={processing}
+                    className="px-4 py-2.5 bg-[#780606]/10 text-[#780606] rounded-lg hover:bg-[#780606]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium flex items-center justify-center whitespace-nowrap"
+                    title="Delete item"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </>
+              )}
+            </div>
             {item.approvalStatus === "pending" && (
-              <>
+              <div className="flex gap-2 justify-center">
                 <button
-                  onClick={handleApprove}
+                  onClick={() => setShowEditModal(true)}
                   disabled={processing}
-                  className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                  className="px-4 py-2.5 bg-[#69773D]/10 text-[#69773D] rounded-lg hover:bg-[#69773D]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium flex items-center justify-center whitespace-nowrap"
+                  title="Edit item"
                 >
-                  <CheckCircle size={14} className="inline mr-1" />
-                  Approve
+                  <Edit size={14} />
                 </button>
                 <button
-                  onClick={() => setShowRejectModal(true)}
+                  onClick={() => setShowDeleteConfirm(true)}
                   disabled={processing}
-                  className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                  className="px-4 py-2.5 bg-[#780606]/10 text-[#780606] rounded-lg hover:bg-[#780606]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs font-medium flex items-center justify-center whitespace-nowrap"
+                  title="Delete item"
                 >
-                  <XCircle size={14} className="inline mr-1" />
-                  Reject
+                  <Trash2 size={14} />
                 </button>
-              </>
+              </div>
             )}
-            <button
-              onClick={() => setShowEditModal(true)}
-              disabled={processing}
-              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-              title="Edit item"
-            >
-              <Edit size={14} className="inline" />
-            </button>
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              disabled={processing}
-              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-              title="Delete item"
-            >
-              <Trash2 size={14} className="inline" />
-            </button>
           </div>
         </div>
       </div>
@@ -577,7 +602,7 @@ const ItemCard = memo(function ItemCard({
                               );
                             }
                           }}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-2"
+                          className="p-2 text-[#780606] hover:bg-[#780606] rounded-lg transition-colors ml-2"
                           title="Delete review"
                         >
                           <Trash2 size={16} />
@@ -701,21 +726,21 @@ export default function ItemsPage() {
   const rejectedCount = useMemo(() => items.filter((i) => i.approvalStatus === "rejected").length, [items]);
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130]">
             Item Management
           </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-[#69773D] mt-1">
             Manage all items in the marketplace - approve, reject, edit, or delete
           </p>
         </div>
         <button
           onClick={loadItems}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors"
         >
           <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
           Refresh
@@ -738,8 +763,8 @@ export default function ItemsPage() {
             }}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === f.value
-                ? "bg-green-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                ? "bg-[#69773D] text-white"
+                : "bg-white text-[#4A5130] hover:bg-gray-100 border border-gray-300"
             }`}
           >
             {f.label}
@@ -761,7 +786,7 @@ export default function ItemsPage() {
       ) : items.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-12 text-center">
           <Package size={48} className="mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-[#4A5130] mb-2">
             No items found
           </h3>
           <p className="text-gray-600">

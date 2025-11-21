@@ -65,7 +65,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
           return data.notifications;
         });
       } else {
-        setNotifications(data.notifications);
+      setNotifications(data.notifications);
       }
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
@@ -191,13 +191,13 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
   const getNotificationIcon = (type: Notification["type"]) => {
     switch (type) {
       case "order":
-        return <Package className="w-5 h-5 text-[#69773D]" />;
+        return <Package className="w-5 h-5 text-[#8DB368]" />;
       case "message":
         return <MessageCircle className="w-5 h-5 text-[#84B067]" />;
       case "item":
-        return <ShoppingBag className="w-5 h-5 text-[#7BAA5F]" />;
+        return <ShoppingBag className="w-5 h-5 text-[#69773D]" />;
       case "system":
-        return <AlertCircle className="w-5 h-5 text-[#A0704F]" />;
+        return <AlertCircle className="w-5 h-5 text-[#780606]" />;
       default:
         return <Bell className="w-5 h-5 text-gray-500" />;
     }
@@ -270,12 +270,12 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
         <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[80vh] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-900">Notifications</h3>
+            <h3 className="font-semibold text-[#4A5130]">Notifications</h3>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="text-xs text-[#69773D] hover:text-[#84B067] font-medium transition-colors"
+                  className="text-xs text-[#8DB368] hover:text-[#7ba05a] font-medium transition-colors"
                   title="Mark all as read"
                 >
                   <CheckCheck className="w-4 h-4" />
@@ -284,7 +284,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
               {notifications.length > 0 && (
                 <button
                   onClick={handleClearAll}
-                  className="text-xs text-gray-600 hover:text-[#69773D] font-medium transition-colors"
+                  className="text-xs text-[#780606] hover:text-[#780606] font-medium transition-colors"
                   title="Clear all"
                 >
                   Clear All
@@ -296,19 +296,17 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
           {/* Notification List */}
           <div className="overflow-y-auto flex-1">
             {notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 px-4">
-                <Bell className="w-12 h-12 text-gray-300 mb-3" />
-                <p className="text-gray-500 text-sm">No notifications yet</p>
+              <div className="flex flex-col items-center justify-center py-12 px-4 bg-white">
+                <Bell className="w-12 h-12 text-[#69773D] mb-3" />
+                <p className="text-[#4A5130] text-sm">No notifications yet</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-4 hover:bg-gray-50 transition-all duration-200 cursor-pointer relative border-l-4 ${
-                      !notification.read 
-                        ? "bg-green-50 border-[#69773D]" 
-                        : "border-transparent"
+                    className={`p-4 hover:bg-[#F6F2E5] transition-all duration-200 cursor-pointer relative border-l-4 ${
+                      !notification.read ? "bg-[#8DB368]/10 border-[#8DB368]" : "bg-[#F6F2E5] border-transparent"
                     }`}
                     onClick={() => handleNotificationClick(notification)}
                   >
@@ -330,14 +328,14 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
                       </div>
                       <div className="flex-1 pr-6">
                         <div className="flex items-start justify-between">
-                          <h4 className="font-medium text-sm text-gray-900">
+                          <h4 className="font-medium text-sm text-[#4A5130]">
                             {notification.title}
                           </h4>
                           {!notification.read && (
-                            <span className="w-2 h-2 bg-[#69773D] rounded-full ml-2 mt-1.5 animate-pulse"></span>
+                            <span className="w-2 h-2 bg-[#8DB368] rounded-full ml-2 mt-1.5 animate-pulse"></span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                        <p className="text-sm text-[#4A5130] mt-1 line-clamp-2">
                           {notification.message}
                         </p>
                         <p className="text-xs text-gray-400 mt-2">
@@ -356,7 +354,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
             <div className="p-3 border-t border-gray-200 text-center">
               <a
                 href="/notifications"
-                className="text-sm text-[#69773D] hover:text-[#84B067] font-medium transition-colors"
+                className="text-sm text-[#4A5130] hover:text-[#3a4025] font-medium transition-colors"
               >
                 View all notifications
               </a>

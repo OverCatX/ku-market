@@ -41,7 +41,7 @@ const TableRow = memo(function TableRow({
             />
           )}
           <div>
-            <div className="font-medium text-gray-900">{shop.shopName}</div>
+            <div className="font-medium text-[#4A5130]">{shop.shopName}</div>
             <div className="text-xs text-gray-500">
               {shop.productCategory.join(", ")}
             </div>
@@ -50,7 +50,7 @@ const TableRow = memo(function TableRow({
       </td>
       <td className="px-6 py-4">
         <div>
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-sm font-medium text-[#4A5130]">
             {shop.owner.name}
           </div>
           <div className="text-xs text-gray-500">{shop.owner.email}</div>
@@ -63,8 +63,8 @@ const TableRow = memo(function TableRow({
             shop.status === "pending"
               ? "bg-yellow-100 text-yellow-800"
               : shop.status === "approved"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
+              ? "bg-[#69773D]/10 text-[#69773D]"
+              : "bg-[#780606]/10 text-[#780606]"
           }`}
         >
           {shop.status}
@@ -88,7 +88,7 @@ const TableRow = memo(function TableRow({
               <button
                 onClick={() => onReject(shop.id)}
                 disabled={isLoading}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                className="p-2 text-[#780606] hover:bg-[#780606]/10 rounded-lg transition-colors disabled:opacity-50"
                 title="Reject"
               >
                 <XCircle size={18} />
@@ -196,23 +196,23 @@ export default function ShopsPage() {
   };
 
   return (
-    <div>
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130]">
             Shop Requests
           </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-[#69773D] mt-1">
             Review and manage new shop applications
           </p>
         </div>
         <button
           onClick={loadShops}
           disabled={loading}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+          className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors"
         >
           <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-          <span className="hidden sm:inline">Refresh</span>
+          Refresh
         </button>
       </div>
 
@@ -226,8 +226,8 @@ export default function ShopsPage() {
             }}
             className={`px-3 md:px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-colors ${
               filter === status
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100"
+                ? "bg-[#69773D] text-white"
+                : "bg-white text-[#4A5130] hover:bg-gray-100"
             }`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -336,7 +336,7 @@ export default function ShopsPage() {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="Please provide a reason..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#69773D] focus:border-transparent"
               rows={3}
             />
           </div>

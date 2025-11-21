@@ -10,7 +10,6 @@ type Delivery = "Meet-up" | "Shipping" | "Both";
 
 const MAX_IMAGES = 3;
 const GREEN = "#69773D";
-const LIGHT = "#f7f4f1";
 
 export default function NewItemPage() {
   const [title, setTitle] = useState("");
@@ -146,7 +145,7 @@ export default function NewItemPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: LIGHT }}>
+    <div className="min-h-screen" style={{ background: '#F6F2E5' }}>
       {/* Top bar */}
       <motion.div
         {...{ initial: { opacity: 0 }, animate: { opacity: 1 } }}
@@ -290,7 +289,7 @@ export default function NewItemPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Title<span className="text-red-500">*</span>
+                    Title<span className="text-[#780606]">*</span>
                   </label>
                   <input
                     className="w-full rounded-xl border p-3 outline-none"
@@ -302,12 +301,12 @@ export default function NewItemPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Price (THB)<span className="text-red-500">*</span>
+                    Price (THB)<span className="text-[#780606]">*</span>
                   </label>
                   <input
                     type="text"
                     className={`w-full rounded-xl border p-3 outline-none ${
-                      priceError ? "border-red-500" : ""
+                      priceError ? "border-[#780606]" : ""
                     }`}
                     value={price}
                     onChange={(e) => handlePriceChange(e.target.value)}
@@ -315,7 +314,7 @@ export default function NewItemPage() {
                     required
                   />
                   {priceError && (
-                    <p className="text-sm text-red-600">{priceError}</p>
+                    <p className="text-sm text-[#780606]">{priceError}</p>
                   )}
                 </div>
               </div>
@@ -330,12 +329,12 @@ export default function NewItemPage() {
                 />
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Quantity<span className="text-red-500">*</span>
+                    Quantity<span className="text-[#780606]">*</span>
                   </label>
                   <input
                     type="text"
                     className={`w-full rounded-xl border p-3 outline-none ${
-                      qtyError ? "border-red-500" : ""
+                      qtyError ? "border-[#780606]" : ""
                     }`}
                     value={qty}
                     onChange={(e) => handleQtyChange(e.target.value)}
@@ -343,7 +342,7 @@ export default function NewItemPage() {
                     required
                   />
                   {qtyError && (
-                    <p className="text-sm text-red-600">{qtyError}</p>
+                    <p className="text-sm text-[#780606]">{qtyError}</p>
                   )}
                 </div>
               </div>
@@ -351,7 +350,7 @@ export default function NewItemPage() {
               {/* Description */}
               <div className="mb-6">
                 <label className="block text-sm font-medium mb-1">
-                  Description<span className="text-red-500">*</span>
+                  Description<span className="text-[#780606]">*</span>
                 </label>
                 <textarea
                   className="w-full min-h-[120px] rounded-xl border p-3 outline-none"
@@ -374,7 +373,7 @@ export default function NewItemPage() {
                 {submitting ? "Adding…" : "Add to Marketplace"}
               </motion.button>
 
-              {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+              {error && <p className="mt-3 text-sm text-[#780606]">{error}</p>}
               {ok && (
                 <p className="mt-3 text-sm text-green-600">Item posted! 🎉</p>
               )}

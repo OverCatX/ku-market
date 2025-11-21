@@ -330,7 +330,7 @@ export default function EditItemPage() {
                     <div
                       key={index}
                       className={`relative aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 ${
-                        isRemoved ? "opacity-50 border-red-300" : "border-transparent"
+                        isRemoved ? "opacity-50 border-[#780606]" : "border-transparent"
                       }`}
                     >
                       <Image
@@ -354,7 +354,7 @@ export default function EditItemPage() {
                         <button
                           type="button"
                           onClick={() => removeExistingImage(index)}
-                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          className="absolute top-2 right-2 p-1 bg-[#780606] text-white rounded-full hover:bg-[#780606] transition-colors"
                         >
                           <X size={14} />
                         </button>
@@ -386,7 +386,7 @@ export default function EditItemPage() {
                     <button
                       type="button"
                       onClick={() => removeNewImage(index)}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                      className="absolute top-2 right-2 p-1 bg-[#780606] text-white rounded-full hover:bg-[#780606] transition-colors"
                     >
                       <X size={14} />
                     </button>

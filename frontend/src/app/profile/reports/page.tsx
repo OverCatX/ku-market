@@ -73,7 +73,8 @@ export default function MyReportsPage() {
 
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', paddingTop: '2rem', paddingBottom: '2rem' }}>
+      <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-6">
         <Link
           href="/profile"
@@ -86,7 +87,7 @@ export default function MyReportsPage() {
 
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Reports</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130]">My Reports</h1>
           <p className="text-sm md:text-base text-gray-600">
             Track the status of reports you have submitted to the KU Market admin team.
           </p>
@@ -95,9 +96,9 @@ export default function MyReportsPage() {
           type="button"
           onClick={handleRefresh}
           disabled={refreshing}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-blue-600 border border-blue-200 hover:bg-blue-50 transition disabled:opacity-60"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-[#4A5130] hover:bg-[#4A5130]/60 hover:text-[#F6F2E5] transition disabled:opacity-60 group"
         >
-          <RefreshCcw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+          <RefreshCcw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""} text-[#4A5130] group-hover:text-[#F6F2E5]`} />
           Refresh
         </button>
       </header>
@@ -108,14 +109,14 @@ export default function MyReportsPage() {
         </div>
       ) : reports.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-xl p-10 text-center text-gray-500">
-          <Flag className="w-10 h-10 mx-auto mb-3 text-gray-400" />
-          <p className="text-lg font-semibold">No reports yet</p>
-          <p className="text-sm text-gray-500">
+          <Flag className="w-10 h-10 mx-auto mb-3 text-[#69773D]" />
+          <p className="text-lg font-semibold text-[#4A5130]">No reports yet</p>
+          <p className="text-sm text-[#69773D]">
             If you encounter an issue, you can submit a report from the report center.
           </p>
           <Link
             href="/report"
-            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-[#4B5D34] to-[#7BAA5F] shadow hover:shadow-lg transition"
+            className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-[#F6F2E5] bg-[#69773D] shadow hover:shadow-lg hover:bg-[#5a6530] transition"
           >
             Go to Report Center
           </Link>
@@ -130,7 +131,7 @@ export default function MyReportsPage() {
             >
               <header className="px-5 py-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <div className="rounded-full bg-red-100 text-red-600 p-2 mt-1">
+                  <div className="rounded-full bg-[#780606] text-white p-2 mt-1">
                     <Flag className="w-4 h-4" />
                   </div>
                   <div>
@@ -214,6 +215,7 @@ export default function MyReportsPage() {
             )}
         </>
       )}
+      </div>
     </div>
   );
 }

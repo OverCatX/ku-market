@@ -206,12 +206,12 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md bg-white shadow-lg rounded-2xl border border-gray-200 sm:p-8 p-6 transform transition-all duration-300 hover:shadow-xl">
       <div className="text-center mb-6">
-        <h2
+      <h2
           className="text-2xl font-semibold text-gray-700 mb-2 animate-fade-in"
-          style={{ color: aboutColors.oliveDark }}
-        >
-          Login to Your Account
-        </h2>
+        style={{ color: aboutColors.oliveDark }}
+      >
+        Login to Your Account
+      </h2>
         <div
           className="w-16 h-1 mx-auto rounded-full"
           style={{
@@ -222,7 +222,7 @@ export function LoginForm() {
 
       {redirectTo !== "/" && (
         <div
-          className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in"
+          className="mb-4 p-3 bg-blue-50 border border-[#F6F2E5] rounded-lg animate-fade-in"
           style={{ backgroundColor: aboutColors.creamSoft }}
         >
           <p
@@ -255,11 +255,11 @@ export function LoginForm() {
             KU Email
           </label>
           <div className="relative">
-            <input
-              type="email"
-              placeholder="andes_nmezad@ku.th"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+          <input
+            type="email"
+            placeholder="andes_nmezad@ku.th"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
               onFocus={() => setFocusedField("email")}
               onBlur={() => setFocusedField(null)}
               className={`w-full px-4 py-3 pr-10 border rounded-lg transition-all duration-200 ease-out focus:ring-2 focus:ring-[#69773D] focus:border-transparent focus:outline-none ${
@@ -268,18 +268,18 @@ export function LoginForm() {
                   : "border-gray-300 hover:border-gray-400"
               } ${
                 isValidEmail === true
-                  ? "border-green-500"
+                  ? "border-[#69773D]"
                   : isValidEmail === false && email
                   ? "border-red-400"
                   : ""
               } ${errors.email ? "border-red-400" : ""}`}
-              required
-            />
+            required
+          />
             {email && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                 {isValidEmail ? (
                   <svg
-                    className="w-5 h-5 text-green-500 animate-fade-in"
+                    className="w-5 h-5 text-[#69773D] animate-fade-in"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -331,7 +331,7 @@ export function LoginForm() {
             </p>
           )}
           {errors.email && (
-            <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+            <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
               <svg
                 className="w-4 h-4 mr-1"
                 fill="currentColor"
@@ -357,11 +357,11 @@ export function LoginForm() {
             Password
           </label>
           <div className="relative">
-            <input
+          <input
               type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
               onFocus={() => setFocusedField("password")}
               onBlur={() => setFocusedField(null)}
               className={`w-full px-4 py-3 pr-12 border rounded-lg transition-all duration-200 ease-out focus:ring-2 focus:ring-[#69773D] focus:border-transparent focus:outline-none ${
@@ -369,8 +369,8 @@ export function LoginForm() {
                   ? "border-[#69773D] shadow-sm"
                   : "border-gray-300 hover:border-gray-400"
               } ${errors.password ? "border-red-400" : ""}`}
-              required
-            />
+            required
+          />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -424,7 +424,7 @@ export function LoginForm() {
             )}
           </div>
           {errors.password && (
-            <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+            <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
               <svg
                 className="w-4 h-4 mr-1"
                 fill="currentColor"
@@ -466,8 +466,8 @@ export function LoginForm() {
         </div>
 
         {apiError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 animate-fade-in">
-            <p className="text-red-600 text-center text-sm flex items-center justify-center">
+          <div className="p-3 bg-[#780606]/10 rounded-lg text-[#780606] text-center text-sm mt-1 animate-fade-in">
+            <p className="flex items-center justify-center">
               <svg
                 className="w-5 h-5 mr-2"
                 fill="currentColor"
@@ -622,7 +622,7 @@ export function LoginForm() {
 
         <Link
           href="/signup"
-          className="mt-2 w-full bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-green-50 transition-all duration-200 ease-out group"
+          className="mt-2 w-full bg-transparent py-3 rounded-lg flex justify-center items-center shadow-sm hover:shadow-md hover:bg-[#69773D]/10 transition-all duration-200 ease-out group"
           style={{
             color: aboutColors.oliveDark,
             border: `1px solid ${aboutColors.oliveDark}`,
@@ -630,7 +630,7 @@ export function LoginForm() {
         >
           <span>Don&apos;t have an account?</span>
           <span className="ml-2 font-semibold group-hover:translate-x-0.5 transition-transform duration-200 ease-out">
-            Sign up
+          Sign up
           </span>
           <svg
             className="w-5 h-5 ml-2 transform group-hover:translate-x-0.5 transition-transform duration-200 ease-out"

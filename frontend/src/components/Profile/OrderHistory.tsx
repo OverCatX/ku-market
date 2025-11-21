@@ -4,13 +4,13 @@ import { ShoppingBag } from "lucide-react";
 export default function OrderHistory() {
   return (
     <section className="mt-10">
-      <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-800 mb-4">
+      <h2 className="flex items-center gap-2 text-xl font-semibold text-[#4A5130] mb-4">
         <ShoppingBag className="w-5 h-5 text-[#69773D]" />
         Order History
       </h2>
 
       <div className="rounded-2xl border border-[#dfe7cf] bg-gradient-to-br from-[#f8fbf3] to-white p-6 shadow-sm">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-[#4A5130]">
           Keep track of every purchase you&apos;ve made on KU Market. View current
           statuses, delivery methods, and detailed receipts.
         </p>

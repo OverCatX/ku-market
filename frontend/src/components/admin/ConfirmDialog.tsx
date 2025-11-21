@@ -28,9 +28,9 @@ export function ConfirmDialog({
   if (!isOpen) return null;
 
   const variantStyles = {
-    danger: "bg-red-600 hover:bg-red-700",
-    warning: "bg-orange-600 hover:bg-orange-700",
-    primary: "bg-blue-600 hover:bg-blue-700",
+    danger: "bg-[#780606] hover:bg-[#5c0505]",
+    warning: "bg-[#780606] hover:bg-[#5c0505]",
+    primary: "bg-[#69773D] hover:bg-[#5a6530]",
   };
 
   return (
@@ -52,13 +52,29 @@ export function ConfirmDialog({
         </button>
 
         {/* Icon */}
-        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 mb-4">
-          <AlertTriangle className="text-orange-600" size={24} />
+        <div className={`flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
+          variant === "danger" || variant === "warning" 
+            ? "bg-[#780606]/10" 
+            : "bg-[#4A5130]/10"
+        }`}>
+          <AlertTriangle className={
+            variant === "danger" || variant === "warning" 
+              ? "text-[#780606]" 
+              : "text-[#4A5130]"
+          } size={24} />
         </div>
 
         {/* Content */}
-        <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-4">{message}</p>
+        <h3 className={`text-xl font-bold mb-2 ${
+          variant === "danger" || variant === "warning" 
+            ? "text-[#780606]" 
+            : "text-[#4A5130]"
+        }`}>{title}</h3>
+        <p className={`mb-4 ${
+          variant === "danger" || variant === "warning" 
+            ? "text-[#780606]/60" 
+            : "text-[#69773D]"
+        }`}>{message}</p>
 
         {/* Additional Content */}
         {children}
@@ -73,7 +89,7 @@ export function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className={`flex-1 px-4 py-2 rounded-lg text-white transition-colors ${variantStyles[variant]}`}
+            className={`flex-1 px-4 py-2 rounded-lg text-[#F6F2E5] transition-colors ${variantStyles[variant]}`}
           >
             {confirmText}
           </button>

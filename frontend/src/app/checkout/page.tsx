@@ -407,7 +407,7 @@ export default function CheckoutPage() {
   // Show loading state during SSR, initial mount, or auth check
   if (!isMounted || isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen py-8" style={{ backgroundColor: "#F6F2E5" }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
@@ -429,27 +429,27 @@ export default function CheckoutPage() {
   // Show verification required page if not verified
   if (!isVerified) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen py-8" style={{ backgroundColor: "#F6F2E5" }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-2xl">
           <div className="bg-white rounded-lg shadow-sm p-8 md:p-12 text-center">
             <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertCircle className="w-12 h-12 text-yellow-600" />
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130] mb-4">
               Verification Required
             </h1>
 
-            <p className="text-gray-600 mb-6 leading-relaxed">
+            <p className="text-[#4A5130]/70 mb-6 leading-relaxed">
               To place an order, you need to verify your identity first. This
               helps us maintain a safe and trusted marketplace for all users.
             </p>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-800">
+            <div className="bg-[#4A5130]/10 border border-[#4A5130]/30 rounded-lg p-4 mb-6">
+              <p className="text-sm text-[#4A5130]">
                 <strong>Why verify?</strong>
               </p>
-              <ul className="text-sm text-blue-700 mt-2 space-y-1 text-left list-disc list-inside">
+              <ul className="text-sm text-[#4A5130] mt-2 space-y-1 text-left list-disc list-inside">
                 <li>Build trust with sellers</li>
                 <li>Secure your transactions</li>
                 <li>Unlock full marketplace features</li>
@@ -459,7 +459,7 @@ export default function CheckoutPage() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={() => router.push("/verify-identity")}
-                className="px-6 py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition font-semibold flex items-center justify-center gap-2"
+                className="px-6 py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#84B067] transition font-semibold flex items-center justify-center gap-2"
               >
                 <CheckCircle2 className="w-5 h-5" />
                 Verify My Identity
@@ -467,7 +467,7 @@ export default function CheckoutPage() {
 
               <button
                 onClick={() => router.push("/marketplace")}
-                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold"
+                className="px-6 py-3 border-2 border-gray-300 text-[#4A5130]/80 rounded-lg hover:bg-gray-50 transition font-semibold"
               >
                 Back to Marketplace
               </button>
@@ -484,8 +484,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-7xl">
+    <div className="min-h-screen py-8" style={{ backgroundColor: "#F6F2E5" }}>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
 
         <form onSubmit={handleSubmit}>
@@ -506,7 +506,7 @@ export default function CheckoutPage() {
                   <label
                     className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
                       deliveryMethod === "pickup"
-                        ? "border-[#84B067] bg-green-50"
+                        ? "border-[#84B067] bg-[#69773D]/10"
                         : "border-gray-300 hover:border-[#84B067]"
                     }`}
                   >
@@ -535,7 +535,7 @@ export default function CheckoutPage() {
                   <label
                     className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
                       deliveryMethod === "delivery"
-                        ? "border-[#84B067] bg-green-50"
+                        ? "border-[#84B067] bg-[#69773D]/10"
                         : "border-gray-300 hover:border-[#84B067]"
                     }`}
                   >
@@ -677,7 +677,7 @@ export default function CheckoutPage() {
                                   note: "",
                                 }))
                               }
-                              className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                              className="rounded-full border border-[#780606] bg-white px-3 py-1 text-xs font-medium text-[#780606] hover:bg-[#780606]/10"
                             >
                               Reset pin
                             </button>
@@ -709,10 +709,10 @@ export default function CheckoutPage() {
                                     : ""
                                 } ${
                                   isValidLocationName === true
-                                    ? "border-green-500"
+                                    ? "border-[#69773D]"
                                     : isValidLocationName === false &&
                                       pickupDetails.locationName
-                                    ? "border-red-400"
+                                    ? "border-[#780606]"
                                     : "border-[#dfe7cf]"
                                 }`}
                                 placeholder="e.g. KU Avenue Plaza entrance"
@@ -720,7 +720,7 @@ export default function CheckoutPage() {
                               {isValidLocationName && (
                                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                                   <svg
-                                    className="w-5 h-5 text-green-500 animate-fade-in"
+                                    className="w-5 h-5 text-[#69773D] animate-fade-in"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                   >
@@ -735,7 +735,7 @@ export default function CheckoutPage() {
                             </div>
                             {pickupDetails.locationName &&
                               isValidLocationName === false && (
-                                <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                                <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
                                   <svg
                                     className="w-4 h-4 mr-1"
                                     fill="currentColor"
@@ -857,7 +857,7 @@ export default function CheckoutPage() {
                                 <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
                                   Preferred Time
                                 </span>
-                                <span className="text-right text-sm font-medium text-blue-600">
+                                <span className="text-right text-sm font-medium text-[#4A5130]">
                                   {new Date(
                                     pickupDetails.preferredTime
                                   ).toLocaleString("th-TH", {
@@ -911,7 +911,7 @@ export default function CheckoutPage() {
                           focusedField === "fullName" ? "shadow-sm" : ""
                         } ${
                           shippingInfo.fullName.trim()
-                            ? "border-green-500"
+                            ? "border-[#69773D]"
                             : "border-gray-300"
                         }`}
                         placeholder="John Doe"
@@ -919,7 +919,7 @@ export default function CheckoutPage() {
                       {shippingInfo.fullName.trim() && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           <svg
-                            className="w-5 h-5 text-green-500 animate-fade-in"
+                            className="w-5 h-5 text-[#69773D] animate-fade-in"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -955,9 +955,9 @@ export default function CheckoutPage() {
                           focusedField === "phone" ? "shadow-sm" : ""
                         } ${
                           isValidPhone === true
-                            ? "border-green-500"
+                            ? "border-[#69773D]"
                             : isValidPhone === false && shippingInfo.phone
-                            ? "border-red-400"
+                            ? "border-[#780606]"
                             : "border-gray-300"
                         }`}
                         placeholder="081-234-5678"
@@ -966,7 +966,7 @@ export default function CheckoutPage() {
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           {isValidPhone ? (
                             <svg
-                              className="w-5 h-5 text-green-500 animate-fade-in"
+                              className="w-5 h-5 text-[#69773D] animate-fade-in"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -978,7 +978,7 @@ export default function CheckoutPage() {
                             </svg>
                           ) : (
                             <svg
-                              className="w-5 h-5 text-red-500 animate-fade-in"
+                              className="w-5 h-5 text-[#780606] animate-fade-in"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -993,7 +993,7 @@ export default function CheckoutPage() {
                       )}
                     </div>
                     {shippingInfo.phone && isValidPhone === false && (
-                      <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                      <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
                         <svg
                           className="w-4 h-4 mr-1"
                           fill="currentColor"
@@ -1046,9 +1046,9 @@ export default function CheckoutPage() {
                             focusedField === "address" ? "shadow-sm" : ""
                           } ${
                             isValidAddress === true
-                              ? "border-green-500"
+                              ? "border-[#69773D]"
                               : isValidAddress === false && shippingInfo.address
-                              ? "border-red-400"
+                              ? "border-[#780606]"
                               : "border-gray-300"
                           }`}
                           rows={3}
@@ -1057,7 +1057,7 @@ export default function CheckoutPage() {
                         {isValidAddress && (
                           <div className="absolute bottom-3 right-3">
                             <svg
-                              className="w-5 h-5 text-green-500 animate-fade-in"
+                              className="w-5 h-5 text-[#69773D] animate-fade-in"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -1071,7 +1071,7 @@ export default function CheckoutPage() {
                         )}
                       </div>
                       {shippingInfo.address && isValidAddress === false && (
-                        <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                        <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
                           <svg
                             className="w-4 h-4 mr-1"
                             fill="currentColor"
@@ -1112,9 +1112,9 @@ export default function CheckoutPage() {
                               focusedField === "city" ? "shadow-sm" : ""
                             } ${
                               isValidCity === true
-                                ? "border-green-500"
+                                ? "border-[#69773D]"
                                 : isValidCity === false && shippingInfo.city
-                                ? "border-red-400"
+                                ? "border-[#780606]"
                                 : "border-gray-300"
                             }`}
                             placeholder="Bangkok"
@@ -1122,7 +1122,7 @@ export default function CheckoutPage() {
                           {isValidCity && (
                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                               <svg
-                                className="w-5 h-5 text-green-500 animate-fade-in"
+                                className="w-5 h-5 text-[#69773D] animate-fade-in"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -1136,7 +1136,7 @@ export default function CheckoutPage() {
                           )}
                         </div>
                         {shippingInfo.city && isValidCity === false && (
-                          <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                          <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
                             <svg
                               className="w-4 h-4 mr-1"
                               fill="currentColor"
@@ -1174,10 +1174,10 @@ export default function CheckoutPage() {
                               focusedField === "postalCode" ? "shadow-sm" : ""
                             } ${
                               isValidPostalCode === true
-                                ? "border-green-500"
+                                ? "border-[#69773D]"
                                 : isValidPostalCode === false &&
                                   shippingInfo.postalCode
-                                ? "border-red-400"
+                                ? "border-[#780606]"
                                 : "border-gray-300"
                             }`}
                             placeholder="10110"
@@ -1186,7 +1186,7 @@ export default function CheckoutPage() {
                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                               {isValidPostalCode ? (
                                 <svg
-                                  className="w-5 h-5 text-green-500 animate-fade-in"
+                                  className="w-5 h-5 text-[#69773D] animate-fade-in"
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
                                 >
@@ -1198,7 +1198,7 @@ export default function CheckoutPage() {
                                 </svg>
                               ) : (
                                 <svg
-                                  className="w-5 h-5 text-red-500 animate-fade-in"
+                                  className="w-5 h-5 text-[#780606] animate-fade-in"
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
                                 >
@@ -1214,7 +1214,7 @@ export default function CheckoutPage() {
                         </div>
                         {shippingInfo.postalCode &&
                           isValidPostalCode === false && (
-                            <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                            <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
                               <svg
                                 className="w-4 h-4 mr-1"
                                 fill="currentColor"
@@ -1251,7 +1251,7 @@ export default function CheckoutPage() {
                     <label
                       className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
                         paymentMethod === "cash"
-                          ? "border-[#84B067] bg-green-50"
+                          ? "border-[#84B067] bg-[#69773D]/10"
                           : "border-gray-300 hover:border-[#84B067]"
                       }`}
                     >
@@ -1279,7 +1279,7 @@ export default function CheckoutPage() {
                   <label
                     className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
                       paymentMethod === "promptpay"
-                        ? "border-[#84B067] bg-green-50"
+                        ? "border-[#84B067] bg-[#69773D]/10"
                         : "border-gray-300 hover:border-[#84B067]"
                     }`}
                   >
@@ -1304,22 +1304,50 @@ export default function CheckoutPage() {
 
                   {/* Info message for PromptPay */}
                   {paymentMethod === "promptpay" && (
-                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-start gap-2">
-                        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <div className="text-sm text-blue-800">
-                          <p className="font-medium mb-1">PromptPay Payment:</p>
-                          <ul className="list-disc list-inside space-y-1 text-xs">
-                            <li>
-                              QR code will be available after seller confirms
-                              your order
-                            </li>
-                            <li>You can make payment from the Orders page</li>
-                            <li>
-                              Please transfer within 24 hours after order
-                              confirmation
-                            </li>
-                          </ul>
+                    <div className="mt-4 p-6 bg-[#4A5130]/10 rounded-lg border-2 border-[#4A5130]/20">
+                      <div className="text-center mb-4">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                          Scan QR Code to Pay
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Amount:{" "}
+                          <span className="font-bold text-[#4A5130]">
+                            ฿{getTotalPrice().toLocaleString("th-TH")}
+                          </span>
+                        </p>
+                      </div>
+
+                      {/* QR Code Placeholder */}
+                      <div className="flex justify-center mb-4">
+                        <div className="bg-white p-4 rounded-lg shadow-md">
+                          <div className="w-48 h-48 bg-[#69773D]/10 border-2 border-[#69773D]/20 rounded-lg flex items-center justify-center">
+                            <div className="text-center">
+                              <QrCode className="w-16 h-16 mx-auto mb-2 text-gray-400" />
+                              <p className="text-xs text-gray-500">
+                                Payment QR Code
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                (Will be displayed after order confirmation)
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                          <div className="text-sm text-yellow-800">
+                            <p className="font-medium mb-1">Note:</p>
+                            <ul className="list-disc list-inside space-y-1 text-xs">
+                              <li>Please transfer within 24 hours</li>
+                              <li>Keep your payment proof for verification</li>
+                              <li>
+                                Seller will confirm order after payment
+                                verification
+                              </li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1353,7 +1381,7 @@ export default function CheckoutPage() {
                         <p className="text-sm text-gray-600">
                           Qty: {item.quantity}
                         </p>
-                        <p className="text-sm font-bold text-[#84B067]">
+                        <p className="text-sm font-bold text-[#4A5130]">
                           ฿
                           {(item.price * item.quantity).toLocaleString("th-TH")}
                         </p>
@@ -1365,15 +1393,17 @@ export default function CheckoutPage() {
                 <div className="space-y-3 mb-6 border-t pt-4">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
-                    <span>฿{getTotalPrice().toLocaleString("th-TH")}</span>
+                    <span className="text-[#4A5130]">
+                      ฿{getTotalPrice().toLocaleString("th-TH")}
+                    </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
-                    <span className="text-green-600">Free</span>
+                    <span className="text-[#69773D]">Free</span>
                   </div>
                   <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-900">
                     <span>Total</span>
-                    <span className="text-[#84B067]">
+                    <span className="text-[#4A5130]">
                       ฿{getTotalPrice().toLocaleString("th-TH")}
                     </span>
                   </div>
@@ -1382,16 +1412,16 @@ export default function CheckoutPage() {
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="w-full px-6 py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full px-6 py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#84B067] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Confirm Order"}
                 </button>
 
                 {/* Order Info */}
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="mt-4 p-3 bg-[#4A5130]/10 border border-[#4A5130]/20 rounded-lg">
                   <div className="flex items-start gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-xs text-blue-800">
+                    <CheckCircle2 className="w-5 h-5 text-[#4A5130] flex-shrink-0 mt-0.5" />
+                    <div className="text-xs text-[#4A5130]">
                       <p className="font-medium mb-1">Order Details:</p>
                       <p className="mb-1">
                         <span className="font-medium">Delivery:</span>{" "}
@@ -1420,7 +1450,7 @@ export default function CheckoutPage() {
                       )}
                       {deliveryMethod === "pickup" &&
                         pickupDetails.preferredTime && (
-                          <p className="mb-1 text-blue-600">
+                          <p className="mb-1 text-[#4A5130]">
                             <span className="font-medium">Preferred time:</span>{" "}
                             {new Date(
                               pickupDetails.preferredTime
@@ -1455,13 +1485,13 @@ export default function CheckoutPage() {
             <div className="p-6">
               {/* Header */}
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-10 h-10 text-blue-600" />
+                <div className="w-16 h-16 bg-[#69773D]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-10 h-10 text-[#69773D]" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-[#4A5130] mb-2">
                   Confirm Your Order
                 </h2>
-                <p className="text-gray-600 text-sm">
+                <p className="text-[#69773D] text-sm">
                   Please review the details before confirming
                 </p>
               </div>
@@ -1481,7 +1511,7 @@ export default function CheckoutPage() {
                         <span className="text-gray-700 flex-1 mr-2 line-clamp-1">
                           {item.title} x{item.quantity}
                         </span>
-                        <span className="font-medium text-gray-900 whitespace-nowrap">
+                        <span className="font-medium text-[#4A5130] whitespace-nowrap">
                           ฿
                           {(item.price * item.quantity).toLocaleString("th-TH")}
                         </span>
@@ -1491,7 +1521,7 @@ export default function CheckoutPage() {
                   <div className="border-t mt-3 pt-3">
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total</span>
-                      <span className="text-[#84B067]">
+                      <span className="text-[#4A5130]">
                         ฿{getTotalPrice().toLocaleString("th-TH")}
                       </span>
                     </div>
@@ -1550,7 +1580,7 @@ export default function CheckoutPage() {
                           </p>
                         )}
                         {pickupDetails.preferredTime && (
-                          <p className="text-[11px] text-blue-600 font-medium">
+                          <p className="text-[11px] text-[#4A5130] font-medium">
                             Preferred time:{" "}
                             {new Date(
                               pickupDetails.preferredTime
@@ -1629,7 +1659,7 @@ export default function CheckoutPage() {
                 <button
                   onClick={handleConfirmOrder}
                   disabled={isProcessing}
-                  className="flex-1 px-6 py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#84B067] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isProcessing ? (
                     <>

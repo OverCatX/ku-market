@@ -243,9 +243,9 @@ describe("NotificationBell Component", () => {
       });
       
       await waitFor(() => {
-        // Check that the unread notification container has the highlight class (green-50 instead of blue-50)
+        // Check that the unread notification container has the highlight class
         const notificationElements = screen.getAllByRole("generic").filter(el => 
-          el.className.includes("bg-green-50") || el.className.includes("border-[#69773D]")
+          el.className.includes("bg-[#8DB368]/10") || el.className.includes("border-[#8DB368]")
         );
         expect(notificationElements.length).toBeGreaterThan(0);
       });

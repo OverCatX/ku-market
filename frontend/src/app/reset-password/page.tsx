@@ -15,7 +15,7 @@ export default function ResetPasswordPage() {
   }, [token, router]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ backgroundColor: '#F6F2E5' }}>
       <ResetPasswordModal
         open={open}
         token={token}

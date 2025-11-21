@@ -18,6 +18,7 @@ import {
   MapPin,
   QrCode,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { API_BASE } from "@/config/constants";
@@ -108,17 +109,17 @@ const statusStyles: Record<
   },
   confirmed: {
     label: "Confirmed",
-    badge: "bg-blue-100 text-blue-700",
+    badge: "bg-[#724a24]/10 text-[#724a24]",
     icon: Package,
   },
   completed: {
     label: "Completed",
-    badge: "bg-green-100 text-green-700",
+    badge: "bg-[#69773D]/10 text-[#69773D]",
     icon: CheckCircle,
   },
   rejected: {
     label: "Rejected",
-    badge: "bg-red-100 text-red-700",
+    badge: "bg-[#780606]/10 text-[#780606] border border-[#780606]/20",
     icon: XCircle,
   },
   cancelled: {
@@ -156,11 +157,11 @@ const paymentStatusBadge = (status?: OrderDetail["paymentStatus"]) => {
     },
     awaiting_payment: {
       label: "Awaiting your payment",
-      className: "bg-orange-100 text-orange-800",
+      className: "bg-[#780606]/10 text-[#780606]",
     },
     payment_submitted: {
       label: "Payment submitted",
-      className: "bg-blue-100 text-blue-700",
+      className: "bg-[#69773D]/10 text-[#69773D]",
     },
     paid: {
       label: "Payment completed",
@@ -530,7 +531,10 @@ export default function OrderDetailPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div
+        className="min-h-screen py-12"
+        style={{ backgroundColor: "#F6F2E5" }}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
           <div className="rounded-3xl bg-white p-8 shadow animate-pulse">
             <div className="h-8 w-40 rounded bg-gray-200" />
@@ -555,10 +559,13 @@ export default function OrderDetailPage({
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div
+        className="min-h-screen py-12"
+        style={{ backgroundColor: "#F6F2E5" }}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-3xl">
           <div className="rounded-3xl bg-white p-8 shadow text-center">
-            <XCircle className="mx-auto h-12 w-12 text-red-500" />
+            <XCircle className="mx-auto h-12 w-12 text-[#780606]" />
             <h1 className="mt-4 text-2xl font-bold text-gray-900">Oops!</h1>
             <p className="mt-2 text-gray-600">
               {error || "We couldn’t find this order."}
@@ -596,8 +603,18 @@ export default function OrderDetailPage({
             href="/orders"
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-[#4c5c2f] hover:text-[#2f3816]"
           >
-            <ArrowLeft size={14} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Back to orders</span><span className="sm:hidden">Back</span>
+            <ArrowLeft size={14} className="sm:w-4 sm:h-4" />{" "}
+            <span className="hidden sm:inline">Back to orders</span>
+            <span className="sm:hidden">Back</span>
           </Link>
+          <button
+            onClick={fetchOrder}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+            Refresh
+          </button>
         </div>
 
         <div className="rounded-2xl sm:rounded-3xl bg-white/90 border border-[#e4ecd7] shadow-xl shadow-[#c8d3ba]/30 p-4 sm:p-6 lg:p-8">
@@ -611,7 +628,10 @@ export default function OrderDetailPage({
                   {order.id}
                 </h1>
               </div>
-              <StatusIcon size={28} className="text-[#69773D] flex-shrink-0 sm:w-8 sm:h-8" />
+              <StatusIcon
+                size={28}
+                className="text-[#69773D] flex-shrink-0 sm:w-8 sm:h-8"
+              />
             </div>
 
             {statusBlock}
@@ -621,7 +641,7 @@ export default function OrderDetailPage({
                 {statusTips[normalizedStatus]}
               </p>
               {order.rejectionReason && (
-                <p className="mt-2 text-xs sm:text-sm font-semibold text-red-600">
+                <p className="mt-2 text-xs sm:text-sm font-semibold text-[#780606]">
                   Reason: {order.rejectionReason}
                 </p>
               )}
@@ -663,7 +683,7 @@ export default function OrderDetailPage({
                 ))}
               </div>
               <div className="mt-4 flex flex-col gap-1 text-sm text-gray-600">
-                <div className="flex justify-between font-semibold text-gray-900">
+                <div className="flex justify-between font-semibold text-[#4A5130]">
                   <span>Total amount</span>
                   <span>{order.totalPrice.toLocaleString()} THB</span>
                 </div>
@@ -725,9 +745,12 @@ export default function OrderDetailPage({
                         </p>
                       )}
                       {order.pickupDetails.preferredTime && (
-                        <p className="text-[11px] text-blue-600 font-medium flex items-center gap-1">
+                        <p className="text-[11px] text-[#69773D] font-medium flex items-center gap-1">
                           <Clock size={10} />
-                          Preferred time: {new Date(order.pickupDetails.preferredTime).toLocaleString("th-TH", {
+                          Preferred time:{" "}
+                          {new Date(
+                            order.pickupDetails.preferredTime
+                          ).toLocaleString("th-TH", {
                             year: "numeric",
                             month: "short",
                             day: "numeric",
@@ -760,7 +783,7 @@ export default function OrderDetailPage({
                     className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs sm:text-sm font-semibold transition ${
                       contactingSeller
                         ? "border-[#d6e4c3] bg-[#f3f8ed] text-gray-400 cursor-not-allowed"
-                        : "border-[#d6e4c3] text-[#4c5c2f] hover:bg-[#f3f8ed]"
+                        : "bg-[#69773D]/80 text-[#F6F2E5] hover:bg-[#69773D]/90 border-[#69773D]"
                     }`}
                   >
                     <MessageCircle size={14} className="sm:w-4 sm:h-4" />
@@ -774,7 +797,6 @@ export default function OrderDetailPage({
                 </div>
               </div>
             </section>
-
 
             <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3">
               {/* Payment button for PromptPay when order is confirmed */}
@@ -803,9 +825,7 @@ export default function OrderDetailPage({
                     <span className="hidden sm:inline">
                       Submit Payment Notification
                     </span>
-                    <span className="sm:hidden">
-                      Submit Payment
-                    </span>
+                    <span className="sm:hidden">Submit Payment</span>
                   </button>
                 )}
               {normalizedStatus === "confirmed" &&
@@ -817,16 +837,24 @@ export default function OrderDetailPage({
                       order.paymentMethod === "transfer") &&
                       !paymentComplete && (
                         <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-yellow-100 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-yellow-800">
-                          <AlertCircle size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
-                          <span className="hidden sm:inline">Please submit payment first before confirming receipt</span>
-                          <span className="sm:hidden">Submit payment first</span>
+                          <AlertCircle
+                            size={14}
+                            className="sm:w-4 sm:h-4 flex-shrink-0"
+                          />
+                          <span className="hidden sm:inline">
+                            Please submit payment first before confirming
+                            receipt
+                          </span>
+                          <span className="sm:hidden">
+                            Submit payment first
+                          </span>
                         </div>
                       )}
                     {/* Show button only if: cash payment OR payment is completed */}
-                    {((order.paymentMethod === "cash") ||
-                      (order.paymentMethod === "promptpay" ||
+                    {(order.paymentMethod === "cash" ||
+                      ((order.paymentMethod === "promptpay" ||
                         order.paymentMethod === "transfer") &&
-                        paymentComplete) && (
+                        paymentComplete)) && (
                       <button
                         type="button"
                         onClick={handleMarkReceived}
@@ -834,12 +862,14 @@ export default function OrderDetailPage({
                         className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition ${
                           markingReceived
                             ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                            : "bg-green-600 text-white hover:bg-green-700"
+                            : "bg-[#e0cd95] text-[#8c522f] hover:bg-[#d4c085]"
                         }`}
                       >
                         <CheckCircle size={14} className="sm:w-4 sm:h-4" />
                         <span className="hidden sm:inline">
-                          {markingReceived ? "Saving..." : "I received the product"}
+                          {markingReceived
+                            ? "Saving..."
+                            : "I received the product"}
                         </span>
                         <span className="sm:hidden">
                           {markingReceived ? "Saving..." : "Received"}
@@ -848,24 +878,39 @@ export default function OrderDetailPage({
                     )}
                   </>
                 )}
-              {order.buyerReceived && (
-                <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-green-100 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-green-700">
-                  <CheckCircle size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">You have confirmed receiving the product</span>
-                  <span className="sm:hidden">Received confirmed</span>
+              {order.buyerReceived && !order.sellerDelivered && (
+                <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-[#e0cd95]/30 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-[#8c522f]">
+                  <CheckCircle
+                    size={14}
+                    className="sm:w-4 sm:h-4 flex-shrink-0"
+                  />
+                  <span className="hidden sm:inline">
+                    You have confirmed receiving the product
+                  </span>
+                  <span className="sm:hidden">Received</span>
                 </div>
               )}
               {order.sellerDelivered && !order.buyerReceived && (
                 <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-blue-100 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-blue-700">
-                  <CheckCircle size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Seller has confirmed delivery - Please confirm receipt</span>
+                  <CheckCircle
+                    size={14}
+                    className="sm:w-4 sm:h-4 flex-shrink-0"
+                  />
+                  <span className="hidden sm:inline">
+                    Seller has confirmed delivery - Please confirm receipt
+                  </span>
                   <span className="sm:hidden">Please confirm receipt</span>
                 </div>
               )}
               {order.buyerReceived && order.sellerDelivered && (
                 <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-green-200 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-green-800">
-                  <CheckCircle size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden sm:inline">Both parties confirmed - Order completed</span>
+                  <CheckCircle
+                    size={14}
+                    className="sm:w-4 sm:h-4 flex-shrink-0"
+                  />
+                  <span className="hidden sm:inline">
+                    Both parties confirmed - Order completed
+                  </span>
                   <span className="sm:hidden">Order completed</span>
                 </div>
               )}
@@ -873,13 +918,17 @@ export default function OrderDetailPage({
                 href="/orders"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl bg-[#69773D] px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-[#55602f] transition"
               >
-                <ArrowLeft size={14} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Back to my orders</span><span className="sm:hidden">Back</span>
+                <ArrowLeft size={14} className="sm:w-4 sm:h-4" />{" "}
+                <span className="hidden sm:inline">Back to my orders</span>
+                <span className="sm:hidden">Back</span>
               </Link>
               <Link
                 href="/marketplace"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl border border-[#d6e4c3] px-4 py-2 text-xs sm:text-sm font-semibold text-[#4c5c2f] hover:bg-[#f3f8ed] transition"
               >
-                <ShoppingBag size={14} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Continue shopping</span><span className="sm:hidden">Shop</span>
+                <ShoppingBag size={14} className="sm:w-4 sm:h-4" />{" "}
+                <span className="hidden sm:inline">Continue shopping</span>
+                <span className="sm:hidden">Shop</span>
               </Link>
             </div>
           </div>

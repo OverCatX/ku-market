@@ -101,7 +101,7 @@ function DeliverProductsDescription() {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <div className="space-y-5 text-gray-600">
+    <div className="space-y-5 text-[#69773D]">
       {/* Intro */}
       <p className="leading-relaxed text-base">
         After confirming orders, you need to deliver products based on the
@@ -110,7 +110,7 @@ function DeliverProductsDescription() {
 
       {/* Pickup Orders */}
       <div className="space-y-3">
-        <h4 className="font-semibold text-gray-900 text-sm uppercase tracking-wide flex items-center gap-2">
+        <h4 className="font-semibold text-[#69773D] text-sm uppercase tracking-wide flex items-center gap-2">
           <MapPin className="text-[#69773D]" size={16} />
           Pickup Orders
         </h4>
@@ -161,7 +161,7 @@ function DeliverProductsDescription() {
 
       {/* Delivery Orders */}
       <div className="space-y-3">
-        <h4 className="font-semibold text-gray-900 text-sm uppercase tracking-wide flex items-center gap-2">
+        <h4 className="font-semibold text-[#8c522f] text-sm uppercase tracking-wide flex items-center gap-2">
           <Truck className="text-amber-700" size={16} />
           Delivery Orders
         </h4>
@@ -253,7 +253,7 @@ function TrackOrdersDescription() {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <div className="space-y-5 text-gray-600">
+    <div className="space-y-5 text-[#69773D]">
       {/* Intro */}
       <p className="leading-relaxed text-base">
         Visit{" "}
@@ -268,7 +268,7 @@ function TrackOrdersDescription() {
 
       {/* Order Status Flow - Compact Cards */}
       <div className="space-y-2.5">
-        <h4 className="font-semibold text-gray-900 text-sm uppercase tracking-wide flex items-center gap-2 mb-3">
+        <h4 className="font-semibold text-[#69773D] text-sm uppercase tracking-wide flex items-center gap-2 mb-3">
           <ArrowRight className="text-[#69773D]" size={14} />
           Status Flow
         </h4>
@@ -296,17 +296,17 @@ function TrackOrdersDescription() {
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
             animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: 0.15 }}
-            className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50/80 border border-blue-200/60 hover:bg-blue-50 hover:border-blue-300 hover:shadow-sm transition-all group"
+            className="flex items-start gap-2.5 p-3 rounded-lg bg-[#724a24]/20 border border-[#724a24]/30 hover:bg-[#724a24]/20 hover:border-[#562c1e] hover:shadow-sm transition-all group"
           >
             <CheckCircle
-              className="text-blue-600 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform"
+              className="text-[#724a24] mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform"
               size={18}
             />
             <div className="min-w-0">
-              <div className="font-semibold text-blue-800 text-sm">
+              <div className="font-semibold text-[#724a24] text-sm">
                 Confirmed
               </div>
-              <div className="text-blue-700/90 text-xs mt-0.5">
+              <div className="text-[#724a24]/90 text-xs mt-0.5">
                 Seller approved • Pay if needed
               </div>
             </div>
@@ -315,17 +315,17 @@ function TrackOrdersDescription() {
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
             animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: 0.2 }}
-            className="flex items-start gap-2.5 p-3 rounded-lg bg-green-50/80 border border-green-200/60 hover:bg-green-50 hover:border-green-300 hover:shadow-sm transition-all group"
+            className="flex items-start gap-2.5 p-3 rounded-lg bg-[#69773D]/20 border border-[#69773D]/30 hover:bg-[#69773D]/20 hover:border-[#4A5130] hover:shadow-sm transition-all group"
           >
             <CheckCircle
-              className="text-green-600 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform"
+              className="text-[#69773D] mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform"
               size={18}
             />
             <div className="min-w-0">
-              <div className="font-semibold text-green-800 text-sm">
+              <div className="font-semibold text-[#69773D] text-sm">
                 Completed
               </div>
-              <div className="text-green-700/90 text-xs mt-0.5">
+              <div className="text-[#69773D]/90 text-xs mt-0.5">
                 Order finished successfully
               </div>
             </div>
@@ -337,7 +337,7 @@ function TrackOrdersDescription() {
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-3">
           <MapPin className="text-[#69773D]" size={16} />
-          <h4 className="font-semibold text-gray-900 text-sm uppercase tracking-wide">
+          <h4 className="font-semibold text-[#69773D] text-sm uppercase tracking-wide">
             Pickup Orders
           </h4>
         </div>
@@ -557,7 +557,7 @@ function TrackOrdersDescription() {
         transition={{ duration: 0.25, delay: 0.35 }}
         className="p-4 rounded-lg bg-gradient-to-br from-amber-50/60 via-orange-50/40 to-amber-50/60 border border-amber-200/60 hover:border-amber-300/80 hover:shadow-md transition-all"
       >
-        <h4 className="font-semibold text-gray-900 text-sm uppercase tracking-wide flex items-center gap-2 mb-3">
+        <h4 className="font-semibold text-[#8c522f] text-sm uppercase tracking-wide flex items-center gap-2 mb-3">
           <Truck className="text-amber-700" size={16} />
           Delivery Orders
         </h4>
@@ -645,46 +645,46 @@ export default function GuidePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-green-50/30 to-gray-100 py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#F6F2E5' }}>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
-          className="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6 relative overflow-hidden"
+          className="bg-white rounded-xl shadow-lg p-6 mb-6 relative overflow-hidden"
         >
           {/* Decorative gradient - only on desktop to save resources */}
           <div className="hidden md:block absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#69773D]/10 to-transparent rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
 
-          <div className="flex items-start sm:items-center justify-between mb-3 sm:mb-4 relative z-10 gap-3">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 flex items-center gap-2">
-                <Sparkles className="text-[#69773D] flex-shrink-0" size={24} />
-                <span className="break-words">KU Market User Guide</span>
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div>
+              <h1 className="text-3xl font-bold text-[#4A5130] mb-2 flex items-center gap-2">
+                <Sparkles className="text-[#69773D]" size={28} />
+                KU Market User Guide
               </h1>
-              <p className="text-xs sm:text-sm text-gray-600">
+              <p className="text-[#69773D]">
                 Learn how to use the system for each role
               </p>
             </div>
             <button
               onClick={() => router.back()}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors active:scale-95 flex-shrink-0"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors active:scale-95"
             >
-              <X size={20} className="sm:w-6 sm:h-6 text-gray-600" />
+              <X size={24} className="text-gray-600" />
             </button>
           </div>
 
           {/* Role Tabs */}
-          <div className="flex flex-wrap gap-2 mt-3 sm:mt-4 relative z-10">
+          <div className="flex flex-wrap gap-2 mt-4 relative z-10">
             <motion.button
               whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
               whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
               onClick={() => handleRoleChange("buyer")}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors relative overflow-hidden ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors relative overflow-hidden ${
                 selectedRole === "buyer"
-                  ? "bg-[#69773D] text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-[#69773D] text-[#F6F2E5] shadow-md"
+                  : "bg-[#F6F2E5]/50 text-[#4A5130] hover:bg-[#F6F2E5]/60"
               }`}
             >
               {selectedRole === "buyer" && !prefersReducedMotion && (
@@ -697,20 +697,17 @@ export default function GuidePage() {
               {selectedRole === "buyer" && prefersReducedMotion && (
                 <div className="absolute inset-0 bg-[#69773D] rounded-lg" />
               )}
-              <User
-                size={16}
-                className="sm:w-[18px] sm:h-[18px] relative z-10"
-              />
+              <User size={18} className="relative z-10" />
               <span className="relative z-10">For Buyers</span>
             </motion.button>
             <motion.button
               whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
               whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
               onClick={() => handleRoleChange("seller")}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-colors relative overflow-hidden ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors relative overflow-hidden ${
                 selectedRole === "seller"
-                  ? "bg-[#69773D] text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-[#69773D] text-[#F6F2E5] shadow-md"
+                  : "bg-[#F6F2E5]/50 text-[#4A5130] hover:bg-[#F6F2E5]/60"
               }`}
             >
               {selectedRole === "seller" && !prefersReducedMotion && (
@@ -723,10 +720,7 @@ export default function GuidePage() {
               {selectedRole === "seller" && prefersReducedMotion && (
                 <div className="absolute inset-0 bg-[#69773D] rounded-lg" />
               )}
-              <Store
-                size={16}
-                className="sm:w-[18px] sm:h-[18px] relative z-10"
-              />
+              <Store size={18} className="relative z-10" />
               <span className="relative z-10">For Sellers</span>
             </motion.button>
           </div>
@@ -753,14 +747,14 @@ export default function GuidePage() {
                   key={`${selectedRole}-${index}`}
                   variants={itemVariants}
                   whileHover={prefersReducedMotion ? {} : { scale: 1.01 }}
-                  className="bg-white rounded-lg sm:rounded-xl shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow relative overflow-hidden group"
+                  className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow relative overflow-hidden group"
                 >
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#69773D] to-[#84B067] rounded-lg flex items-center justify-center text-white shadow-lg transition-shadow group-hover:shadow-xl">
-                      <Icon size={20} className="sm:w-6 sm:h-6" />
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-[#69773D] to-[#84B067] rounded-lg flex items-center justify-center text-white shadow-lg transition-shadow group-hover:shadow-xl">
+                      <Icon size={24} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-[#69773D] transition-colors">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-[#4A5130] mb-2 group-hover:text-[#69773D] transition-colors">
                         {step.title}
                       </h3>
                       {isTrackOrders ? (
@@ -768,12 +762,12 @@ export default function GuidePage() {
                       ) : isDeliverProducts ? (
                         <DeliverProductsDescription />
                       ) : (
-                        <div className="text-sm sm:text-base text-gray-600 leading-relaxed whitespace-pre-line">
+                        <div className="text-[#69773D] leading-relaxed whitespace-pre-line">
                           {step.description}
                         </div>
                       )}
                     </div>
-                    <div className="flex-shrink-0 text-xl sm:text-2xl font-bold text-gray-300 group-hover:text-[#69773D]/30 transition-colors hidden sm:block">
+                    <div className="flex-shrink-0 text-2xl font-bold text-[#69773D]/70 group-hover:text-[#69773D]/30 transition-colors">
                       {String(index + 1).padStart(2, "0")}
                     </div>
                   </div>
@@ -792,30 +786,30 @@ export default function GuidePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
-            className="mt-6 sm:mt-8 bg-white rounded-lg sm:rounded-xl shadow-md p-4 sm:p-6 relative overflow-hidden"
+            className="mt-8 bg-white rounded-xl shadow-md p-6 relative overflow-hidden"
           >
             {/* Decorative element - only on desktop */}
             <div className="hidden md:block absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#84B067]/20 to-transparent rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none"></div>
 
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4 relative z-10 flex items-center gap-2">
-              <ArrowRight className="text-[#69773D]" size={18} />
+            <h2 className="text-xl font-bold text-[#4A5130] mb-4 relative z-10 flex items-center gap-2">
+              <ArrowRight className="text-[#69773D]" size={20} />
               Quick Links
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
               <Link
                 href="/marketplace"
                 className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg hover:bg-gradient-to-r hover:from-[#69773D]/10 hover:to-[#84B067]/10 transition-all group border border-transparent hover:border-[#69773D]/20 active:scale-[0.98]"
               >
                 <ShoppingBag
-                  size={18}
-                  className="sm:w-5 sm:h-5 text-[#69773D] group-hover:text-[#84B067] transition-colors flex-shrink-0"
+                  size={20}
+                  className="text-[#69773D] group-hover:text-[#84B067] transition-colors"
                 />
-                <span className="text-sm sm:text-base font-medium text-gray-700 group-hover:text-[#69773D] transition-colors">
+                <span className="font-medium text-gray-700 group-hover:text-[#69773D] transition-colors">
                   Marketplace
                 </span>
                 <ArrowRight
-                  size={14}
-                  className="sm:w-4 sm:h-4 ml-auto text-gray-400 group-hover:text-[#69773D] group-hover:translate-x-1 transition-transform flex-shrink-0"
+                  size={16}
+                  className="ml-auto text-gray-400 group-hover:text-[#69773D] group-hover:translate-x-1 transition-transform"
                 />
               </Link>
               <Link
@@ -823,31 +817,31 @@ export default function GuidePage() {
                 className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg hover:bg-gradient-to-r hover:from-[#69773D]/10 hover:to-[#84B067]/10 transition-all group border border-transparent hover:border-[#69773D]/20 active:scale-[0.98]"
               >
                 <Package
-                  size={18}
-                  className="sm:w-5 sm:h-5 text-[#69773D] group-hover:text-[#84B067] transition-colors flex-shrink-0"
+                  size={20}
+                  className="text-[#69773D] group-hover:text-[#84B067] transition-colors"
                 />
-                <span className="text-sm sm:text-base font-medium text-gray-700 group-hover:text-[#69773D] transition-colors">
+                <span className="font-medium text-gray-700 group-hover:text-[#69773D] transition-colors">
                   My Orders
                 </span>
                 <ArrowRight
-                  size={14}
-                  className="sm:w-4 sm:h-4 ml-auto text-gray-400 group-hover:text-[#69773D] group-hover:translate-x-1 transition-transform flex-shrink-0"
+                  size={16}
+                  className="ml-auto text-gray-400 group-hover:text-[#69773D] group-hover:translate-x-1 transition-transform"
                 />
               </Link>
               <Link
                 href="/profile"
-                className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg hover:bg-gradient-to-r hover:from-[#69773D]/10 hover:to-[#84B067]/10 transition-all group border border-transparent hover:border-[#69773D]/20 active:scale-[0.98] sm:col-span-2 md:col-span-1"
+                className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg hover:bg-gradient-to-r hover:from-[#69773D]/10 hover:to-[#84B067]/10 transition-all group border border-transparent hover:border-[#69773D]/20 active:scale-[0.98]"
               >
                 <User
-                  size={18}
-                  className="sm:w-5 sm:h-5 text-[#69773D] group-hover:text-[#84B067] transition-colors flex-shrink-0"
+                  size={20}
+                  className="text-[#69773D] group-hover:text-[#84B067] transition-colors"
                 />
-                <span className="text-sm sm:text-base font-medium text-gray-700 group-hover:text-[#69773D] transition-colors">
+                <span className="font-medium text-gray-700 group-hover:text-[#69773D] transition-colors">
                   Profile
                 </span>
                 <ArrowRight
-                  size={14}
-                  className="sm:w-4 sm:h-4 ml-auto text-gray-400 group-hover:text-[#69773D] group-hover:translate-x-1 transition-transform flex-shrink-0"
+                  size={16}
+                  className="ml-auto text-gray-400 group-hover:text-[#69773D] group-hover:translate-x-1 transition-transform"
                 />
               </Link>
             </div>

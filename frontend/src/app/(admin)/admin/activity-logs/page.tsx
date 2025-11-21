@@ -15,7 +15,6 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { format } from "date-fns";
 
 const ITEMS_PER_PAGE = 50;
 
@@ -65,9 +64,9 @@ const ACTIVITY_TYPE_LABELS: Record<string, string> = {
 };
 
 const ROLE_COLORS: Record<string, string> = {
-  buyer: "bg-blue-100 text-blue-800",
-  seller: "bg-green-100 text-green-800",
-  admin: "bg-purple-100 text-purple-800",
+  buyer: "bg-[#69773D]/10 text-[#69773D]",
+  seller: "bg-[#8c522f]/10 text-[#8c522f]",
+  admin: "bg-[#780606]/10 text-[#780606]",
 };
 
 export default function ActivityLogsPage() {
@@ -151,7 +150,18 @@ export default function ActivityLogsPage() {
 
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), "MMM dd, yyyy HH:mm:ss");
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const month = months[date.getMonth()];
+      const day = date.getDate().toString().padStart(2, "0");
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, "0");
+      const minutes = date.getMinutes().toString().padStart(2, "0");
+      const seconds = date.getSeconds().toString().padStart(2, "0");
+      return `${month} ${day}, ${year} ${hours}:${minutes}:${seconds}`;
     } catch {
       return dateString;
     }
@@ -162,14 +172,15 @@ export default function ActivityLogsPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130] mb-2">
             Activity Logs
           </h1>
-          <p className="text-sm md:text-base text-gray-600">
+          <p className="text-sm md:text-base text-[#69773D]">
             Monitor all user and system activities
           </p>
         </div>
@@ -179,9 +190,9 @@ export default function ActivityLogsPage() {
             loadStats();
           }}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
           Refresh
         </button>
       </div>
@@ -190,30 +201,30 @@ export default function ActivityLogsPage() {
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Total Logs</div>
-            <div className="text-2xl font-bold text-gray-900">{stats.totalLogs.toLocaleString()}</div>
+            <div className="text-sm text-[#69773D] mb-1">Total Logs</div>
+            <div className="text-2xl font-bold text-[#4A5130]">{stats.totalLogs.toLocaleString()}</div>
           </div>
           <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">By Role</div>
+            <div className="text-sm text-[#69773D] mb-1">By Role</div>
             <div className="space-y-1">
               {Object.entries(stats.logsByRole).map(([role, count]) => (
                 <div key={role} className="flex justify-between text-sm">
-                  <span className="capitalize">{role}:</span>
-                  <span className="font-semibold">{count}</span>
+                  <span className="capitalize text-[#4A5130]">{role}:</span>
+                  <span className="font-semibold text-[#4A5130]">{count}</span>
                 </div>
               ))}
             </div>
           </div>
           <div className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Top Activities</div>
+            <div className="text-sm text-[#69773D] mb-1">Top Activities</div>
             <div className="space-y-1">
               {Object.entries(stats.logsByType)
                 .sort(([, a], [, b]) => b - a)
                 .slice(0, 3)
                 .map(([type, count]) => (
                   <div key={type} className="flex justify-between text-sm">
-                    <span className="truncate">{ACTIVITY_TYPE_LABELS[type] || type}:</span>
-                    <span className="font-semibold ml-2">{count}</span>
+                    <span className="truncate text-[#4A5130]">{ACTIVITY_TYPE_LABELS[type] || type}:</span>
+                    <span className="font-semibold text-[#4A5130] ml-2">{count}</span>
                   </div>
                 ))}
             </div>
@@ -224,7 +235,7 @@ export default function ActivityLogsPage() {
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg border border-gray-200">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+          <h2 className="font-semibold text-[#4A5130] flex items-center gap-2">
             <Filter className="w-4 h-4" />
             Filters
           </h2>
@@ -245,12 +256,12 @@ export default function ActivityLogsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#69773D]"
             />
           </div>
           <button
             onClick={handleSearch}
-            className="px-6 py-2 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition-colors"
+            className="px-6 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors"
           >
             Search
           </button>
@@ -265,7 +276,7 @@ export default function ActivityLogsPage() {
               <select
                 value={userRole}
                 onChange={(e) => setUserRole(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#69773D]"
               >
                 <option value="">All Roles</option>
                 <option value="buyer">Buyer</option>
@@ -281,7 +292,7 @@ export default function ActivityLogsPage() {
               <select
                 value={activityType}
                 onChange={(e) => setActivityType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#69773D]"
               >
                 <option value="">All Activities</option>
                 {activityTypes.map((type) => (
@@ -300,7 +311,7 @@ export default function ActivityLogsPage() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#69773D]"
               />
             </div>
 
@@ -312,7 +323,7 @@ export default function ActivityLogsPage() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#69773D]"
               />
             </div>
           </div>
@@ -375,7 +386,7 @@ export default function ActivityLogsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm">
-                        <div className="font-medium text-gray-900">{log.userName}</div>
+                        <div className="font-medium text-[#4A5130]">{log.userName}</div>
                         <div className="text-gray-500">{log.userEmail}</div>
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 ${ROLE_COLORS[log.userRole] || "bg-gray-100 text-gray-800"}`}
@@ -386,7 +397,7 @@ export default function ActivityLogsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm">
-                        <div className="font-medium text-gray-900">
+                        <div className="font-medium text-[#4A5130]">
                           {ACTIVITY_TYPE_LABELS[log.activityType] || log.activityType}
                         </div>
                         <div className="text-gray-500 text-xs">{log.entityType}</div>
@@ -443,6 +454,7 @@ export default function ActivityLogsPage() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

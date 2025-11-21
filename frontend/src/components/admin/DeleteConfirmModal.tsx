@@ -37,8 +37,8 @@ const DeleteConfirmModal = memo(function DeleteConfirmModal({
 
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-red-100 rounded-full">
-                <AlertTriangle className="text-red-600" size={24} />
+              <div className="p-3 bg-[#780606] rounded-full">
+                <AlertTriangle className="text-[#780606]" size={24} />
               </div>
               <div>
                 <p className="text-lg font-medium text-gray-900">
@@ -49,7 +49,7 @@ const DeleteConfirmModal = memo(function DeleteConfirmModal({
             <p className="text-gray-600 mb-2">
               Item: <span className="font-semibold">{itemTitle}</span>
             </p>
-            <p className="text-sm text-red-600 font-medium">
+            <p className="text-sm text-[#780606] font-medium">
               This action cannot be undone. The item will be permanently removed
               from the marketplace.
             </p>
@@ -67,7 +67,7 @@ const DeleteConfirmModal = memo(function DeleteConfirmModal({
             <button
               onClick={onConfirm}
               disabled={processing}
-              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="flex-1 px-4 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#780606] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               {processing ? "Deleting..." : "Delete Item"}
             </button>

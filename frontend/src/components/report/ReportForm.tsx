@@ -84,7 +84,8 @@ export default function ReportForm() {
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
             <label
               htmlFor="category"
-              className="block text-sm font-medium mb-1 text-slate-800"
+              className="block text-sm font-medium mb-1"
+              style={{ color: aboutColors.oliveDark }}
             >
               Type of Issue
             </label>
@@ -92,9 +93,9 @@ export default function ReportForm() {
               id="category"
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#69773D] focus:border-[#69773D] outline-none"
               style={{
-                borderColor: aboutColors.borderSoft,
+                borderColor: aboutColors.lightGreen,
                 backgroundColor: aboutColors.creamSoft,
               }}
               required
@@ -111,7 +112,8 @@ export default function ReportForm() {
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
             <label
               htmlFor="details"
-              className="block text-sm font-medium mb-1 text-slate-800"
+              className="block text-sm font-medium mb-1"
+              style={{ color: aboutColors.oliveDark }}
             >
               Details
             </label>
@@ -120,9 +122,9 @@ export default function ReportForm() {
               rows={5}
               value={form.details}
               onChange={(e) => setForm({ ...form, details: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#69773D] focus:border-[#69773D] outline-none"
               style={{
-                borderColor: aboutColors.borderSoft,
+                borderColor: aboutColors.lightGreen,
                 backgroundColor: aboutColors.creamSoft,
               }}
               placeholder="Please describe what happened..."
@@ -134,7 +136,8 @@ export default function ReportForm() {
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
             <label
               htmlFor="contact"
-              className="block text-sm font-medium mb-1 text-slate-800"
+              className="block text-sm font-medium mb-1"
+              style={{ color: aboutColors.oliveDark }}
             >
               Your Contact (optional)
             </label>
@@ -143,9 +146,9 @@ export default function ReportForm() {
               type="text"
               value={form.contact}
               onChange={(e) => setForm({ ...form, contact: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#69773D] focus:border-[#69773D] outline-none"
               style={{
-                borderColor: aboutColors.borderSoft,
+                borderColor: aboutColors.lightGreen,
                 backgroundColor: aboutColors.creamSoft,
               }}
               placeholder="e.g. your KU email"
@@ -162,9 +165,9 @@ export default function ReportForm() {
               type="submit"
               whileTap={{ scale: 0.98 }}
               disabled={submitting}
-              className="px-5 py-2 rounded-full font-semibold text-sm shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
+              className="px-5 py-2 rounded-full font-semibold text-sm shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed hover:bg-[#5a6530]"
               style={{
-                backgroundColor: aboutColors.brown,
+                backgroundColor: aboutColors.lightGreen,
                 color: aboutColors.creamSoft,
               }}
             >

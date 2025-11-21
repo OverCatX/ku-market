@@ -187,7 +187,7 @@ export default function ReportItemForm() {
             className="block text-sm font-medium mb-1"
             style={{ color: aboutColors.oliveDark }}
           >
-            Item URL or ID <span className="text-red-600">*</span>
+            Item URL or ID <span className="text-[#780606]">*</span>
           </label>
           <input
             type="text"
@@ -208,7 +208,7 @@ export default function ReportItemForm() {
         {/* Reason */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: aboutColors.oliveDark }}>
-            Reason <span className="text-red-600">*</span>
+            Reason <span className="text-[#780606]">*</span>
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {REASONS.map((r) => (
@@ -234,7 +234,7 @@ export default function ReportItemForm() {
         {/* Details */}
         <div>
           <label className="block text-sm font-medium mb-1" style={{ color: aboutColors.oliveDark }}>
-            Details <span className="text-red-600">*</span>
+            Details <span className="text-[#780606]">*</span>
           </label>
           <textarea
             value={form.details}
@@ -303,7 +303,7 @@ export default function ReportItemForm() {
                             setPreviews(newPreviews);
                             onChange("images", newFiles);
                         }}
-                        className="absolute -top-2 -right-0 bg-red-600 hover:bg-red-700 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center shadow-sm transition-transform hover:scale-110"
+                        className="absolute -top-2 -right-0 bg-[#780606] hover:bg-[#780606] text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center shadow-sm transition-transform hover:scale-110"
                         title="Remove"
                         >
                         ✕

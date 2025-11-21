@@ -58,7 +58,7 @@ export default function HeroSection() {
           <h1 className="font-header text-4xl md:text-5xl text-[#69773D] mb-4">
             Welcome to KU Market
           </h1>
-          <p className="font-body text-gray-600 mb-8 text-lg md:text-xl leading-relaxed">
+          <p className="font-body text-[#4A5130] mb-8 text-lg md:text-xl leading-relaxed">
             Your one-stop platform for smarter trading and campus marketplace
             solutions
           </p>
@@ -76,7 +76,7 @@ export default function HeroSection() {
           <Link
             href="/signup"
             className="inline-block px-8 py-4 rounded-xl font-semibold text-[#69773D]
-               bg-white border-2 border-[#69773D] transition-all hover:bg-green-50"
+               bg-white border-2 border-[#69773D] transition-all hover:bg-[#69773D]/10"
           >
             Get Started
           </Link>

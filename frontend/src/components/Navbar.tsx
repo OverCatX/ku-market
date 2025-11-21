@@ -35,7 +35,7 @@ const CartBadge = memo(function CartBadge({
   // Don't render on server to prevent hydration mismatch
   if (!mounted || count <= 0) return null;
   return (
-    <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-gradient-to-br from-red-500 to-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
+    <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-[#780606] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
       {count > 9 ? "9+" : count}
     </span>
   );
@@ -54,7 +54,7 @@ export const Header = memo(function Header() {
     (path: string) =>
       pathName === path
         ? "text-[#69773D] font-bold relative"
-        : "text-gray-800 hover:text-[#69773D] relative",
+        : "text-[#4A5130] hover:text-[#69773D] relative",
     [pathName]
   );
 
@@ -94,7 +94,7 @@ export const Header = memo(function Header() {
                 {pathName === link.href ? (
                   <span className="absolute inset-0 bg-gradient-to-r from-[#69773D]/15 via-[#7BAA5F]/20 to-[#84B067]/15 rounded-xl border border-[#69773D]/20 shadow-inner"></span>
                 ) : (
-                  <span className="absolute inset-0 bg-gradient-to-r from-green-50/0 to-emerald-50/0 rounded-xl group-hover:from-green-50/80 group-hover:to-emerald-50/60 transition-all duration-300 border border-transparent group-hover:border-[#69773D]/10"></span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-green-50/0 to-emerald-50/0 rounded-xl group-hover:bg-[#69773D]/20 transition-all duration-300 border border-transparent group-hover:border-[#69773D]/10"></span>
                 )}
               </Link>
             ))}
@@ -104,36 +104,36 @@ export const Header = memo(function Header() {
           <div className="hidden lg:flex items-center justify-end gap-1">
             <Link
               href="/cart"
-              className="relative flex items-center justify-center w-10 h-10 rounded-xl hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50/60 transition-all duration-300 group border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5"
+              className="relative flex items-center justify-center w-10 h-10 rounded-xl hover:bg-[#69773D]/20 transition-all duration-300 group border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5"
               title="Cart"
             >
-              <ShoppingCart className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
+              <ShoppingCart className="w-5 h-5 text-[#4A5130] group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
               <CartBadge count={totalItems} mounted={mounted} />
             </Link>
 
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50/60 transition-all duration-300 border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-[#69773D]/20 transition-all duration-300 border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5">
               <NotificationBell />
             </div>
 
             <Link
               href={profileLink}
-              className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50/60 transition-all duration-300 group border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5"
+              className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-[#69773D]/20 transition-all duration-300 group border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5"
               title="Profile"
             >
-              <User className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
+              <User className="w-5 h-5 text-[#4A5130] group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
             </Link>
           </div>
 
           {/* Mobile Hamburger */}
           <button
-            className="lg:hidden p-2.5 rounded-xl hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50/60 transition-all duration-300 border border-transparent hover:border-[#69773D]/10"
+            className="lg:hidden p-2.5 rounded-xl hover:bg-[#69773D]/20 transition-all duration-300 border border-transparent hover:border-[#69773D]/10"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-gray-800 hover:text-[#69773D] transition-all duration-300 rotate-90" />
+              <X className="w-6 h-6 text-[#4A5130] hover:text-[#69773D] transition-all duration-300 rotate-90" />
             ) : (
-              <Menu className="w-6 h-6 text-gray-800 hover:text-[#69773D] transition-all duration-300" />
+              <Menu className="w-6 h-6 text-[#4A5130] hover:text-[#69773D] transition-all duration-300" />
             )}
           </button>
         </div>
@@ -150,7 +150,7 @@ export const Header = memo(function Header() {
                   className={`block px-4 py-3 rounded-xl font-medium transition-all duration-300 capitalize ${
                     pathName === link.href
                       ? "text-white bg-gradient-to-r from-[#69773D] to-[#84B067] shadow-md transform scale-[1.02]"
-                      : "text-gray-700 hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 hover:shadow-sm hover:translate-x-1"
+                      : "text-[#4A5130] hover:text-[#69773D] hover:bg-[#69773D]/20 hover:shadow-sm hover:translate-x-1"
                   }`}
                   style={{
                     animationDelay: `${index * 50}ms`,
@@ -166,19 +166,23 @@ export const Header = memo(function Header() {
             <div className="border-t border-gray-100 pt-4 space-y-1">
               <Link
                 href="/cart"
-                className="flex items-center justify-between px-4 py-3 rounded-xl text-gray-700 hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
+                className="flex items-center justify-between px-4 py-3 rounded-xl text-[#4A5130] hover:text-[#69773D] hover:bg-[#69773D]/20 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <div className="flex items-center gap-3">
                   <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   <span className="font-medium">Cart</span>
                 </div>
-                <CartBadge count={totalItems} mounted={mounted} />
+                {totalItems > 0 && mounted && (
+                  <span className="min-w-[24px] h-6 px-2 bg-[#780606] text-white text-xs rounded-full flex items-center justify-center font-bold shadow-md">
+                    {totalItems > 9 ? "9+" : totalItems}
+                  </span>
+                )}
               </Link>
 
               <Link
                 href="/notifications"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-[#4A5130] hover:text-[#69773D] hover:bg-[#69773D]/20 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -187,7 +191,7 @@ export const Header = memo(function Header() {
 
               <Link
                 href={profileLink}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:text-[#69773D] hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-[#4A5130] hover:text-[#69773D] hover:bg-[#69773D]/20 transition-all duration-300 hover:shadow-sm hover:translate-x-1 group"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <User className="w-5 h-5 group-hover:scale-110 transition-transform" />

@@ -15,7 +15,7 @@ const FooterSection = dynamic(() => import("@/components/home/FooterSection"), {
 
 export default function HomePage() {
   return (
-    <div className="bg-white">
+    <div style={{ backgroundColor: '#F6F2E5' }}>
       <Hero />
       <FeaturedProducts />
       <About />

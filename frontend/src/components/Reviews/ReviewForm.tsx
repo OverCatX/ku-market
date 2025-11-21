@@ -287,7 +287,7 @@ export default function ReviewForm({
       {/* Rating */}
       <div className="mb-3 sm:mb-4">
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-          Your Rating <span className="text-red-500">*</span>
+          Your Rating <span className="text-[#780606]">*</span>
         </label>
         <StarRating
           rating={rating}
@@ -334,7 +334,7 @@ export default function ReviewForm({
           htmlFor="review-comment"
           className="block text-xs sm:text-sm font-medium text-gray-700 mb-2"
         >
-          Your Review <span className="text-red-500">*</span>
+          Your Review <span className="text-[#780606]">*</span>
         </label>
         <textarea
           id="review-comment"
@@ -356,7 +356,7 @@ export default function ReviewForm({
         <p className="text-xs text-gray-500 mt-1">
           {comment.length}/2000 characters
           {comment.length < 10 && comment.length > 0 && (
-            <span className="text-red-500 ml-2">
+            <span className="text-[#780606] ml-2">
               (Minimum 10 characters required)
             </span>
           )}
@@ -433,7 +433,7 @@ export default function ReviewForm({
             !isAuthenticated ||
             !isVerified
           }
-          className="flex-1 px-4 py-2.5 sm:px-6 sm:py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition-colors text-sm sm:text-base font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="flex-1 px-4 py-2.5 sm:px-6 sm:py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors text-sm sm:text-base font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed"
           title={
             !isAuthenticated
               ? "Please login to submit a review"
