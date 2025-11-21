@@ -40,7 +40,8 @@ interface OrderData {
   items: OrderItem[];
   totalPrice: number;
   deliveryMethod: "pickup" | "delivery";
-  paymentMethod: "cash" | "transfer";
+  paymentMethod: "cash" | "transfer" | "promptpay";
+  paymentStatus?: "pending" | "awaiting_payment" | "payment_submitted" | "paid" | "not_required";
   status: "pending_seller_confirmation" | "confirmed" | "rejected" | "completed" | "cancelled";
   buyerContact: {
     fullName: string;
@@ -560,13 +561,23 @@ export default function SellerOrders() {
                 order.deliveryMethod === "pickup" &&
                 !order.sellerDelivered && (
                   <div className="mt-4">
-                    <button
-                      onClick={() => handleMarkDelivered(order.id)}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                    >
-                      <CheckCircle size={18} className="inline mr-2" />
-                      Mark as delivered
-                    </button>
+                    {/* Check if payment is required and completed */}
+                    {(order.paymentMethod === "promptpay" || order.paymentMethod === "transfer") &&
+                      order.paymentStatus !== "paid" &&
+                      order.paymentStatus !== "payment_submitted" ? (
+                      <div className="w-full px-4 py-2 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg font-medium text-center">
+                        <Clock size={18} className="inline mr-2" />
+                        Waiting for buyer payment
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleMarkDelivered(order.id)}
+                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                      >
+                        <CheckCircle size={18} className="inline mr-2" />
+                        Mark as delivered
+                      </button>
+                    )}
                   </div>
                 )}
               {order.sellerDelivered && (

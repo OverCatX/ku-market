@@ -1302,52 +1302,24 @@ export default function CheckoutPage() {
                     </div>
                   </label>
 
-                  {/* Show QR Code if PromptPay selected */}
+                  {/* Info message for PromptPay */}
                   {paymentMethod === "promptpay" && (
-                    <div className="mt-4 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
-                      <div className="text-center mb-4">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">
-                          Scan QR Code to Pay
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Amount:{" "}
-                          <span className="font-bold text-[#84B067]">
-                            ฿{getTotalPrice().toLocaleString("th-TH")}
-                          </span>
-                        </p>
-                      </div>
-
-                      {/* QR Code Placeholder */}
-                      <div className="flex justify-center mb-4">
-                        <div className="bg-white p-4 rounded-lg shadow-md">
-                          <div className="w-48 h-48 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center">
-                            <div className="text-center">
-                              <QrCode className="w-16 h-16 mx-auto mb-2 text-gray-400" />
-                              <p className="text-xs text-gray-500">
-                                Payment QR Code
-                              </p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                (Will be displayed after order confirmation)
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                        <div className="flex items-start gap-2">
-                          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                          <div className="text-sm text-yellow-800">
-                            <p className="font-medium mb-1">Note:</p>
-                            <ul className="list-disc list-inside space-y-1 text-xs">
-                              <li>Please transfer within 24 hours</li>
-                              <li>Keep your payment proof for verification</li>
-                              <li>
-                                Seller will confirm order after payment
-                                verification
-                              </li>
-                            </ul>
-                          </div>
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-blue-800">
+                          <p className="font-medium mb-1">PromptPay Payment:</p>
+                          <ul className="list-disc list-inside space-y-1 text-xs">
+                            <li>
+                              QR code will be available after seller confirms
+                              your order
+                            </li>
+                            <li>You can make payment from the Orders page</li>
+                            <li>
+                              Please transfer within 24 hours after order
+                              confirmation
+                            </li>
+                          </ul>
                         </div>
                       </div>
                     </div>

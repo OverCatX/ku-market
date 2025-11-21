@@ -54,6 +54,7 @@ export interface IOrder extends Document {
   rejectionReason?: string;
   completedAt?: Date;
   paymentSubmittedAt?: Date;
+  paymentIntentId?: string;
   buyerReceived?: boolean;
   buyerReceivedAt?: Date;
   sellerDelivered?: boolean;
@@ -186,6 +187,9 @@ const OrderSchema = new Schema<IOrder>(
     },
     paymentSubmittedAt: {
       type: Date,
+    },
+    paymentIntentId: {
+      type: String,
     },
     buyerReceived: {
       type: Boolean,
