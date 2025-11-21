@@ -14,6 +14,7 @@ import {
   MessageCircle,
   CreditCard,
   MapPin,
+  ExternalLink,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { ComponentType } from "react";
@@ -129,10 +130,21 @@ function PickupLocationSection({
               </p>
             )}
             {pickupDetails.coordinates && (
-              <p className="text-gray-500 text-xs mt-1 font-mono">
-                {pickupDetails.coordinates.lat.toFixed(6)},{" "}
-                {pickupDetails.coordinates.lng.toFixed(6)}
-              </p>
+              <div className="mt-1 flex items-center gap-2 flex-wrap">
+                <p className="text-gray-500 text-xs font-mono">
+                  {pickupDetails.coordinates.lat.toFixed(6)},{" "}
+                  {pickupDetails.coordinates.lng.toFixed(6)}
+                </p>
+                <a
+                  href={`https://www.google.com/maps?q=${pickupDetails.coordinates.lat},${pickupDetails.coordinates.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline transition"
+                >
+                  <ExternalLink size={12} />
+                  Open in Google Maps
+                </a>
+              </div>
             )}
             {pickupDetails.coordinates && (
               <button
