@@ -20,6 +20,7 @@ import {
   Sparkles,
   Clock,
   Truck,
+  Printer,
 } from "lucide-react";
 import { getAuthUser } from "@/lib/auth";
 
@@ -89,8 +90,7 @@ const sellerSteps: Step[] = [
   {
     icon: MapPin,
     title: "5. Deliver Products",
-    description:
-      "For Pickup orders: Confirm delivery after buyer confirms receipt",
+    description: "DELIVER_PRODUCTS_SPECIAL", // Special marker for custom rendering
   },
   {
     icon: CheckCircle,
@@ -131,6 +131,158 @@ const adminSteps: Step[] = [
     description: "Review and handle reports from users",
   },
 ];
+
+function DeliverProductsDescription() {
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <div className="space-y-5 text-gray-600">
+      {/* Intro */}
+      <p className="leading-relaxed text-base">
+        After confirming orders, you need to deliver products based on the
+        delivery method chosen by the buyer.
+      </p>
+
+      {/* Pickup Orders */}
+      <div className="space-y-3">
+        <h4 className="font-semibold text-gray-900 text-sm uppercase tracking-wide flex items-center gap-2">
+          <MapPin className="text-[#69773D]" size={16} />
+          Pickup Orders
+        </h4>
+        <motion.div
+          initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
+          animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
+          transition={{ duration: 0.25, delay: 0.1 }}
+          className="p-4 rounded-lg bg-gradient-to-br from-[#69773D]/5 via-[#84B067]/5 to-[#69773D]/5 border border-[#69773D]/20 hover:border-[#69773D]/40 hover:shadow-md transition-all"
+        >
+          <ol className="space-y-2 pl-1 text-sm text-gray-700">
+            <li className="flex items-start gap-2.5">
+              <span className="text-[#69773D] font-bold mt-0.5 flex-shrink-0">
+                1.
+              </span>
+              <span>
+                After buyer confirms receipt by clicking{" "}
+                <span className="font-semibold text-[#69773D] bg-[#69773D]/10 px-1.5 py-0.5 rounded">
+                  &quot;I received the product&quot;
+                </span>
+                , you&apos;ll see a notification.
+              </span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="text-[#69773D] font-bold mt-0.5 flex-shrink-0">
+                2.
+              </span>
+              <span>
+                Go to the order details and click{" "}
+                <span className="font-semibold text-[#69773D] bg-[#69773D]/10 px-1.5 py-0.5 rounded">
+                  &quot;Mark as delivered&quot;
+                </span>{" "}
+                to complete the order.
+              </span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="text-[#69773D] font-bold mt-0.5 flex-shrink-0">
+                3.
+              </span>
+              <span>
+                The order will be marked as{" "}
+                <span className="font-semibold text-[#69773D]">completed</span>{" "}
+                when both parties have confirmed.
+              </span>
+            </li>
+          </ol>
+        </motion.div>
+      </div>
+
+      {/* Delivery Orders */}
+      <div className="space-y-3">
+        <h4 className="font-semibold text-gray-900 text-sm uppercase tracking-wide flex items-center gap-2">
+          <Truck className="text-amber-700" size={16} />
+          Delivery Orders
+        </h4>
+        <motion.div
+          initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
+          animate={prefersReducedMotion ? {} : { opacity: 1, x: 0 }}
+          transition={{ duration: 0.25, delay: 0.15 }}
+          className="p-4 rounded-lg bg-gradient-to-br from-amber-50/60 via-orange-50/40 to-amber-50/60 border border-amber-200/60 hover:border-amber-300/80 hover:shadow-md transition-all"
+        >
+          <ol className="space-y-2 pl-1 text-sm text-amber-900/80">
+            <li className="flex items-start gap-2.5">
+              <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
+                1.
+              </span>
+              <span>
+                For delivery orders, go to{" "}
+                <span className="font-semibold text-amber-800">
+                  &quot;/seller/orders&quot;
+                </span>{" "}
+                and find the confirmed order.
+              </span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
+                2.
+              </span>
+              <span>
+                Click the{" "}
+                <span className="font-semibold text-amber-800 bg-amber-100/50 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                  <Printer size={14} />
+                  &quot;Print Delivery Slip&quot;
+                </span>{" "}
+                button next to the order.
+              </span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
+                3.
+              </span>
+              <span>
+                On the delivery slip page, ensure your{" "}
+                <span className="font-semibold text-amber-800">
+                  sender address
+                </span>{" "}
+                is complete (address, city, postal code). Add it if missing.
+              </span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
+                4.
+              </span>
+              <span>
+                Click the{" "}
+                <span className="font-semibold text-amber-800 bg-amber-100/50 px-1.5 py-0.5 rounded">
+                  &quot;Print&quot;
+                </span>{" "}
+                button to print the delivery slip.
+              </span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
+                5.
+              </span>
+              <span>
+                Attach the printed slip to your package and ship it to the
+                buyer&apos;s address shown on the slip.
+              </span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
+                6.
+              </span>
+              <span>
+                The order will be marked as{" "}
+                <span className="font-semibold text-amber-800 bg-amber-100/50 px-1.5 py-0.5 rounded">
+                  completed
+                </span>{" "}
+                automatically after delivery confirmation.
+              </span>
+            </li>
+          </ol>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
 function TrackOrdersDescription() {
   const prefersReducedMotion = useReducedMotion();
@@ -651,6 +803,8 @@ export default function GuidePage() {
             {currentSteps.map((step, index) => {
               const Icon = step.icon;
               const isTrackOrders = step.description === "TRACK_ORDERS_SPECIAL";
+              const isDeliverProducts =
+                step.description === "DELIVER_PRODUCTS_SPECIAL";
 
               return (
                 <motion.div
@@ -669,6 +823,8 @@ export default function GuidePage() {
                       </h3>
                       {isTrackOrders ? (
                         <TrackOrdersDescription />
+                      ) : isDeliverProducts ? (
+                        <DeliverProductsDescription />
                       ) : (
                         <div className="text-gray-600 leading-relaxed whitespace-pre-line">
                           {step.description}

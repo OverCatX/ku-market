@@ -190,7 +190,14 @@ After approval:
 4. For **Pickup** orders:
    - After buyer confirms receipt, click "Mark as delivered"
    - Order completes when both parties confirm
-5. View order details and contact buyer
+5. For **Delivery** orders:
+   - Click "Print Delivery Slip" button next to the confirmed order
+   - On the delivery slip page, ensure your sender address is complete (address, city, postal code)
+   - Add your sender address if it's missing (required for shipping labels)
+   - Click "Print" button to print the delivery slip
+   - Attach the printed slip to your package and ship it to the buyer's address
+   - Order completes automatically after delivery confirmation
+6. View order details and contact buyer
 
 ---
 
