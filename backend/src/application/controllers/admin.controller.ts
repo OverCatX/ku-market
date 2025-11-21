@@ -723,7 +723,12 @@ export default class AdminController {
   // GET /api/admin/items - Get all items for management
   getItems = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { approvalStatus, status } = req.query;
+      const { approvalStatus, status, page, limit } = req.query as {
+        approvalStatus?: string;
+        status?: string;
+        page?: string;
+        limit?: string;
+      };
       const filter: { approvalStatus?: string; status?: string } = {};
 
       if (approvalStatus && typeof approvalStatus === "string" && ["pending", "approved", "rejected"].includes(approvalStatus)) {
@@ -735,15 +740,27 @@ export default class AdminController {
         filter.status = status;
       }
 
+      // Pagination
+      const pageNum = parseInt(page || "1", 10);
+      const limitNum = Math.min(parseInt(limit || "12", 10), 50); // Max 50 per page
+      const skip = (pageNum - 1) * limitNum;
+
       interface PopulatedOwner {
         _id: mongoose.Types.ObjectId;
         name: string;
         kuEmail: string;
       }
 
-      const items = await Item.find(filter)
-        .populate("owner", "name kuEmail")
-        .sort({ createAt: -1 });
+      // Get total count and paginated items in parallel
+      const [total, items] = await Promise.all([
+        Item.countDocuments(filter),
+        Item.find(filter)
+          .populate("owner", "name kuEmail")
+          .sort({ createAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
+      ]);
 
       return res.json({
         success: true,
@@ -774,6 +791,12 @@ export default class AdminController {
             updatedAt: (item as unknown as { updatedAt?: Date }).updatedAt || item.updateAt || new Date(),
           };
         }),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum),
+        },
       });
     } catch (error) {
       console.error("Get items error:", error);

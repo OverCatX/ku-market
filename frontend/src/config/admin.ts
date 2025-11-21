@@ -201,11 +201,18 @@ export interface ItemData {
 
 export async function getItems(
   token: string,
-  approvalStatus?: string
-): Promise<ItemData[]> {
-  const url = approvalStatus
-    ? `${API_BASE}/api/admin/items?approvalStatus=${approvalStatus}`
-    : `${API_BASE}/api/admin/items`;
+  approvalStatus?: string,
+  page: number = 1,
+  limit: number = 12
+): Promise<{ items: ItemData[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
+  const params = new URLSearchParams();
+  if (approvalStatus) {
+    params.set("approvalStatus", approvalStatus);
+  }
+  params.set("page", String(page));
+  params.set("limit", String(limit));
+  
+  const url = `${API_BASE}/api/admin/items?${params.toString()}`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -214,7 +221,7 @@ export async function getItems(
     throw new Error(errorData.error || "Failed to fetch items");
   }
   const data = await res.json();
-  return data.items;
+  return { items: data.items, pagination: data.pagination };
 }
 
 export async function approveItem(token: string, id: string): Promise<void> {

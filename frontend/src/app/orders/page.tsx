@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -20,6 +20,7 @@ import {
 import toast from "react-hot-toast";
 import { ComponentType } from "react";
 import { clearAuthTokens, getAuthToken, isAuthenticated } from "@/lib/auth";
+import { Pagination } from "@/components/admin/Pagination";
 
 const StaticMap = dynamic(() => import("@/components/maps/StaticMap"), {
   ssr: false,
@@ -193,15 +194,12 @@ export default function OrdersPage() {
   const [submittingPaymentOrderId, setSubmittingPaymentOrderId] = useState<
     string | null
   >(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 10;
 
-  useEffect(() => {
-    // Scroll to top when page loads
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    loadOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadOrders = async (): Promise<void> => {
+  const loadOrders = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       const token = localStorage.getItem("authentication");
@@ -209,7 +207,15 @@ export default function OrdersPage() {
         router.replace("/login?redirect=/orders");
         return;
       }
-      const res = await fetch(`${API_BASE}/api/orders`, {
+      
+      const params = new URLSearchParams();
+      if (filter !== "all") {
+        params.set("status", filter);
+      }
+      params.set("page", String(currentPage));
+      params.set("limit", String(itemsPerPage));
+
+      const res = await fetch(`${API_BASE}/api/orders?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
@@ -217,6 +223,8 @@ export default function OrdersPage() {
       }
       const data = await res.json();
       setOrders(data.orders || []);
+      setTotalPages(data.pagination?.totalPages || 1);
+      setTotalItems(data.pagination?.total || 0);
     } catch (error) {
       console.error("Failed to load orders:", error);
       toast.error("Failed to load orders");
@@ -224,7 +232,18 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, currentPage, itemsPerPage, router]);
+
+  useEffect(() => {
+    // Scroll to top when page loads
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    loadOrders();
+  }, [loadOrders]);
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const handleMakePayment = async (order: OrderData) => {
     if (!isAuthenticated()) {
@@ -351,7 +370,10 @@ export default function OrdersPage() {
     }
   };
 
-  const statusCounts = useMemo(() => {
+  // Orders are already filtered and sorted by backend
+  // No need for client-side filtering/sorting
+  // Status counts will be calculated from current page orders (can be improved with separate count endpoint)
+  const currentStatusCounts = useMemo(() => {
     const counts: Record<OrderData["status"], number> = {
       pending_seller_confirmation: 0,
       confirmed: 0,
@@ -370,23 +392,6 @@ export default function OrdersPage() {
     return counts;
   }, [orders]);
 
-  const totalCount = orders.length;
-
-  const filteredOrders = useMemo(() => {
-    if (filter === "all") return orders;
-    return orders.filter((order) => normalizeStatus(order.status) === filter);
-  }, [orders, filter]);
-
-  const sortedOrders = useMemo(
-    () =>
-      [...filteredOrders].sort((a, b) => {
-        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return bTime - aTime;
-      }),
-    [filteredOrders]
-  );
-
   const formatDate = (date?: string) => {
     if (!date) return "Unknown";
     return new Date(date).toLocaleString("th-TH", {
@@ -397,34 +402,34 @@ export default function OrdersPage() {
 
   const filterOptions = useMemo(
     () => [
-      { value: "all" as const, label: "All", count: totalCount },
+      { value: "all" as const, label: "All", count: totalItems },
       {
         value: "pending_seller_confirmation" as const,
         label: "Pending",
-        count: statusCounts.pending_seller_confirmation,
+        count: currentStatusCounts.pending_seller_confirmation,
       },
       {
         value: "confirmed" as const,
         label: "Confirmed",
-        count: statusCounts.confirmed,
+        count: currentStatusCounts.confirmed,
       },
       {
         value: "completed" as const,
         label: "Completed",
-        count: statusCounts.completed,
+        count: currentStatusCounts.completed,
       },
       {
         value: "rejected" as const,
         label: "Rejected",
-        count: statusCounts.rejected,
+        count: currentStatusCounts.rejected,
       },
       {
         value: "cancelled" as const,
         label: "Cancelled",
-        count: statusCounts.cancelled,
+        count: currentStatusCounts.cancelled,
       },
     ],
-    [totalCount, statusCounts]
+    [totalItems, currentStatusCounts]
   );
 
   const statusBadge = (status: OrderData["status"]) => {
@@ -566,25 +571,25 @@ export default function OrdersPage() {
             {[
               {
                 label: "Total",
-                value: totalCount,
+                value: totalItems,
                 color: "text-gray-700",
                 Icon: Package,
               },
               {
                 label: "Pending",
-                value: statusCounts.pending_seller_confirmation,
+                value: currentStatusCounts.pending_seller_confirmation,
                 color: "text-yellow-600",
                 Icon: Clock,
               },
               {
                 label: "Confirmed",
-                value: statusCounts.confirmed,
+                value: currentStatusCounts.confirmed,
                 color: "text-blue-600",
                 Icon: Package,
               },
               {
                 label: "Completed",
-                value: statusCounts.completed,
+                value: currentStatusCounts.completed,
                 color: "text-green-600",
                 Icon: CheckCircle,
               },
@@ -610,7 +615,10 @@ export default function OrdersPage() {
           {filterOptions.map((option) => (
             <button
               key={option.value}
-              onClick={() => setFilter(option.value)}
+              onClick={() => {
+                setFilter(option.value);
+                setCurrentPage(1);
+              }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === option.value
                   ? "bg-[#84B067] text-white"
@@ -631,7 +639,7 @@ export default function OrdersPage() {
             <RefreshCw size={24} className="animate-spin mx-auto mb-2" />
             <p>Loading orders...</p>
           </div>
-        ) : sortedOrders.length === 0 ? (
+        ) : orders.length === 0 ? (
           <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-400">
               <Package size={32} />
@@ -644,8 +652,9 @@ export default function OrdersPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {sortedOrders.map((order) => {
+          <>
+            <div className="space-y-4">
+              {orders.map((order) => {
               const normalizedMethod = normalizePaymentMethod(
                 order.paymentMethod
               );
@@ -801,8 +810,20 @@ export default function OrdersPage() {
                   </div>
                 </div>
               );
-            })}
-          </div>
+                    })            }
+            </div>
+            {totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  totalItems={totalItems}
+                  itemsPerPage={itemsPerPage}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

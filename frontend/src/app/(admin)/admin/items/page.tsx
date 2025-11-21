@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, memo, useRef } from "react";
+import { useEffect, useState, useCallback, memo, useRef, useMemo } from "react";
 import {
   Package,
   CheckCircle,
@@ -33,6 +33,7 @@ import {
 import RejectModal from "@/components/admin/RejectModal";
 import EditItemModal from "@/components/admin/EditItemModal";
 import DeleteConfirmModal from "@/components/admin/DeleteConfirmModal";
+import { Pagination } from "@/components/admin/Pagination";
 
 type ApprovalStatus = "pending" | "approved" | "rejected";
 
@@ -598,6 +599,11 @@ export default function ItemsPage() {
   const [items, setItems] = useState<ItemData[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<ApprovalStatus | "all">("pending");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -611,8 +617,10 @@ export default function ItemsPage() {
 
       const approvalStatus =
         filter === "all" ? undefined : (filter as ApprovalStatus);
-      const data = await getItems(token, approvalStatus);
-      setItems(data);
+      const data = await getItems(token, approvalStatus, currentPage, itemsPerPage);
+      setItems(data.items);
+      setTotalPages(data.pagination.totalPages);
+      setTotalItems(data.pagination.total);
     } catch (error) {
       console.error("Failed to load items:", error);
       toast.error(
@@ -622,11 +630,16 @@ export default function ItemsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, currentPage, itemsPerPage]);
 
   useEffect(() => {
     loadItems();
   }, [loadItems]);
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const handleApprove = useCallback(
     async (id: string) => {
@@ -680,9 +693,12 @@ export default function ItemsPage() {
     [loadItems]
   );
 
-  const pendingCount = items.filter((i) => i.approvalStatus === "pending").length;
-  const approvedCount = items.filter((i) => i.approvalStatus === "approved").length;
-  const rejectedCount = items.filter((i) => i.approvalStatus === "rejected").length;
+  // Counts are now calculated from total items, not current page items
+  // We'll need to fetch counts separately or calculate from totalItems
+  // For now, we'll show counts based on current page items (can be improved with separate count endpoint)
+  const pendingCount = useMemo(() => items.filter((i) => i.approvalStatus === "pending").length, [items]);
+  const approvedCount = useMemo(() => items.filter((i) => i.approvalStatus === "approved").length, [items]);
+  const rejectedCount = useMemo(() => items.filter((i) => i.approvalStatus === "rejected").length, [items]);
 
   return (
     <div>
@@ -716,7 +732,10 @@ export default function ItemsPage() {
         ].map((f) => (
           <button
             key={f.value}
-            onClick={() => setFilter(f.value as ApprovalStatus | "all")}
+            onClick={() => {
+              setFilter(f.value as ApprovalStatus | "all");
+              setCurrentPage(1);
+            }}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === f.value
                 ? "bg-green-600 text-white"
@@ -724,7 +743,12 @@ export default function ItemsPage() {
             }`}
           >
             {f.label}
-            <span className="ml-2 text-xs">({f.count})</span>
+            {f.value === "all" && (
+              <span className="ml-2 text-xs">({totalItems})</span>
+            )}
+            {f.value !== "all" && (
+              <span className="ml-2 text-xs">({f.count})</span>
+            )}
           </button>
         ))}
       </div>
@@ -747,18 +771,31 @@ export default function ItemsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

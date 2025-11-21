@@ -121,22 +121,34 @@ export async function submitItemReport(
   return data.report;
 }
 
-export async function getMyReports(): Promise<ReportSummary[]> {
+export async function getMyReports(
+  page: number = 1,
+  limit: number = 10
+): Promise<{ reports: ReportSummary[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
   const token = ensureToken();
 
-  const res = await fetch(`${REPORT_ENDPOINT}/my`, {
+  const params = new URLSearchParams();
+  params.set("page", String(page));
+  params.set("limit", String(limit));
+
+  const res = await fetch(`${REPORT_ENDPOINT}/my?${params.toString()}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
-  const data = await handleResponse<{ reports: ReportSummary[] }>(res);
-  return data.reports;
+  const data = await handleResponse<{ 
+    reports: ReportSummary[]; 
+    pagination: { page: number; limit: number; total: number; totalPages: number } 
+  }>(res);
+  return data;
 }
 
 export async function getAdminReports(
-  filters: AdminReportFilters = {}
-): Promise<ReportSummary[]> {
+  filters: AdminReportFilters = {},
+  page: number = 1,
+  limit: number = 10
+): Promise<{ reports: ReportSummary[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
   const token = ensureToken();
 
   const params = new URLSearchParams();
@@ -146,10 +158,12 @@ export async function getAdminReports(
   if (filters.type && filters.type !== "all") {
     params.set("type", filters.type);
   }
+  params.set("page", String(page));
+  params.set("limit", String(limit));
 
   const query = params.toString();
   const res = await fetch(
-    `${REPORT_ENDPOINT}/admin${query ? `?${query}` : ""}`,
+    `${REPORT_ENDPOINT}/admin?${query}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -157,8 +171,11 @@ export async function getAdminReports(
     }
   );
 
-  const data = await handleResponse<{ reports: ReportSummary[] }>(res);
-  return data.reports;
+  const data = await handleResponse<{ 
+    reports: ReportSummary[]; 
+    pagination: { page: number; limit: number; total: number; totalPages: number } 
+  }>(res);
+  return data;
 }
 
 export async function updateReportStatus(

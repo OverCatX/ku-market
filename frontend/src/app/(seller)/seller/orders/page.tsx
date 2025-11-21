@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import {
   ShoppingBag,
@@ -16,6 +16,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { API_BASE } from "@/config/constants";
 import toast from "react-hot-toast";
+import { Pagination } from "@/components/admin/Pagination";
 
 const StaticMap = dynamic(() => import("@/components/maps/StaticMap"), {
   ssr: false,
@@ -164,14 +165,13 @@ export default function SellerOrders() {
   const [filter, setFilter] = useState<
     "all" | "pending_seller_confirmation" | "confirmed" | "completed"
   >("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 10;
   // const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
 
-  useEffect(() => {
-    loadOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
-
-  const loadOrders = async (): Promise<void> => {
+  const loadOrders = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       const token = localStorage.getItem("authentication");
@@ -180,9 +180,14 @@ export default function SellerOrders() {
         return;
       }
 
-      const url = filter === "all" 
-        ? `${API_BASE}/api/seller/orders`
-        : `${API_BASE}/api/seller/orders?status=${filter}`;
+      const params = new URLSearchParams();
+      if (filter !== "all") {
+        params.set("status", filter);
+      }
+      params.set("page", String(currentPage));
+      params.set("limit", String(itemsPerPage));
+
+      const url = `${API_BASE}/api/seller/orders?${params.toString()}`;
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
@@ -194,6 +199,8 @@ export default function SellerOrders() {
 
       const data = await response.json();
       setOrders(data.orders || []);
+      setTotalPages(data.pagination?.totalPages || 1);
+      setTotalItems(data.pagination?.total || 0);
     } catch (error) {
       console.error("Failed to load orders:", error);
       toast.error("Failed to load orders");
@@ -201,7 +208,11 @@ export default function SellerOrders() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
 
   const handleConfirmOrder = async (orderId: string): Promise<void> => {
     try {
@@ -315,6 +326,11 @@ export default function SellerOrders() {
     return labels[status] || status;
   };
 
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -351,7 +367,10 @@ export default function SellerOrders() {
         ]).map((f) => (
           <button
             key={f.value}
-            onClick={() => setFilter(f.value)}
+            onClick={() => {
+              setFilter(f.value);
+              setCurrentPage(1); // Will trigger useEffect to reload
+            }}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               filter === f.value
                 ? "bg-green-600 text-white"
@@ -383,7 +402,8 @@ export default function SellerOrders() {
             </p>
           </div>
         ) : (
-          orders.map((order) => (
+          <>
+            {orders.map((order) => (
             <div key={order.id} className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <div>
@@ -566,7 +586,19 @@ export default function SellerOrders() {
                 </div>
               )}
             </div>
-          ))
+            ))}
+            {totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  totalItems={totalItems}
+                  itemsPerPage={itemsPerPage}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

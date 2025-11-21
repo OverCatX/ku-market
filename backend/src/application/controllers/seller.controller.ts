@@ -73,7 +73,11 @@ export default class SellerController {
       }
 
       // Get query parameters
-      const { status } = req.query;
+      const { status, page, limit } = req.query as {
+        status?: string;
+        page?: string;
+        limit?: string;
+      };
       interface OrderFilter {
         seller: mongoose.Types.ObjectId;
         status?: string;
@@ -84,10 +88,21 @@ export default class SellerController {
         filter.status = status;
       }
 
-      // Get orders
-      const orders = await Order.find(filter)
-        .populate("buyer", "name kuEmail")
-        .sort({ createdAt: -1 });
+      // Pagination
+      const pageNum = parseInt(page || "1", 10);
+      const limitNum = Math.min(parseInt(limit || "10", 10), 50); // Max 50 per page
+      const skip = (pageNum - 1) * limitNum;
+
+      // Get total count and paginated orders in parallel
+      const [total, orders] = await Promise.all([
+        Order.countDocuments(filter),
+        Order.find(filter)
+          .populate("buyer", "name kuEmail")
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
+      ]);
 
       interface PopulatedBuyer {
         _id: mongoose.Types.ObjectId;
@@ -126,6 +141,12 @@ export default class SellerController {
             updatedAt: order.updatedAt,
           };
         }),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum),
+        },
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to get orders";
@@ -420,10 +441,26 @@ export default class SellerController {
         return res.status(404).json({ error: "No approved shop found" });
       }
 
-      // Get items with approval status
-      const items = await Item.find({ owner: userId })
-        .sort({ createAt: -1 })
-        .select("-__v");
+      const { page, limit } = req.query as {
+        page?: string;
+        limit?: string;
+      };
+
+      // Pagination
+      const pageNum = parseInt(page || "1", 10);
+      const limitNum = Math.min(parseInt(limit || "12", 10), 50); // Max 50 per page
+      const skip = (pageNum - 1) * limitNum;
+
+      // Get total count and paginated items in parallel
+      const [total, items] = await Promise.all([
+        Item.countDocuments({ owner: userId }),
+        Item.find({ owner: userId })
+          .sort({ createAt: -1 })
+          .select("-__v")
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
+      ]);
 
       return res.json({
         items: items.map((item) => ({
@@ -439,6 +476,12 @@ export default class SellerController {
           createdAt: (item as unknown as { createdAt?: Date }).createdAt || item.createAt || new Date(),
           updatedAt: (item as unknown as { updatedAt?: Date }).updatedAt || item.updateAt || new Date(),
         })),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum),
+        },
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to get items";

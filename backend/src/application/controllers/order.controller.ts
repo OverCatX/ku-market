@@ -335,16 +335,32 @@ export default class OrderController {
         return res.status(401).json({ success: false, error: "Unauthorized" });
       }
 
-      const { status } = req.query;
+      const { status, page, limit } = req.query as {
+        status?: string;
+        page?: string;
+        limit?: string;
+      };
       const filter: OrderFilter = { buyer: new mongoose.Types.ObjectId(userId) };
 
       if (status && typeof status === "string" && ["pending_seller_confirmation", "confirmed", "rejected", "completed", "cancelled"].includes(status)) {
         filter.status = status;
       }
 
-      const orders = await Order.find(filter)
-        .populate("seller", "name")
-        .sort({ createdAt: -1 });
+      // Pagination
+      const pageNum = parseInt(page || "1", 10);
+      const limitNum = Math.min(parseInt(limit || "10", 10), 50); // Max 50 per page
+      const skip = (pageNum - 1) * limitNum;
+
+      // Get total count and paginated orders in parallel
+      const [total, orders] = await Promise.all([
+        Order.countDocuments(filter),
+        Order.find(filter)
+          .populate("seller", "name")
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
+      ]);
 
       return res.json({
         success: true,
@@ -374,6 +390,12 @@ export default class OrderController {
           createdAt: order.createdAt,
           updatedAt: order.updatedAt,
         })),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum),
+        },
       });
     } catch (error) {
       console.error("Get buyer orders error:", error);
