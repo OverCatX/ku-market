@@ -16,6 +16,7 @@ import {
   MapPin,
   ExternalLink,
   HelpCircle,
+  AlertCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { ComponentType } from "react";
@@ -264,6 +265,7 @@ export default function OrdersPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+
   const handleMakePayment = async (order: OrderData) => {
     if (!isAuthenticated()) {
       toast.error("Please login to submit payment");
@@ -279,6 +281,13 @@ export default function OrdersPage() {
       return;
     }
 
+    // For PromptPay, redirect to Stripe Elements payment page
+    if (order.paymentMethod === "promptpay") {
+      router.push(`/payment/${order.id}`);
+      return;
+    }
+
+    // For other payment methods, submit payment notification directly
     setSubmittingPaymentOrderId(order.id);
 
     try {
@@ -314,6 +323,7 @@ export default function OrdersPage() {
       setSubmittingPaymentOrderId(null);
     }
   };
+
 
   const handleContactSeller = async (order: OrderData) => {
     if (!order?.seller?.id) {
@@ -527,47 +537,49 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-6 lg:py-8">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
-              <p className="mt-1 text-sm text-gray-500">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Orders</h1>
+              <p className="mt-1 text-xs sm:text-sm text-gray-500">
                 Manage and track your orders
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Link
                 href="/guide"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a632d] transition-colors text-sm font-medium shadow-sm hover:shadow-md"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a632d] transition-colors text-xs sm:text-sm font-medium shadow-sm hover:shadow-md"
               >
-                <HelpCircle size={18} />
-                User Guide
+                <HelpCircle size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <span className="hidden xs:inline">User Guide</span>
+                <span className="xs:hidden">Guide</span>
               </Link>
               <button
                 onClick={loadOrders}
                 disabled={loading}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 text-xs sm:text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
               >
                 <RefreshCw
-                  size={16}
-                  className={loading ? "animate-spin" : ""}
+                  size={14}
+                  className={`sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`}
                 />
-                Refresh
+                <span className="hidden sm:inline">Refresh</span>
               </button>
               <Link
                 href="/marketplace"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#84B067] text-white text-sm font-medium hover:bg-[#73995a] transition"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-[#84B067] text-white text-xs sm:text-sm font-medium hover:bg-[#73995a] transition"
               >
-                Continue Shopping
+                <span className="hidden sm:inline">Continue Shopping</span>
+                <span className="sm:hidden">Shop</span>
               </Link>
             </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             {[
               {
                 label: "Total",
@@ -596,14 +608,14 @@ export default function OrdersPage() {
             ].map(({ label, value, color, Icon }) => (
               <div
                 key={label}
-                className="bg-white rounded-lg border border-gray-200 p-4"
+                className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4"
               >
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">{label}</p>
-                    <p className={`text-2xl font-bold ${color}`}>{value}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-gray-500 mb-1 truncate">{label}</p>
+                    <p className={`text-xl sm:text-2xl font-bold ${color}`}>{value}</p>
                   </div>
-                  <Icon size={20} className={`${color} opacity-60`} />
+                  <Icon size={18} className={`${color} opacity-60 flex-shrink-0 ml-2 sm:w-5 sm:h-5`} />
                 </div>
               </div>
             ))}
@@ -611,26 +623,28 @@ export default function OrdersPage() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {filterOptions.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => {
-                setFilter(option.value);
-                setCurrentPage(1);
-              }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === option.value
-                  ? "bg-[#84B067] text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
-              }`}
-            >
-              {option.label}
-              <span className="ml-1.5 text-xs opacity-75">
-                ({option.count})
-              </span>
-            </button>
-          ))}
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 mb-6">
+          <div className="flex gap-2 min-w-max sm:flex-wrap">
+            {filterOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  setFilter(option.value);
+                  setCurrentPage(1);
+                }}
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                  filter === option.value
+                    ? "bg-[#84B067] text-white"
+                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                }`}
+              >
+                {option.label}
+                <span className="ml-1.5 text-xs opacity-75">
+                  ({option.count})
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Orders List */}
@@ -688,47 +702,49 @@ export default function OrdersPage() {
                   className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors overflow-hidden"
                 >
                   {/* Order Header */}
-                  <div className="p-5 border-b border-gray-100">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          {statusBadge(displayStatus)}
-                          {paymentStatusBadge(
-                            normalizedPaymentStatus ?? undefined
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
-                          <span>
-                            <span className="font-medium text-gray-900">
-                              {order.totalPrice.toLocaleString()} THB
-                            </span>
-                          </span>
-                          <span className="text-gray-300">•</span>
-                          <span className="capitalize">
-                            {order.deliveryMethod}
-                          </span>
-                          <span className="text-gray-300">•</span>
-                          <span>
-                            {formatPaymentMethod(order.paymentMethod)}
-                          </span>
-                          <span className="text-gray-300">•</span>
-                          <span className="text-gray-500">
-                            {formatDate(order.createdAt)}
-                          </span>
-                        </div>
+                  <div className="p-4 sm:p-5 border-b border-gray-100">
+                    <div className="flex flex-col gap-3 sm:gap-4">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        {statusBadge(displayStatus)}
+                        {paymentStatusBadge(
+                          normalizedPaymentStatus ?? undefined
+                        )}
                       </div>
-                      <div className="text-sm text-gray-600">
-                        <span className="text-gray-500">Seller:</span>{" "}
-                        <span className="font-medium text-gray-900">
-                          {order.seller?.name || "Unknown"}
-                        </span>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-600">
+                            <span>
+                              <span className="font-medium text-gray-900">
+                                {order.totalPrice.toLocaleString()} THB
+                              </span>
+                            </span>
+                            <span className="text-gray-300 hidden sm:inline">•</span>
+                            <span className="capitalize">
+                              {order.deliveryMethod}
+                            </span>
+                            <span className="text-gray-300 hidden sm:inline">•</span>
+                            <span className="break-words">
+                              {formatPaymentMethod(order.paymentMethod)}
+                            </span>
+                            <span className="text-gray-300 hidden sm:inline">•</span>
+                            <span className="text-gray-500 text-xs">
+                              {formatDate(order.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-600">
+                          <span className="text-gray-500">Seller:</span>{" "}
+                          <span className="font-medium text-gray-900">
+                            {order.seller?.name || "Unknown"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Order Items */}
-                  <div className="p-5">
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                  <div className="p-4 sm:p-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
                       {order.items.slice(0, 3).map((it, idx) => (
                         <div
                           key={`${order.id}-${idx}`}
@@ -738,10 +754,10 @@ export default function OrdersPage() {
                           <img
                             src={it.image || "/placeholder.png"}
                             alt={it.title}
-                            className="w-14 h-14 rounded-md object-cover border border-gray-200"
+                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-md object-cover border border-gray-200 flex-shrink-0"
                           />
                           <div className="min-w-0 flex-1">
-                            <div className="text-sm font-medium text-gray-900 truncate">
+                            <div className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                               {it.title}
                             </div>
                             <div className="text-xs text-gray-500">
@@ -770,7 +786,7 @@ export default function OrdersPage() {
                     <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-2">
                       <Link
                         href={`/order/${order.id}`}
-                        className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-lg bg-[#84B067] text-white hover:bg-[#73995a] transition text-center"
+                        className="flex-1 px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-[#84B067] text-white hover:bg-[#73995a] transition text-center"
                       >
                         View Details
                       </Link>
@@ -779,32 +795,38 @@ export default function OrdersPage() {
                           type="button"
                           onClick={() => handleMakePayment(order)}
                           disabled={submittingPaymentOrderId === order.id}
-                          className={`px-4 py-2 text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition ${
+                          className={`flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition ${
                             submittingPaymentOrderId === order.id
                               ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
                               : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                           }`}
                         >
-                          <CreditCard size={16} />
-                          {submittingPaymentOrderId === order.id
-                            ? "Submitting..."
-                            : "Make Payment"}
+                          <CreditCard size={14} className="sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">
+                            {submittingPaymentOrderId === order.id
+                              ? "Submitting..."
+                              : "Make Payment"}
+                          </span>
+                          <span className="sm:hidden">Pay</span>
                         </button>
                       )}
                       <button
                         type="button"
                         onClick={() => handleContactSeller(order)}
                         disabled={contactingOrderId === order.id}
-                        className={`px-4 py-2 text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition ${
+                        className={`flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition ${
                           contactingOrderId === order.id
                             ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
                             : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                         }`}
                       >
-                        <MessageCircle size={16} />
-                        {contactingOrderId === order.id
-                          ? "Opening..."
-                          : "Contact"}
+                        <MessageCircle size={14} className="sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">
+                          {contactingOrderId === order.id
+                            ? "Opening..."
+                            : "Contact"}
+                        </span>
+                        <span className="sm:hidden">Chat</span>
                       </button>
                     </div>
                   </div>
@@ -826,6 +848,7 @@ export default function OrdersPage() {
           </>
         )}
       </div>
+
     </div>
   );
 }

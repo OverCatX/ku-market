@@ -607,6 +607,17 @@ export default class SellerController {
         });
       }
 
+      // Check payment status for PromptPay/Transfer orders
+      // Seller must wait for buyer to complete payment before marking as delivered
+      if (order.paymentMethod === "promptpay" || order.paymentMethod === "transfer") {
+        if (!order.paymentStatus || 
+            (order.paymentStatus !== "paid" && order.paymentStatus !== "payment_submitted")) {
+          return res.status(400).json({
+            error: "Cannot mark as delivered. Buyer has not completed payment yet. Please wait for payment confirmation.",
+          });
+        }
+      }
+
       order.sellerDelivered = true;
       order.sellerDeliveredAt = new Date();
 
