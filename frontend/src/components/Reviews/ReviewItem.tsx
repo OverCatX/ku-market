@@ -5,13 +5,16 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  User,
 } from "lucide-react";
 import { Review } from "@/types/review";
 import StarRating from "./StarRating";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import toast from "react-hot-toast";
 import { isAuthenticated as checkAuth, getAuthUser } from "@/lib/auth";
+import { isSameUser, formatReviewDate } from "@/utils/reviewUtils";
+import DeleteReviewModal from "./DeleteReviewModal";
 
 interface ReviewItemProps {
   review: Review;
@@ -22,7 +25,7 @@ interface ReviewItemProps {
   onDelete?: (reviewId: string) => Promise<void>;
 }
 
-export default function ReviewItem({
+function ReviewItem({
   review,
   onHelpful,
   onDelete,
@@ -33,92 +36,19 @@ export default function ReviewItem({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Sync state with props when review changes
+  // Check if current user is the owner of this review
   useEffect(() => {
     setHasVoted(review.hasVoted || false);
     setHelpfulCount(review.helpful || 0);
 
-    // Check if current user is the owner of this review
     if (checkAuth()) {
       const user = getAuthUser();
-
-      // Handle reviewUserId - it might be a string or an object
-      let reviewUserId: string | null = null;
-      if (review.userId) {
-        if (typeof review.userId === "string") {
-          reviewUserId = review.userId.trim();
-        } else if (
-          typeof review.userId === "object" &&
-          review.userId !== null
-        ) {
-          // If it's an object, try to get _id from it
-          const userIdObj = review.userId as Record<string, unknown>;
-
-          // Check if it has _id property
-          if ("_id" in userIdObj && userIdObj._id) {
-            const _idValue = userIdObj._id;
-            // Handle ObjectId or string _id
-            if (typeof _idValue === "string") {
-              reviewUserId = _idValue.trim();
-            } else if (typeof _idValue === "object" && _idValue !== null) {
-              // It's likely a MongoDB ObjectId
-              // Try to convert the whole object to string first to see what we get
-              const objStr = String(_idValue);
-
-              // Try to extract ObjectId from string representation like "new ObjectId('691d3935db46d551a8edfb2a')"
-              // or just the ID itself if it's already a string
-              const oidMatch = objStr.match(/ObjectId\(['"]([^'"]+)['"]\)/);
-              if (oidMatch && oidMatch[1]) {
-                reviewUserId = oidMatch[1].trim();
-              } else if (/^[0-9a-fA-F]{24}$/.test(objStr)) {
-                // If the string itself is a valid ObjectId (24 hex chars)
-                reviewUserId = objStr.trim();
-              } else {
-                // Try toString() method if available
-                const objId = _idValue as { toString?: () => string };
-                if (objId.toString && typeof objId.toString === "function") {
-                  try {
-                    const str = objId.toString();
-                    if (/^[0-9a-fA-F]{24}$/.test(str)) {
-                      reviewUserId = str.trim();
-                    } else {
-                      const match = str.match(/ObjectId\(['"]([^'"]+)['"]\)/);
-                      if (match && match[1]) {
-                        reviewUserId = match[1].trim();
-                      } else {
-                        reviewUserId = str.trim();
-                      }
-                    }
-                  } catch {
-                    reviewUserId = objStr.trim();
-                  }
-                } else {
-                  reviewUserId = objStr.trim();
-                }
-              }
-            } else {
-              reviewUserId = String(_idValue).trim();
-            }
-          } else {
-            // No _id property, try to convert the whole object
-            const str = String(review.userId);
-            const oidMatch = str.match(/ObjectId\(['"]([^'"]+)['"]\)/);
-            if (oidMatch && oidMatch[1]) {
-              reviewUserId = oidMatch[1].trim();
-            } else {
-              reviewUserId = str.trim();
-            }
-          }
-        } else {
-          reviewUserId = String(review.userId).trim();
-        }
-      }
-
-      // Try multiple possible user ID fields from JWT token
       let currentUserId: string | null = null;
+      
       if (user) {
         if (user.id) {
           currentUserId = String(user.id).trim();
@@ -129,32 +59,11 @@ export default function ReviewItem({
         }
       }
 
-      // Normalize both IDs to strings for comparison (remove any whitespace, convert to lowercase for comparison)
-      const normalizedReviewUserId = reviewUserId
-        ? reviewUserId.trim().toLowerCase()
-        : null;
-      const normalizedCurrentUserId = currentUserId
-        ? currentUserId.trim().toLowerCase()
-        : null;
-
-      const isMatch =
-        normalizedCurrentUserId !== null &&
-        normalizedReviewUserId !== null &&
-        normalizedCurrentUserId === normalizedReviewUserId;
-      setIsOwner(isMatch);
+      setIsOwner(isSameUser(review.userId, currentUserId));
     } else {
       setIsOwner(false);
     }
-  }, [review.hasVoted, review.helpful, review.userId, review._id, onDelete]);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  }, [review.hasVoted, review.helpful, review.userId, review._id]);
 
   const handleHelpfulClick = async () => {
     // Check authentication first - prevent click if not logged in
@@ -169,18 +78,29 @@ export default function ReviewItem({
     if (!onHelpful) return;
     if (isSubmitting) return;
 
+    // Optimistic UI update - update immediately
+    const previousHasVoted = hasVoted;
+    const previousHelpfulCount = helpfulCount;
+    
+    setHasVoted(!hasVoted);
+    setHelpfulCount(hasVoted ? helpfulCount - 1 : helpfulCount + 1);
     setIsSubmitting(true);
+
     try {
       const result = await onHelpful(
         review._id || (review as { id?: string }).id || "",
         hasVoted
       );
-      // Update state based on response
+      // Update state based on response (in case backend response differs)
       if (result) {
         setHasVoted(result.hasVoted);
         setHelpfulCount(result.helpful);
       }
     } catch (error) {
+      // Revert optimistic update on error
+      setHasVoted(previousHasVoted);
+      setHelpfulCount(previousHelpfulCount);
+      
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -198,19 +118,21 @@ export default function ReviewItem({
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
     if (!onDelete) return;
     if (isDeleting) return;
+    setShowDeleteModal(true);
+  };
 
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this review? This action cannot be undone."
-    );
-    if (!confirmed) return;
+  const handleDeleteConfirm = async () => {
+    if (!onDelete) return;
+    if (isDeleting) return;
 
     setIsDeleting(true);
     try {
       await onDelete(review._id || (review as { id?: string }).id || "");
       toast.success("Review deleted successfully");
+      setShowDeleteModal(false);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to delete review";
@@ -218,6 +140,11 @@ export default function ReviewItem({
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    if (isDeleting) return;
+    setShowDeleteModal(false);
   };
 
   const openImageModal = (index: number) => {
@@ -274,7 +201,7 @@ export default function ReviewItem({
             </div>
           ) : (
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#69773D] to-[#84B067] flex items-center justify-center text-white font-bold flex-shrink-0 text-xs sm:text-sm">
-              {review.userName?.charAt(0).toUpperCase() || "U"}
+              {review.userName?.charAt(0).toUpperCase() || <User className="w-4 h-4 sm:w-5 sm:h-5" />}
             </div>
           )}
 
@@ -294,7 +221,7 @@ export default function ReviewItem({
               )}
             </div>
             <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-              {formatDate(review.createdAt)}
+              {formatReviewDate(review.createdAt)}
             </p>
           </div>
         </div>
@@ -462,13 +389,14 @@ export default function ReviewItem({
           <span>
             Helpful ({helpfulCount})
             {hasVoted && <span className="ml-1 text-[#84B067]">✓</span>}
+            {isSubmitting && <span className="ml-1 text-gray-400">...</span>}
           </span>
         </button>
 
         {/* Delete Button - Only show if user owns the review */}
         {isOwner && onDelete && (
           <button
-            onClick={handleDelete}
+            onClick={handleDeleteClick}
             disabled={isDeleting}
             className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-red-600 hover:text-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             title="Delete your review"
@@ -478,6 +406,17 @@ export default function ReviewItem({
           </button>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteReviewModal
+        isOpen={showDeleteModal}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }
+
+// Memoize component to prevent unnecessary re-renders when parent updates but review data hasn't changed
+export default memo(ReviewItem);
