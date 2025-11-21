@@ -49,6 +49,15 @@ jobs:
           path: frontend/node_modules
           key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
 
+      - name: Install dependencies if cache miss
+        run: |
+          if [ ! -d "frontend/node_modules/.bin" ]; then
+            echo "Cache miss or incomplete, installing dependencies..."
+            npm ci --prefix frontend
+          else
+            echo "Cache hit, skipping install"
+          fi
+
       - name: Check if lint script exists
         id: check-lint
         run: |
@@ -84,6 +93,15 @@ jobs:
           path: frontend/node_modules
           key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
 
+      - name: Install dependencies if cache miss
+        run: |
+          if [ ! -d "frontend/node_modules/.bin" ]; then
+            echo "Cache miss or incomplete, installing dependencies..."
+            npm ci --prefix frontend
+          else
+            echo "Cache hit, skipping install"
+          fi
+
       - name: Check if test script exists
         id: check-test
         run: |
@@ -118,6 +136,15 @@ jobs:
         with:
           path: frontend/node_modules
           key: fe-node-modules-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install dependencies if cache miss
+        run: |
+          if [ ! -d "frontend/node_modules/.bin" ]; then
+            echo "Cache miss or incomplete, installing dependencies..."
+            npm ci --prefix frontend
+          else
+            echo "Cache hit, skipping install"
+          fi
 
       - name: Build
         run: npm run build --prefix frontend
@@ -169,6 +196,15 @@ jobs:
           path: backend/node_modules
           key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
 
+      - name: Install dependencies if cache miss
+        run: |
+          if [ ! -d "backend/node_modules/.bin" ]; then
+            echo "Cache miss or incomplete, installing dependencies..."
+            npm ci --prefix backend
+          else
+            echo "Cache hit, skipping install"
+          fi
+
       - name: Check if lint script exists
         id: check-lint
         run: |
@@ -203,6 +239,15 @@ jobs:
         with:
           path: backend/node_modules
           key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Install dependencies if cache miss
+        run: |
+          if [ ! -d "backend/node_modules/.bin" ]; then
+            echo "Cache miss or incomplete, installing dependencies..."
+            npm ci --prefix backend
+          else
+            echo "Cache hit, skipping install"
+          fi
 
       - name: Check if test script exists
         id: check-test
@@ -240,6 +285,15 @@ jobs:
         with:
           path: backend/node_modules
           key: be-node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Install dependencies if cache miss
+        run: |
+          if [ ! -d "backend/node_modules/.bin" ]; then
+            echo "Cache miss or incomplete, installing dependencies..."
+            npm ci --prefix backend
+          else
+            echo "Cache hit, skipping install"
+          fi
 
       - name: Build
         run: npm run build --prefix backend
