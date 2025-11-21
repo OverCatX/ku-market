@@ -164,11 +164,11 @@ export default function MarketPage() {
 
             const itemsWithRatings = res.data.items.map((item: Item) => {
               const summary = summaries[item._id];
-              return {
-                ...item,
+                return {
+                  ...item,
                 rating: summary?.averageRating || 0,
                 totalReviews: summary?.totalReviews || 0,
-              };
+                };
             });
 
             setItemsWithRating(itemsWithRatings);
@@ -252,12 +252,12 @@ export default function MarketPage() {
   );
   const sortOptions = useMemo<{ label: string; value: SortOptions }[]>(
     () => [
-      { label: "Sort By", value: "" },
+    { label: "Sort By", value: "" },
       { label: "Newest Updated", value: "updateAt" }, // Default and most useful
-      { label: "Price", value: "price" },
-      { label: "Title", value: "title" },
+    { label: "Price", value: "price" },
+    { label: "Title", value: "title" },
       { label: "Newest Created", value: "createAt" },
-      { label: "Relevance", value: "relevance" },
+    { label: "Relevance", value: "relevance" },
     ],
     []
   );
@@ -280,13 +280,13 @@ export default function MarketPage() {
   // Memoize active filter chips
   const activeFilterChips = useMemo(() => {
     return [
-      search ? { key: "search", label: `Search: ${search}` } : null,
-      category ? { key: "category", label: `Category: ${category}` } : null,
-      status ? { key: "status", label: `Status: ${status}` } : null,
+    search ? { key: "search", label: `Search: ${search}` } : null,
+    category ? { key: "category", label: `Category: ${category}` } : null,
+    status ? { key: "status", label: `Status: ${status}` } : null,
       sortBy
         ? { key: "sortBy", label: `Sort: ${sortBy} (${sortOrder})` }
         : null,
-    ].filter(Boolean) as { key: string; label: string }[];
+  ].filter(Boolean) as { key: string; label: string }[];
   }, [search, category, status, sortBy, sortOrder]);
 
   // Optimized filter handlers
@@ -366,8 +366,8 @@ export default function MarketPage() {
         {/* Breadcrumb & Guide Button */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-sm text-gray-500">
-            marketplace / <span className="text-gray-700">browse</span>
-          </p>
+          marketplace / <span className="text-gray-700">browse</span>
+        </p>
           <Link
             href="/guide"
             className="inline-flex items-center gap-2 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a632d] transition-colors text-sm font-medium shadow-sm hover:shadow-md"
@@ -531,8 +531,8 @@ export default function MarketPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 md:gap-4 lg:gap-5">
             <AnimatePresence mode="popLayout">
               {displayItems.map((item) => (
-                <motion.div
-                  key={item._id}
+                  <motion.div
+                    key={item._id}
                   layout={!prefersReducedMotion}
                   initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
                   animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
@@ -545,25 +545,25 @@ export default function MarketPage() {
                       ? {}
                       : { duration: 0.15, ease: "easeOut" }
                   }
-                  className="h-full transition-shadow"
-                >
-                  <Link
-                    href={`/marketplace/${item._id}`}
-                    className="block h-full"
-                    prefetch={false}
+                    className="h-full transition-shadow"
                   >
-                    <ItemCard
-                      id={item._id}
-                      title={item.title}
-                      description={item.description}
-                      price={item.price}
-                      photo={item.photo[0] || ""}
-                      status={item.status}
-                      rating={(item as ItemWithRating).rating}
-                      totalReviews={(item as ItemWithRating).totalReviews}
-                    />
-                  </Link>
-                </motion.div>
+                    <Link
+                      href={`/marketplace/${item._id}`}
+                      className="block h-full"
+                    prefetch={false}
+                    >
+                      <ItemCard
+                        id={item._id}
+                        title={item.title}
+                        description={item.description}
+                        price={item.price}
+                        photo={item.photo[0] || ""}
+                        status={item.status}
+                        rating={(item as ItemWithRating).rating}
+                        totalReviews={(item as ItemWithRating).totalReviews}
+                      />
+                    </Link>
+                  </motion.div>
               ))}
             </AnimatePresence>
           </div>

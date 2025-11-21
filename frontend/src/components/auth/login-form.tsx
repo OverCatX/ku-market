@@ -206,12 +206,12 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md bg-white shadow-lg rounded-2xl border border-gray-200 sm:p-8 p-6 transform transition-all duration-300 hover:shadow-xl">
       <div className="text-center mb-6">
-        <h2
+      <h2
           className="text-2xl font-semibold text-gray-700 mb-2 animate-fade-in"
-          style={{ color: aboutColors.oliveDark }}
-        >
-          Login to Your Account
-        </h2>
+        style={{ color: aboutColors.oliveDark }}
+      >
+        Login to Your Account
+      </h2>
         <div
           className="w-16 h-1 mx-auto rounded-full"
           style={{
@@ -255,11 +255,11 @@ export function LoginForm() {
             KU Email
           </label>
           <div className="relative">
-            <input
-              type="email"
-              placeholder="andes_nmezad@ku.th"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+          <input
+            type="email"
+            placeholder="andes_nmezad@ku.th"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
               onFocus={() => setFocusedField("email")}
               onBlur={() => setFocusedField(null)}
               className={`w-full px-4 py-3 pr-10 border rounded-lg transition-all duration-200 ease-out focus:ring-2 focus:ring-[#69773D] focus:border-transparent focus:outline-none ${
@@ -273,8 +273,8 @@ export function LoginForm() {
                   ? "border-red-400"
                   : ""
               } ${errors.email ? "border-red-400" : ""}`}
-              required
-            />
+            required
+          />
             {email && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                 {isValidEmail ? (
@@ -357,11 +357,11 @@ export function LoginForm() {
             Password
           </label>
           <div className="relative">
-            <input
+          <input
               type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
               onFocus={() => setFocusedField("password")}
               onBlur={() => setFocusedField(null)}
               className={`w-full px-4 py-3 pr-12 border rounded-lg transition-all duration-200 ease-out focus:ring-2 focus:ring-[#69773D] focus:border-transparent focus:outline-none ${
@@ -369,8 +369,8 @@ export function LoginForm() {
                   ? "border-[#69773D] shadow-sm"
                   : "border-gray-300 hover:border-gray-400"
               } ${errors.password ? "border-red-400" : ""}`}
-              required
-            />
+            required
+          />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -630,7 +630,7 @@ export function LoginForm() {
         >
           <span>Don&apos;t have an account?</span>
           <span className="ml-2 font-semibold group-hover:translate-x-0.5 transition-transform duration-200 ease-out">
-            Sign up
+          Sign up
           </span>
           <svg
             className="w-5 h-5 ml-2 transform group-hover:translate-x-0.5 transition-transform duration-200 ease-out"

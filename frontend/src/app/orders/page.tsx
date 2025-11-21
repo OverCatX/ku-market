@@ -119,9 +119,9 @@ function PickupLocationSection({
 
   return (
     <div className="mt-4 space-y-3">
-      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="p-3 bg-[#F6F2E5]/30 rounded-lg border border-gray-200">
         <div className="flex items-start gap-2">
-          <MapPin size={16} className="mt-0.5 text-gray-500 flex-shrink-0" />
+          <MapPin size={16} className="mt-0.5 text-[#4A5130] flex-shrink-0" />
           <div className="text-sm flex-1">
             <p className="font-medium text-[#4A5130]">
               {pickupDetails.locationName}
@@ -141,7 +141,7 @@ function PickupLocationSection({
                   href={`https://www.google.com/maps?q=${pickupDetails.coordinates.lat},${pickupDetails.coordinates.lng}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline transition"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-[#69773D] hover:text-[#5a6530] hover:underline transition"
                 >
                   <ExternalLink size={12} />
                   Open in Google Maps
@@ -445,7 +445,7 @@ export default function OrdersPage() {
       },
       confirmed: {
         label: "Confirmed",
-        className: "bg-[#69773D]/10 text-[#69773D] border-[#69773D]/20",
+        className: "bg-[#724a24]/10 text-[#724a24] border-[#724a24]/20",
         Icon: Package,
       },
       completed: {
@@ -455,7 +455,7 @@ export default function OrdersPage() {
       },
       rejected: {
         label: "Rejected",
-        className: "bg-[#780606] text-[#780606]",
+        className: "bg-[#780606]/10 text-[#780606] border-[#780606]/20",
         Icon: XCircle,
       },
       cancelled: {
@@ -548,7 +548,7 @@ export default function OrdersPage() {
               <button
                 onClick={loadOrders}
                 disabled={loading}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-300 text-[#4A5130] text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-[#4A5130] text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
               >
                 <RefreshCw
                   size={16}
@@ -587,17 +587,17 @@ export default function OrdersPage() {
               {
                 label: "Confirmed",
                 value: currentStatusCounts.confirmed,
-                color: "#7ba02e",
-                borderColor: "#7ba02e",
-                titleColor: "#7ba02e",
+                color: "#724a24",
+                borderColor: "#724a24",
+                titleColor: "#724a24",
                 Icon: Package,
               },
               {
                 label: "Completed",
                 value: currentStatusCounts.completed,
-                color: "#8fb88f",
-                borderColor: "#8fb88f",
-                titleColor: "#8fb88f",
+                color: "#69773D",
+                borderColor: "#69773D",
+                titleColor: "#69773D",
                 Icon: CheckCircle,
               },
             ].map(({ label, value, color, borderColor, titleColor, Icon }) => (
@@ -781,7 +781,7 @@ export default function OrdersPage() {
                         </div>
                       </div>
                     ))}
-                    </div>
+                  </div>
 
                     {order.items.length > 3 && (
                       <p className="text-xs text-[#69773D] mb-4">
@@ -852,7 +852,7 @@ export default function OrdersPage() {
                   totalItems={totalItems}
                   itemsPerPage={itemsPerPage}
                 />
-              </div>
+          </div>
             )}
           </>
         )}

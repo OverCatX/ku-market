@@ -65,7 +65,7 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
           return data.notifications;
         });
       } else {
-        setNotifications(data.notifications);
+      setNotifications(data.notifications);
       }
     } catch (err) {
       console.error("Failed to fetch notifications:", err);

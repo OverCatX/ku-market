@@ -62,7 +62,11 @@ const TableRow = memo(function TableRow({
         <span
           className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${
             user.role === "admin"
-              ? "bg-[#5C8140]/10 text-[#5C8140]"
+              ? "bg-[#780606]/10 text-[#780606]"
+              : user.role === "seller"
+              ? "bg-[#8c522f]/10 text-[#8c522f]"
+              : user.role === "buyer"
+              ? "bg-[#69773D]/10 text-[#69773D]"
               : "bg-gray-100 text-gray-800"
           }`}
         >

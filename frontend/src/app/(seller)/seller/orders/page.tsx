@@ -168,8 +168,37 @@ export default function SellerOrders() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [statusCounts, setStatusCounts] = useState({
+    pending_seller_confirmation: 0,
+    confirmed: 0,
+    completed: 0,
+  });
   const itemsPerPage = 10;
   // const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+
+  const loadStatusCounts = useCallback(async (): Promise<void> => {
+    try {
+      const token = localStorage.getItem("authentication");
+      if (!token) return;
+
+      // Load all orders without pagination to count statuses
+      const response = await fetch(`${API_BASE}/api/seller/orders?limit=1000`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const allOrders = data.orders || [];
+        setStatusCounts({
+          pending_seller_confirmation: allOrders.filter((o: OrderData) => o.status === "pending_seller_confirmation").length,
+          confirmed: allOrders.filter((o: OrderData) => o.status === "confirmed").length,
+          completed: allOrders.filter((o: OrderData) => o.status === "completed").length,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load status counts:", error);
+    }
+  }, []);
 
   const loadOrders = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -201,6 +230,9 @@ export default function SellerOrders() {
       setOrders(data.orders || []);
       setTotalPages(data.pagination?.totalPages || 1);
       setTotalItems(data.pagination?.total || 0);
+      
+      // Update status counts after loading orders
+      await loadStatusCounts();
     } catch (error) {
       console.error("Failed to load orders:", error);
       toast.error("Failed to load orders");
@@ -208,11 +240,12 @@ export default function SellerOrders() {
     } finally {
       setLoading(false);
     }
-  }, [filter, currentPage, itemsPerPage]);
+  }, [filter, currentPage, itemsPerPage, loadStatusCounts]);
 
   useEffect(() => {
     loadOrders();
-  }, [loadOrders]);
+    loadStatusCounts();
+  }, [loadOrders, loadStatusCounts]);
 
   const handleConfirmOrder = async (orderId: string): Promise<void> => {
     try {
@@ -237,6 +270,7 @@ export default function SellerOrders() {
 
       toast.success("Order confirmed successfully!");
       await loadOrders();
+      await loadStatusCounts();
     } catch (error) {
       console.error("Failed to confirm order:", error);
       toast.error(error instanceof Error ? error.message : "Failed to confirm order");
@@ -269,6 +303,7 @@ export default function SellerOrders() {
 
       toast.success("Order rejected");
       await loadOrders();
+      await loadStatusCounts();
     } catch (error) {
       console.error("Failed to reject order:", error);
       toast.error(error instanceof Error ? error.message : "Failed to reject order");
@@ -298,6 +333,7 @@ export default function SellerOrders() {
 
       toast.success("Order marked as delivered!");
       await loadOrders();
+      await loadStatusCounts();
     } catch (error) {
       console.error("Failed to mark as delivered:", error);
       toast.error(error instanceof Error ? error.message : "Failed to mark as delivered");
@@ -307,8 +343,8 @@ export default function SellerOrders() {
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
       pending_seller_confirmation: "bg-yellow-100 text-yellow-800",
-      confirmed: "bg-[#69773D]/10 text-[#69773D]",
-      rejected: "bg-[#780606] text-[#780606]",
+      confirmed: "bg-[#724a24]/10 text-[#724a24]",
+      rejected: "bg-[#780606]/10 text-[#780606] border border-[#780606]/20",
       completed: "bg-[#69773D]/10 text-[#69773D]",
       cancelled: "bg-gray-100 text-gray-800",
     };
@@ -380,7 +416,7 @@ export default function SellerOrders() {
             {f.label}
             {f.value !== "all" && (
               <span className="ml-2 text-xs">
-                ({orders.filter((o) => o.status === f.value).length})
+                ({statusCounts[f.value] || 0})
               </span>
             )}
           </button>
@@ -582,7 +618,7 @@ export default function SellerOrders() {
                   </button>
                   <button
                     onClick={() => handleRejectOrder(order.id)}
-                    className="flex-1 px-4 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#780606] transition-colors font-medium"
+                    className="flex-1 px-4 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#5c0505] transition-colors font-medium"
                   >
                     <XCircle size={18} className="inline mr-2" />
                     Reject Order

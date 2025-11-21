@@ -18,6 +18,7 @@ import {
   MapPin,
   QrCode,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import toast from "react-hot-toast";
@@ -108,7 +109,7 @@ const statusStyles: Record<
   },
   confirmed: {
     label: "Confirmed",
-    badge: "bg-[#69773D]/10 text-[#69773D]",
+    badge: "bg-[#724a24]/10 text-[#724a24]",
     icon: Package,
   },
   completed: {
@@ -118,7 +119,7 @@ const statusStyles: Record<
   },
   rejected: {
     label: "Rejected",
-    badge: "bg-[#780606] text-[#780606]",
+    badge: "bg-[#780606]/10 text-[#780606] border border-[#780606]/20",
     icon: XCircle,
   },
   cancelled: {
@@ -717,13 +718,21 @@ export default function OrderDetailPage({
   return (
     <div className="min-h-screen py-10" style={{ backgroundColor: '#F6F2E5' }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <Link
             href="/orders"
             className="inline-flex items-center gap-2 text-sm font-medium text-[#4c5c2f] hover:text-[#2f3816]"
           >
             <ArrowLeft size={16} /> Back to orders
           </Link>
+          <button
+            onClick={fetchOrder}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+            Refresh
+          </button>
         </div>
 
         <div className="rounded-3xl bg-white/90 border border-[#e4ecd7] shadow-xl shadow-[#c8d3ba]/30 p-6 sm:p-8">
@@ -963,7 +972,7 @@ export default function OrderDetailPage({
                       className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
                         loadingQrCode
                           ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                          : "bg-[#69773D] text-white hover:bg-[#5a6530]"
+                          : "bg-[#2F5A32] text-white hover:bg-[#254026]"
                       }`}
                     >
                       <QrCode size={16} />
@@ -978,7 +987,7 @@ export default function OrderDetailPage({
                       className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
                         submittingPayment
                           ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                          : "bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
+                          : "bg-[#5C8140] text-white hover:bg-[#4a6b33]"
                       }`}
                     >
                       <CreditCard size={16} />
@@ -999,7 +1008,7 @@ export default function OrderDetailPage({
                     className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
                       submittingPayment
                         ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                        : "bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
+                        : "bg-[#5C8140] text-white hover:bg-[#4a6b33]"
                     }`}
                   >
                     <CreditCard size={16} />
@@ -1033,7 +1042,7 @@ export default function OrderDetailPage({
                         className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
                           markingReceived
                             ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                            : "bg-[#e0cd95]/30 text-[#8c522f] hover:bg-[#e0cd95]/40"
+                            : "bg-[#e0cd95] text-[#8c522f] hover:bg-[#d4c085]"
                         }`}
                       >
                         <CheckCircle size={16} />

@@ -53,7 +53,7 @@ export default function ProfileForm({
             </div>
           )}
           <div className="flex-1 w-full sm:w-auto">
-            <label className="cursor-pointer inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors w-full sm:w-auto justify-center sm:justify-start">
+            <label className="cursor-pointer inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#F6F2E5] hover:bg-[#F6F2E5]/80 rounded-lg transition-colors w-full sm:w-auto justify-center sm:justify-start">
               <Upload className="w-4 h-4" />
               <span className="text-sm font-medium">Upload Photo</span>
               <input
@@ -76,7 +76,7 @@ export default function ProfileForm({
             name="name"
             value={form.name}
             onChange={handleChange}
-            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#69773D]"
+            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 bg-[#F6F2E5] focus:outline-none focus:ring-2 focus:ring-[#69773D]"
           />
         </div>
         <div>
@@ -84,7 +84,7 @@ export default function ProfileForm({
           <input
             value={email}
             readOnly
-            className="mt-1 w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-gray-600"
+            className="mt-1 w-full border border-gray-200 bg-[#F6F2E5] rounded-lg px-3 py-2 text-gray-600"
           />
         </div>
       </div>
@@ -96,7 +96,7 @@ export default function ProfileForm({
             name="faculty"
             value={form.faculty}
             onChange={handleChange}
-            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#69773D]"
+            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 bg-[#F6F2E5] focus:outline-none focus:ring-2 focus:ring-[#69773D]"
           />
         </div>
         <div>
@@ -105,7 +105,7 @@ export default function ProfileForm({
             name="contact"
             value={form.contact}
             onChange={handleChange}
-            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#69773D]"
+            className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 bg-[#F6F2E5] focus:outline-none focus:ring-2 focus:ring-[#69773D]"
           />
         </div>
       </div>

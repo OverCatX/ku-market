@@ -679,13 +679,13 @@ export default function BecomeASeller() {
                       Full Name *
                     </label>
                     <div className="relative">
-                      <input
-                        name="fullName"
-                        value={form.fullName}
-                        onChange={handleChange}
+                    <input
+                      name="fullName"
+                      value={form.fullName}
+                      onChange={handleChange}
                         onFocus={() => setFocusedField("fullName")}
                         onBlur={() => setFocusedField(null)}
-                        placeholder="Enter your full name"
+                      placeholder="Enter your full name"
                         className={`w-full p-2 sm:p-3 pr-10 text-sm sm:text-base rounded-lg border transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-1 ${
                           focusedField === "fullName" ? "shadow-sm" : ""
                         } ${
@@ -699,7 +699,7 @@ export default function BecomeASeller() {
                           borderColor: focusedField === "fullName" ? mainDark : errors.fullName ? "#ef4444" : form.fullName && form.fullName.trim() ? "#10b981" : borderColor,
                           backgroundColor: "white"
                         }}
-                      />
+                    />
                       {form.fullName && form.fullName.trim() && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
@@ -726,11 +726,11 @@ export default function BecomeASeller() {
                       Email Address *
                     </label>
                     <div className="relative">
-                      <input
-                        name="email"
-                        type="email"
-                        value={form.email}
-                        onChange={handleChange}
+                    <input
+                      name="email"
+                      type="email"
+                      value={form.email}
+                      onChange={handleChange}
                         onFocus={() => setFocusedField("email")}
                         onBlur={() => setFocusedField(null)}
                         placeholder="your.email@ku.th"
@@ -790,11 +790,11 @@ export default function BecomeASeller() {
                       Phone Number *
                     </label>
                     <div className="relative">
-                      <input
-                        name="phone"
-                        type="tel"
-                        value={form.phone}
-                        onChange={handleChange}
+                    <input
+                      name="phone"
+                      type="tel"
+                      value={form.phone}
+                      onChange={handleChange}
                         onFocus={() => setFocusedField("phone")}
                         onBlur={() => setFocusedField(null)}
                         placeholder="Phone number (9-10 digits)"
@@ -859,13 +859,13 @@ export default function BecomeASeller() {
                       Business/Shop Name *
                     </label>
                     <div className="relative">
-                      <input
-                        name="businessName"
-                        value={form.businessName}
-                        onChange={handleChange}
+                    <input
+                      name="businessName"
+                      value={form.businessName}
+                      onChange={handleChange}
                         onFocus={() => setFocusedField("businessName")}
                         onBlur={() => setFocusedField(null)}
-                        placeholder="Enter your business name"
+                      placeholder="Enter your business name"
                         className={`w-full p-2 sm:p-3 ${
                           businessNameLength >= 2 ? "pr-10" : ""
                         } text-sm sm:text-base rounded-lg border transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-1 ${
@@ -883,7 +883,7 @@ export default function BecomeASeller() {
                           borderColor: focusedField === "businessName" ? mainDark : businessNameLength >= 2 ? "#10b981" : businessNameLength > 0 && businessNameLength < 2 ? "#ef4444" : errors.businessName ? "#ef4444" : borderColor,
                           backgroundColor: "white"
                         }}
-                      />
+                    />
                       {businessNameLength >= 2 && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           <svg className="w-5 h-5 text-green-500 animate-fade-in" fill="currentColor" viewBox="0 0 20 20">
@@ -976,14 +976,14 @@ export default function BecomeASeller() {
                       Business Description *
                     </label>
                     <div className="relative">
-                      <textarea
-                        name="businessDescription"
-                        value={form.businessDescription}
-                        onChange={handleChange}
+                    <textarea
+                      name="businessDescription"
+                      value={form.businessDescription}
+                      onChange={handleChange}
                         onFocus={() => setFocusedField("businessDescription")}
                         onBlur={() => setFocusedField(null)}
-                        placeholder="Tell us about your business and products..."
-                        rows={4}
+                      placeholder="Tell us about your business and products..."
+                      rows={4}
                         className={`w-full p-2 sm:p-3 text-sm sm:text-base rounded-lg border resize-none transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-offset-1 ${
                           focusedField === "businessDescription" ? "shadow-sm" : ""
                         } ${
@@ -1026,14 +1026,14 @@ export default function BecomeASeller() {
                             Description must not exceed 1000 characters
                           </p>
                         )}
-                        {errors.businessDescription && (
+                    {errors.businessDescription && (
                           <p className="text-[#780606] text-xs sm:text-sm flex items-center animate-fade-in">
                             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
-                            {errors.businessDescription}
-                          </p>
-                        )}
+                        {errors.businessDescription}
+                      </p>
+                    )}
                       </div>
                       <span className={`text-xs ${
                         businessDescriptionLength > 1000 ? "text-[#780606]" : businessDescriptionLength >= 10 ? "text-[#69773D]" : "text-gray-500"

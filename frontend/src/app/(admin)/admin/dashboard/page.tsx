@@ -305,12 +305,19 @@ export default function AdminDashboard() {
 
           <Link
             href="/admin/meetup-presets"
-            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-teal-500 hover:bg-teal-50 transition-all"
+            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#69773D] hover:bg-gradient-to-br hover:from-[#69773D]/10 hover:to-[#69773D]/5 transition-all group hover:shadow-md"
           >
-            <MapPin className="text-teal-600" size={24} />
+            <div className="w-12 h-12 bg-gradient-to-br from-[#69773D]/20 to-[#69773D]/30 rounded-xl flex items-center justify-center group-hover:from-[#69773D]/30 group-hover:to-[#69773D]/40 transition-all shadow-sm">
+              <MapPin
+                size={22}
+                className="text-[#69773D] group-hover:scale-110 transition-transform"
+              />
+            </div>
             <div>
-              <div className="font-semibold text-gray-900">Meetup Presets</div>
-              <div className="text-sm text-gray-600">
+              <div className="font-semibold text-[#4A5130] group-hover:text-[#69773D] transition-colors">
+                Meetup Presets
+              </div>
+              <div className="text-sm text-[#69773D] group-hover:text-gray-700">
                 Manage pickup locations and meetup points
               </div>
             </div>
@@ -318,12 +325,19 @@ export default function AdminDashboard() {
 
           <Link
             href="/admin/activity-logs"
-            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-cyan-500 hover:bg-cyan-50 transition-all"
+            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#92bf37] hover:bg-gradient-to-br hover:from-[#92bf37]/10 hover:to-[#92bf37]/5 transition-all group hover:shadow-md"
           >
-            <Activity className="text-cyan-600" size={24} />
+            <div className="w-12 h-12 bg-gradient-to-br from-[#92bf37]/20 to-[#92bf37]/30 rounded-xl flex items-center justify-center group-hover:from-[#92bf37]/30 group-hover:to-[#92bf37]/40 transition-all shadow-sm">
+              <Activity
+                size={22}
+                className="text-[#92bf37] group-hover:scale-110 transition-transform"
+              />
+            </div>
             <div>
-              <div className="font-semibold text-gray-900">Activity Logs</div>
-              <div className="text-sm text-gray-600">
+              <div className="font-semibold text-[#4A5130] group-hover:text-[#92bf37] transition-colors">
+                Activity Logs
+              </div>
+              <div className="text-sm text-[#69773D] group-hover:text-gray-700">
                 View all user activities and system logs
               </div>
             </div>

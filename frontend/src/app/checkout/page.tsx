@@ -677,7 +677,7 @@ export default function CheckoutPage() {
                                   note: "",
                                 }))
                               }
-                              className="rounded-full border border-[#780606] bg-white px-3 py-1 text-xs font-medium text-[#780606] hover:bg-[#780606]"
+                              className="rounded-full border border-[#780606] bg-white px-3 py-1 text-xs font-medium text-[#780606] hover:bg-[#780606]/10"
                             >
                               Reset pin
                             </button>
@@ -690,15 +690,15 @@ export default function CheckoutPage() {
                               Meetup title *
                             </label>
                             <div className="relative">
-                              <input
-                                type="text"
-                                value={pickupDetails.locationName}
-                                onChange={(e) =>
-                                  setPickupDetails((prev) => ({
-                                    ...prev,
-                                    locationName: e.target.value,
-                                  }))
-                                }
+                            <input
+                              type="text"
+                              value={pickupDetails.locationName}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  locationName: e.target.value,
+                                }))
+                              }
                                 onFocus={() => setFocusedField("locationName")}
                                 onBlur={() => setFocusedField(null)}
                                 className={`w-full rounded-xl ${
@@ -709,18 +709,18 @@ export default function CheckoutPage() {
                                     : ""
                                 } ${
                                   isValidLocationName === true
-                                    ? "border-green-500"
+                                    ? "border-[#69773D]"
                                     : isValidLocationName === false &&
                                       pickupDetails.locationName
-                                    ? "border-red-400"
+                                    ? "border-[#780606]"
                                     : "border-[#dfe7cf]"
                                 }`}
-                                placeholder="e.g. KU Avenue Plaza entrance"
-                              />
+                              placeholder="e.g. KU Avenue Plaza entrance"
+                            />
                               {isValidLocationName && (
                                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                                   <svg
-                                    className="w-5 h-5 text-green-500 animate-fade-in"
+                                    className="w-5 h-5 text-[#69773D] animate-fade-in"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                   >
@@ -735,7 +735,7 @@ export default function CheckoutPage() {
                             </div>
                             {pickupDetails.locationName &&
                               isValidLocationName === false && (
-                                <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                                <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
                                   <svg
                                     className="w-4 h-4 mr-1"
                                     fill="currentColor"
@@ -893,16 +893,16 @@ export default function CheckoutPage() {
                       Full Name *
                     </label>
                     <div className="relative">
-                      <input
-                        type="text"
-                        required
-                        value={shippingInfo.fullName}
-                        onChange={(e) =>
-                          setShippingInfo({
-                            ...shippingInfo,
-                            fullName: e.target.value,
-                          })
-                        }
+                    <input
+                      type="text"
+                      required
+                      value={shippingInfo.fullName}
+                      onChange={(e) =>
+                        setShippingInfo({
+                          ...shippingInfo,
+                          fullName: e.target.value,
+                        })
+                      }
                         onFocus={() => setFocusedField("fullName")}
                         onBlur={() => setFocusedField(null)}
                         className={`w-full px-4 py-2 ${
@@ -911,15 +911,15 @@ export default function CheckoutPage() {
                           focusedField === "fullName" ? "shadow-sm" : ""
                         } ${
                           shippingInfo.fullName.trim()
-                            ? "border-green-500"
+                            ? "border-[#69773D]"
                             : "border-gray-300"
                         }`}
-                        placeholder="John Doe"
-                      />
+                      placeholder="John Doe"
+                    />
                       {shippingInfo.fullName.trim() && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           <svg
-                            className="w-5 h-5 text-green-500 animate-fade-in"
+                            className="w-5 h-5 text-[#69773D] animate-fade-in"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -939,34 +939,34 @@ export default function CheckoutPage() {
                       Phone Number *
                     </label>
                     <div className="relative">
-                      <input
-                        type="tel"
-                        required
-                        value={shippingInfo.phone}
-                        onChange={(e) =>
-                          setShippingInfo({
-                            ...shippingInfo,
-                            phone: e.target.value,
-                          })
-                        }
+                    <input
+                      type="tel"
+                      required
+                      value={shippingInfo.phone}
+                      onChange={(e) =>
+                        setShippingInfo({
+                          ...shippingInfo,
+                          phone: e.target.value,
+                        })
+                      }
                         onFocus={() => setFocusedField("phone")}
                         onBlur={() => setFocusedField(null)}
                         className={`w-full px-4 py-2 pr-10 border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
                           focusedField === "phone" ? "shadow-sm" : ""
                         } ${
                           isValidPhone === true
-                            ? "border-green-500"
+                            ? "border-[#69773D]"
                             : isValidPhone === false && shippingInfo.phone
-                            ? "border-red-400"
+                            ? "border-[#780606]"
                             : "border-gray-300"
                         }`}
-                        placeholder="081-234-5678"
-                      />
+                      placeholder="081-234-5678"
+                    />
                       {shippingInfo.phone && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           {isValidPhone ? (
                             <svg
-                              className="w-5 h-5 text-green-500 animate-fade-in"
+                              className="w-5 h-5 text-[#69773D] animate-fade-in"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -978,7 +978,7 @@ export default function CheckoutPage() {
                             </svg>
                           ) : (
                             <svg
-                              className="w-5 h-5 text-red-500 animate-fade-in"
+                              className="w-5 h-5 text-[#780606] animate-fade-in"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -989,11 +989,11 @@ export default function CheckoutPage() {
                               />
                             </svg>
                           )}
-                        </div>
+                  </div>
                       )}
                     </div>
                     {shippingInfo.phone && isValidPhone === false && (
-                      <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                      <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
                         <svg
                           className="w-4 h-4 mr-1"
                           fill="currentColor"
@@ -1029,15 +1029,15 @@ export default function CheckoutPage() {
                         Address *
                       </label>
                       <div className="relative">
-                        <textarea
-                          required
-                          value={shippingInfo.address}
-                          onChange={(e) =>
-                            setShippingInfo({
-                              ...shippingInfo,
-                              address: e.target.value,
-                            })
-                          }
+                      <textarea
+                        required
+                        value={shippingInfo.address}
+                        onChange={(e) =>
+                          setShippingInfo({
+                            ...shippingInfo,
+                            address: e.target.value,
+                          })
+                        }
                           onFocus={() => setFocusedField("address")}
                           onBlur={() => setFocusedField(null)}
                           className={`w-full px-4 py-2 ${
@@ -1046,18 +1046,18 @@ export default function CheckoutPage() {
                             focusedField === "address" ? "shadow-sm" : ""
                           } ${
                             isValidAddress === true
-                              ? "border-green-500"
+                              ? "border-[#69773D]"
                               : isValidAddress === false && shippingInfo.address
-                              ? "border-red-400"
+                              ? "border-[#780606]"
                               : "border-gray-300"
                           }`}
-                          rows={3}
-                          placeholder="123 Main Street, Apt 4B"
-                        />
+                        rows={3}
+                        placeholder="123 Main Street, Apt 4B"
+                      />
                         {isValidAddress && (
                           <div className="absolute bottom-3 right-3">
                             <svg
-                              className="w-5 h-5 text-green-500 animate-fade-in"
+                              className="w-5 h-5 text-[#69773D] animate-fade-in"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -1071,7 +1071,7 @@ export default function CheckoutPage() {
                         )}
                       </div>
                       {shippingInfo.address && isValidAddress === false && (
-                        <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                        <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
                           <svg
                             className="w-4 h-4 mr-1"
                             fill="currentColor"
@@ -1094,16 +1094,16 @@ export default function CheckoutPage() {
                           City *
                         </label>
                         <div className="relative">
-                          <input
-                            type="text"
-                            required
-                            value={shippingInfo.city}
-                            onChange={(e) =>
-                              setShippingInfo({
-                                ...shippingInfo,
-                                city: e.target.value,
-                              })
-                            }
+                        <input
+                          type="text"
+                          required
+                          value={shippingInfo.city}
+                          onChange={(e) =>
+                            setShippingInfo({
+                              ...shippingInfo,
+                              city: e.target.value,
+                            })
+                          }
                             onFocus={() => setFocusedField("city")}
                             onBlur={() => setFocusedField(null)}
                             className={`w-full px-4 py-2 ${
@@ -1112,17 +1112,17 @@ export default function CheckoutPage() {
                               focusedField === "city" ? "shadow-sm" : ""
                             } ${
                               isValidCity === true
-                                ? "border-green-500"
+                                ? "border-[#69773D]"
                                 : isValidCity === false && shippingInfo.city
-                                ? "border-red-400"
+                                ? "border-[#780606]"
                                 : "border-gray-300"
                             }`}
-                            placeholder="Bangkok"
-                          />
+                          placeholder="Bangkok"
+                        />
                           {isValidCity && (
                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                               <svg
-                                className="w-5 h-5 text-green-500 animate-fade-in"
+                                className="w-5 h-5 text-[#69773D] animate-fade-in"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -1136,7 +1136,7 @@ export default function CheckoutPage() {
                           )}
                         </div>
                         {shippingInfo.city && isValidCity === false && (
-                          <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                          <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
                             <svg
                               className="w-4 h-4 mr-1"
                               fill="currentColor"
@@ -1158,35 +1158,35 @@ export default function CheckoutPage() {
                           Postal Code *
                         </label>
                         <div className="relative">
-                          <input
-                            type="text"
-                            required
-                            value={shippingInfo.postalCode}
-                            onChange={(e) =>
-                              setShippingInfo({
-                                ...shippingInfo,
-                                postalCode: e.target.value,
-                              })
-                            }
+                        <input
+                          type="text"
+                          required
+                          value={shippingInfo.postalCode}
+                          onChange={(e) =>
+                            setShippingInfo({
+                              ...shippingInfo,
+                              postalCode: e.target.value,
+                            })
+                          }
                             onFocus={() => setFocusedField("postalCode")}
                             onBlur={() => setFocusedField(null)}
                             className={`w-full px-4 py-2 pr-10 border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
                               focusedField === "postalCode" ? "shadow-sm" : ""
                             } ${
                               isValidPostalCode === true
-                                ? "border-green-500"
+                                ? "border-[#69773D]"
                                 : isValidPostalCode === false &&
                                   shippingInfo.postalCode
-                                ? "border-red-400"
+                                ? "border-[#780606]"
                                 : "border-gray-300"
                             }`}
-                            placeholder="10110"
-                          />
+                          placeholder="10110"
+                        />
                           {shippingInfo.postalCode && (
                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                               {isValidPostalCode ? (
                                 <svg
-                                  className="w-5 h-5 text-green-500 animate-fade-in"
+                                  className="w-5 h-5 text-[#69773D] animate-fade-in"
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
                                 >
@@ -1198,7 +1198,7 @@ export default function CheckoutPage() {
                                 </svg>
                               ) : (
                                 <svg
-                                  className="w-5 h-5 text-red-500 animate-fade-in"
+                                  className="w-5 h-5 text-[#780606] animate-fade-in"
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
                                 >
@@ -1209,12 +1209,12 @@ export default function CheckoutPage() {
                                   />
                                 </svg>
                               )}
-                            </div>
+                      </div>
                           )}
                         </div>
                         {shippingInfo.postalCode &&
                           isValidPostalCode === false && (
-                            <p className="text-red-500 text-xs mt-1 flex items-center animate-fade-in">
+                            <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
                               <svg
                                 className="w-4 h-4 mr-1"
                                 fill="currentColor"

@@ -26,21 +26,21 @@ const ItemCard = memo(function ItemCard({
   const statusConfig = useMemo(
     () =>
       ({
-        available: {
+    available: {
           text: "text-[#F6F2E5]",
           bg: "bg-[#69773D]",
-          label: "Available",
-        },
-        reserved: {
+      label: "Available",
+    },
+    reserved: {
           text: "text-[#F6F2E5]",
           bg: "bg-yellow-700",
-          label: "Reserved",
-        },
-        sold: {
+      label: "Reserved",
+    },
+    sold: {
           text: "text-[#F6F2E5]",
-          bg: "bg-[#780606]",
-          label: "Sold",
-        },
+      bg: "bg-[#780606]",
+      label: "Sold",
+    },
       } as const),
     []
   );
@@ -48,9 +48,9 @@ const ItemCard = memo(function ItemCard({
   const statusStyle = useMemo(
     () =>
       statusConfig[status as keyof typeof statusConfig] || {
-        text: "text-gray-600",
-        bg: "bg-gray-50",
-        label: status,
+    text: "text-gray-600",
+    bg: "bg-gray-50",
+    label: status,
       },
     [status, statusConfig]
   );

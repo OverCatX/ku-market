@@ -31,11 +31,11 @@ export default function ProfileHeader({
         <div className="flex-1 sm:flex-none min-w-0">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-[#4A5130] truncate flex items-center gap-2">
             <User className="w-5 h-5 sm:w-6 sm:h-6 text-[#69773D] hidden sm:block" />
-            {name || "Profile"}
-          </h1>
+          {name || "Profile"}
+        </h1>
           <p className="text-xs sm:text-sm text-[#69773D] mt-1">
-            Manage your personal information
-          </p>
+          Manage your personal information
+        </p>
         </div>
       </div>
       <span

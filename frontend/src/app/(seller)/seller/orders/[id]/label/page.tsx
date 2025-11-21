@@ -348,7 +348,7 @@ export default function SellerOrderLabelPage(): ReactElement {
   const hasSenderAddress = !!(senderAddress.address && senderAddress.city && senderAddress.postalCode);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 print:bg-white print:p-0">
+    <div className="min-h-screen p-6 print:bg-white print:p-0" style={{ backgroundColor: '#F6F2E5' }}>
       {/* Warning banner if sender address is missing */}
       {!hasSenderAddress && !isEditingSender && (
         <div className="max-w-4xl mx-auto mb-4 print:hidden">
@@ -385,7 +385,7 @@ export default function SellerOrderLabelPage(): ReactElement {
 
       <div className="flex justify-between items-center max-w-4xl mx-auto mb-4 print:hidden">
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push("/seller/orders")}
           className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
         >
           <ArrowLeft size={18} />
@@ -404,7 +404,7 @@ export default function SellerOrderLabelPage(): ReactElement {
       </div>
 
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden print:shadow-none print:border print:rounded-none">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between bg-[#69773D] text-white print:bg-white print:text-gray-900">
+        <div className="p-6 border-b border-gray-200 flex items-center justify-between bg-[#69773D] text-[#F6F2E5] print:bg-white print:text-gray-900">
           <div>
             <h1 className="text-2xl font-bold">KU Market Delivery Slip</h1>
             <p className="text-sm opacity-90">Order #{labelRef}</p>
@@ -417,7 +417,7 @@ export default function SellerOrderLabelPage(): ReactElement {
 
         <div className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-lg p-4 bg-[#F6F2E5]/30">
               <div className="flex justify-between items-start mb-2 print:hidden">
                 <h2 className="text-sm font-semibold text-gray-500 uppercase">Sender</h2>
                 {!isEditingSender && (
@@ -426,7 +426,7 @@ export default function SellerOrderLabelPage(): ReactElement {
                       setOriginalSenderAddress({ ...senderAddress });
                       setIsEditingSender(true);
                     }}
-                    className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                    className="text-xs text-[#69773D] hover:text-[#5a6530] font-medium"
                   >
                     Edit Address
                   </button>
@@ -447,7 +447,7 @@ export default function SellerOrderLabelPage(): ReactElement {
                       value={senderAddress.address}
                       onChange={(e) => handleSenderAddressChange("address", e.target.value)}
                       placeholder="Enter street address"
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#69773D]"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -458,7 +458,7 @@ export default function SellerOrderLabelPage(): ReactElement {
                         value={senderAddress.city}
                         onChange={(e) => handleSenderAddressChange("city", e.target.value)}
                         placeholder="City"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#69773D]"
                       />
                     </div>
                     <div>
@@ -468,14 +468,14 @@ export default function SellerOrderLabelPage(): ReactElement {
                         value={senderAddress.postalCode}
                         onChange={(e) => handleSenderAddressChange("postalCode", e.target.value)}
                         placeholder="Postal code"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#69773D]"
                       />
                     </div>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={handleSaveSenderAddress}
-                      className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-medium"
+                      className="px-3 py-1.5 text-xs bg-[#69773D] text-white rounded-md hover:bg-[#5a6530] font-medium"
                     >
                       Save
                     </button>
@@ -513,7 +513,7 @@ export default function SellerOrderLabelPage(): ReactElement {
               <p className="text-xs text-gray-400 mt-3">Shop type: {data.seller.shopType}</p>
             </div>
 
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-lg p-4 bg-[#F6F2E5]/30">
               <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">Recipient</h2>
               <p className="text-lg font-bold text-gray-900">
                 {data.order.buyerContact.fullName || data.buyer.name || "Buyer"}
@@ -524,7 +524,7 @@ export default function SellerOrderLabelPage(): ReactElement {
             </div>
           </div>
 
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="border border-gray-200 rounded-lg overflow-hidden bg-[#F6F2E5]/30">
             <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-200">
               <div className="p-4">
                 <p className="text-xs uppercase text-gray-500 font-semibold">Payment</p>
@@ -550,7 +550,7 @@ export default function SellerOrderLabelPage(): ReactElement {
           </div>
 
           <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+            <div className="bg-[#F6F2E5]/30 px-4 py-2 border-b border-gray-200">
               <h3 className="text-sm font-semibold text-gray-700 uppercase">Items</h3>
             </div>
             <div className="divide-y divide-gray-200">
@@ -573,7 +573,7 @@ export default function SellerOrderLabelPage(): ReactElement {
           </div>
         </div>
 
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex justify-between">
+        <div className="px-6 py-4 bg-[#F6F2E5]/30 border-t border-gray-200 text-xs text-gray-500 flex justify-between">
           <span>Generated by KU Market Seller Panel</span>
           <span>Present this slip when dropping off the parcel</span>
         </div>
