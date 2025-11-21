@@ -4,7 +4,6 @@ import Link from "next/link";
 import { aboutColors } from "@/components/aboutus/SectionColors";
 import { MotionFadeIn } from "@/components/aboutus/MotionFadeIn";
 import {
-  FileText,
   AlertTriangle,
   CheckCircle,
   XCircle,

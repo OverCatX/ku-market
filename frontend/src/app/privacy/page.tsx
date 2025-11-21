@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { aboutColors } from "@/components/aboutus/SectionColors";
 import { MotionFadeIn } from "@/components/aboutus/MotionFadeIn";
-import { Shield, Lock, Eye, FileText, Mail, Calendar } from "lucide-react";
+import { Shield, Lock, Eye, Mail, Calendar } from "lucide-react";
 
 export default function PrivacyPolicyPage() {
   const currentDate = new Date().toLocaleDateString("en-US", {

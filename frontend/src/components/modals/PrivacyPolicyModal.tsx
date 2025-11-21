@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { X, Shield, Lock, Eye, FileText, Mail, Calendar } from "lucide-react";
+import { X, Shield, Lock, Eye, Mail, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { aboutColors } from "@/components/aboutus/SectionColors";
 import Link from "next/link";
