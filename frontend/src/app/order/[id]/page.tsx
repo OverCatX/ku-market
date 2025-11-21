@@ -108,12 +108,12 @@ const statusStyles: Record<
   },
   confirmed: {
     label: "Confirmed",
-    badge: "bg-blue-100 text-blue-700",
+    badge: "bg-[#69773D]/10 text-[#69773D]",
     icon: Package,
   },
   completed: {
     label: "Completed",
-    badge: "bg-green-100 text-green-700",
+    badge: "bg-[#69773D]/10 text-[#69773D]",
     icon: CheckCircle,
   },
   rejected: {
@@ -156,11 +156,11 @@ const paymentStatusBadge = (status?: OrderDetail["paymentStatus"]) => {
     },
     awaiting_payment: {
       label: "Awaiting your payment",
-      className: "bg-orange-100 text-orange-800",
+      className: "bg-[#780606]/10 text-[#780606]",
     },
     payment_submitted: {
       label: "Payment submitted",
-      className: "bg-blue-100 text-blue-700",
+      className: "bg-[#69773D]/10 text-[#69773D]",
     },
     paid: {
       label: "Payment completed",
@@ -753,7 +753,7 @@ export default function OrderDetailPage({
               )}
             </div>
 
-            <section className="rounded-2xl border border-[#e4ecd7] bg-white p-4 sm:p-6">
+            <section className="rounded-2xl border border-[#e4ecd7] bg-[#F6F2E5]/30 p-4 sm:p-6">
               <h2 className="mb-4 text-lg font-semibold text-[#3d4a29]">
                 Items in this order
               </h2>
@@ -774,7 +774,7 @@ export default function OrderDetailPage({
                         />
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-gray-900">
+                        <div className="text-sm font-semibold text-[#4A5130]">
                           {item.title}
                         </div>
                         <div className="text-xs text-gray-500">
@@ -782,14 +782,14 @@ export default function OrderDetailPage({
                         </div>
                       </div>
                     </div>
-                    <div className="text-sm font-semibold text-gray-900">
+                    <div className="text-sm font-semibold text-[#4A5130]">
                       {(item.price * item.quantity).toLocaleString()} THB
                     </div>
                   </div>
                 ))}
               </div>
               <div className="mt-4 flex flex-col gap-1 text-sm text-gray-600">
-                <div className="flex justify-between font-semibold text-gray-900">
+                <div className="flex justify-between font-semibold text-[#4A5130]">
                   <span>Total amount</span>
                   <span>{order.totalPrice.toLocaleString()} THB</span>
                 </div>
@@ -797,7 +797,7 @@ export default function OrderDetailPage({
             </section>
 
             <section className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-[#e4ecd7] bg-white p-4">
+              <div className="rounded-2xl border border-[#e4ecd7] bg-[#F6F2E5]/30 p-4">
                 <h3 className="text-sm font-semibold text-[#3d4a29]">
                   Delivery & payment
                 </h3>
@@ -851,7 +851,7 @@ export default function OrderDetailPage({
                         </p>
                       )}
                       {order.pickupDetails.preferredTime && (
-                        <p className="text-[11px] text-blue-600 font-medium flex items-center gap-1">
+                        <p className="text-[11px] text-[#69773D] font-medium flex items-center gap-1">
                           <Clock size={10} />
                           Preferred time: {new Date(order.pickupDetails.preferredTime).toLocaleString("th-TH", {
                             year: "numeric",
@@ -866,7 +866,7 @@ export default function OrderDetailPage({
                   )}
                 </div>
               </div>
-              <div className="rounded-2xl border border-[#e4ecd7] bg-white p-4">
+              <div className="rounded-2xl border border-[#e4ecd7] bg-[#F6F2E5]/30 p-4">
                 <h3 className="text-sm font-semibold text-[#3d4a29]">
                   Buyer contact
                 </h3>
@@ -884,7 +884,7 @@ export default function OrderDetailPage({
                     className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
                       contactingSeller
                         ? "border-[#d6e4c3] bg-[#f3f8ed] text-gray-400 cursor-not-allowed"
-                        : "border-[#d6e4c3] text-[#4c5c2f] hover:bg-[#f3f8ed]"
+                        : "bg-[#69773D]/80 text-[#F6F2E5] hover:bg-[#69773D]/90 border-[#69773D]"
                     }`}
                   >
                     <MessageCircle size={16} />
@@ -963,7 +963,7 @@ export default function OrderDetailPage({
                       className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
                         loadingQrCode
                           ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                          : "bg-blue-600 text-white hover:bg-blue-700"
+                          : "bg-[#69773D] text-white hover:bg-[#5a6530]"
                       }`}
                     >
                       <QrCode size={16} />
@@ -1033,7 +1033,7 @@ export default function OrderDetailPage({
                         className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
                           markingReceived
                             ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                            : "bg-green-600 text-white hover:bg-green-700"
+                            : "bg-[#e0cd95]/30 text-[#8c522f] hover:bg-[#e0cd95]/40"
                         }`}
                       >
                         <CheckCircle size={16} />
@@ -1043,19 +1043,19 @@ export default function OrderDetailPage({
                   </>
                 )}
               {order.buyerReceived && (
-                <div className="inline-flex items-center gap-2 rounded-xl bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
+                <div className="inline-flex items-center gap-2 rounded-xl bg-[#e0cd95]/30 px-4 py-2 text-sm font-semibold text-[#8c522f]">
                   <CheckCircle size={16} />
                   You have confirmed receiving the product
                 </div>
               )}
               {order.sellerDelivered && !order.buyerReceived && (
-                <div className="inline-flex items-center gap-2 rounded-xl bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
+                <div className="inline-flex items-center gap-2 rounded-xl bg-[#69773D]/10 px-4 py-2 text-sm font-semibold text-[#69773D]">
                   <CheckCircle size={16} />
                   Seller has confirmed delivery - Please confirm receipt
                 </div>
               )}
               {order.buyerReceived && order.sellerDelivered && (
-                <div className="inline-flex items-center gap-2 rounded-xl bg-green-200 px-4 py-2 text-sm font-semibold text-green-800">
+                <div className="inline-flex items-center gap-2 rounded-xl bg-[#5C8140]/40 px-4 py-2 text-sm font-semibold text-[#5C8140]">
                   <CheckCircle size={16} />
                   Both parties confirmed - Order completed
                 </div>

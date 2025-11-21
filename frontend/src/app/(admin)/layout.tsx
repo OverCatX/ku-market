@@ -101,7 +101,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Mobile Overlay */}
       {isMobile && sidebarOpen && (
         <div
@@ -122,16 +122,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             : "w-20"
         } ${
           isMobile ? "w-64" : ""
-        } bg-gray-900 text-white transition-transform duration-300 ease-in-out md:transition-all flex flex-col fixed md:relative z-50 h-full shadow-xl md:shadow-none`}
+        } bg-[#69773D] text-white transition-transform duration-300 ease-in-out md:transition-all flex flex-col fixed md:relative z-50 h-full shadow-xl md:shadow-none`}
       >
         {/* Header */}
-        <div className="p-4 flex items-center justify-between border-b border-gray-700 min-h-[65px]">
+        <div className="p-4 flex items-center justify-between border-b border-[#69773D]/30 min-h-[65px] bg-[#69773D] backdrop-blur-sm">
           {(sidebarOpen || isMobile) && (
-            <h1 className="text-xl font-bold truncate">Admin Portal</h1>
+            <h1 className="text-xl font-bold truncate text-[#F6F2E5]">Admin Portal</h1>
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0 ml-auto"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0 ml-auto text-[#F6F2E5]"
             aria-label="Toggle sidebar"
           >
             {sidebarOpen || isMobile ? <X size={20} /> : <Menu size={20} />}
@@ -150,12 +150,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 onClick={handleNavClick}
                 className={`flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-all ${
                   isActive
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                    ? "bg-white/20 text-[#F6F2E5] shadow-lg backdrop-blur-sm border border-white/20 scale-[1.02]"
+                    : "text-[#F6F2E5]/90 hover:bg-white/10 hover:text-[#F6F2E5] hover:scale-[1.01]"
                 } ${!sidebarOpen && !isMobile ? "justify-center" : ""}`}
                 title={!sidebarOpen && !isMobile ? item.label : undefined}
               >
-                <Icon size={20} className="flex-shrink-0" />
+                <Icon size={20} className={`flex-shrink-0 ${isActive ? "text-[#F6F2E5]" : "text-[#F6F2E5]/90"}`} />
                 {(sidebarOpen || isMobile) && (
                   <span className="truncate">{item.label}</span>
                 )}
@@ -165,30 +165,30 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-gray-700 p-4">
+        <div className="border-t border-[#69773D]/30 p-4 bg-[#69773D] backdrop-blur-sm">
           {(sidebarOpen || isMobile) && adminName && (
-            <div className="mb-3 px-2 text-sm text-gray-400 truncate">
+            <div className="mb-3 px-2 text-sm text-[#F6F2E5]/80 truncate">
               <div className="text-xs uppercase tracking-wide mb-1">
                 Logged in as
               </div>
-              <div className="text-white font-medium truncate">{adminName}</div>
+              <div className="text-[#F6F2E5] font-medium truncate">{adminName}</div>
             </div>
           )}
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-3 w-full px-4 py-2 text-[#780606] hover:bg-[#780606]/30 hover:text-[#780606] rounded-lg transition-colors ${
+            className={`flex items-center gap-3 w-full px-4 py-2.5 bg-[#780606] text-[#F6F2E5] hover:bg-[#5c0505] hover:text-[#F6F2E5] rounded-xl transition-all border border-[#780606] hover:border-[#5c0505] ${
               !sidebarOpen && !isMobile ? "justify-center" : ""
             }`}
             title={!sidebarOpen && !isMobile ? "Logout" : undefined}
           >
-            <LogOut size={20} className="flex-shrink-0" />
+            <LogOut size={18} className="flex-shrink-0 text-[#F6F2E5]" />
             {(sidebarOpen || isMobile) && <span>Logout</span>}
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto w-full">
+      <main className="flex-1 overflow-auto w-full bg-gradient-to-br from-gray-50 to-gray-100">
         {/* Mobile Header Bar */}
         {isMobile && (
           <div className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between md:hidden">

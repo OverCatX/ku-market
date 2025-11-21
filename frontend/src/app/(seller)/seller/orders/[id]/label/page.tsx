@@ -148,7 +148,7 @@ export default function SellerOrderLabelPage(): ReactElement {
         <p className="text-gray-600">Order information not available.</p>
         <button
           onClick={() => router.push("/seller/orders")}
-          className="mt-4 inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold"
+          className="mt-4 inline-flex items-center gap-2 text-[#5C8140] hover:text-[#4a6b33] font-semibold"
         >
           <ArrowLeft size={18} />
           Back to orders
@@ -160,11 +160,11 @@ export default function SellerOrderLabelPage(): ReactElement {
   if (!isDeliveryOrder) {
     return (
       <div className="bg-white rounded-xl shadow-sm p-6">
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Delivery slip not available</h1>
-        <p className="text-gray-600">This order is set as pickup. Labels are available only for delivery orders.</p>
+        <h1 className="text-xl font-bold text-[#4A5130] mb-2">Delivery slip not available</h1>
+        <p className="text-[#69773D]">This order is set as pickup. Labels are available only for delivery orders.</p>
         <button
           onClick={() => router.push("/seller/orders")}
-          className="mt-4 inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold"
+          className="mt-4 inline-flex items-center gap-2 text-[#5C8140] hover:text-[#4a6b33] font-semibold"
         >
           <ArrowLeft size={18} />
           Back to orders
@@ -189,7 +189,7 @@ export default function SellerOrderLabelPage(): ReactElement {
           <span className="text-sm text-gray-500">Order #{labelRef}</span>
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-semibold shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors font-semibold shadow-sm"
           >
             <Printer size={18} />
             Print
@@ -198,7 +198,7 @@ export default function SellerOrderLabelPage(): ReactElement {
       </div>
 
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden print:shadow-none print:border print:rounded-none">
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-emerald-500 to-teal-500 text-white print:bg-white print:text-gray-900 print:from-white print:to-white">
+        <div className="p-6 border-b border-gray-200 flex items-center justify-between bg-[#69773D] text-white print:bg-white print:text-gray-900">
           <div>
             <h1 className="text-2xl font-bold">KU Market Delivery Slip</h1>
             <p className="text-sm opacity-90">Order #{labelRef}</p>

@@ -159,7 +159,7 @@ const PresetModal = memo(function PresetModal({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+          <h2 className="text-xl font-bold text-[#4A5130]">{title}</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -170,7 +170,7 @@ const PresetModal = memo(function PresetModal({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-[#4A5130] mb-1">
               Label *
             </label>
             <input
@@ -180,7 +180,7 @@ const PresetModal = memo(function PresetModal({
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                 errors.label
                   ? "border-[#780606] focus:ring-red-500"
-                  : "border-gray-300 focus:ring-blue-500"
+                  : "border-gray-300 focus:ring-[#69773D]"
               }`}
               placeholder="e.g. Main Gate"
             />
@@ -190,7 +190,7 @@ const PresetModal = memo(function PresetModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-[#4A5130] mb-1">
               Location Name *
             </label>
             <input
@@ -200,7 +200,7 @@ const PresetModal = memo(function PresetModal({
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                 errors.locationName
                   ? "border-[#780606] focus:ring-red-500"
-                  : "border-gray-300 focus:ring-blue-500"
+                  : "border-gray-300 focus:ring-[#69773D]"
               }`}
               placeholder="e.g. Main Gate (Ngamwongwan)"
             />
@@ -210,7 +210,7 @@ const PresetModal = memo(function PresetModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-[#4A5130] mb-1">
               Address (optional)
             </label>
             <textarea
@@ -224,7 +224,7 @@ const PresetModal = memo(function PresetModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[#4A5130] mb-1">
                 Latitude *
               </label>
               <input
@@ -235,7 +235,7 @@ const PresetModal = memo(function PresetModal({
                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                   errors.lat
                     ? "border-[#780606] focus:ring-red-500"
-                    : "border-gray-300 focus:ring-blue-500"
+                    : "border-gray-300 focus:ring-[#69773D]"
                 }`}
                 placeholder="e.g. 13.846995"
               />
@@ -245,7 +245,7 @@ const PresetModal = memo(function PresetModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[#4A5130] mb-1">
                 Longitude *
               </label>
               <input
@@ -256,7 +256,7 @@ const PresetModal = memo(function PresetModal({
                 className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                   errors.lng
                     ? "border-[#780606] focus:ring-red-500"
-                    : "border-gray-300 focus:ring-blue-500"
+                    : "border-gray-300 focus:ring-[#69773D]"
                 }`}
                 placeholder="e.g. 100.568308"
               />
@@ -268,14 +268,14 @@ const PresetModal = memo(function PresetModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[#4A5130] mb-1">
                 Order (optional)
               </label>
               <input
                 type="number"
                 value={order}
                 onChange={(e) => setOrder(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#69773D]"
                 placeholder="Display order"
               />
             </div>
@@ -286,9 +286,10 @@ const PresetModal = memo(function PresetModal({
                   type="checkbox"
                   checked={isActive}
                   onChange={(e) => setIsActive(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 accent-[#69773D] border-gray-300 rounded focus:ring-[#69773D]"
+                  style={{ accentColor: '#69773D' }}
                 />
-                <span className="ml-2 text-sm text-gray-700">Active</span>
+                <span className="ml-2 text-sm text-[#4A5130]">Active</span>
               </label>
             </div>
           </div>
@@ -297,14 +298,14 @@ const PresetModal = memo(function PresetModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-2 border border-gray-300 text-[#4A5130] rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {submitting ? "Saving..." : "Save"}
             </button>
@@ -495,7 +496,7 @@ export default function MeetupPresetsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading presets...</div>
+        <div className="text-[#4A5130]">Loading presets...</div>
       </div>
     );
   }
@@ -504,22 +505,25 @@ export default function MeetupPresetsPage() {
     <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Meetup Presets</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130]">
+            Meetup Presets
+          </h1>
+          <p className="text-sm md:text-base text-[#69773D] mt-1">
             Manage quick action locations for meetup map
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={loadPresets}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors whitespace-nowrap"
           >
-            <RefreshCw size={18} />
+            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
             Refresh
           </button>
           <button
             onClick={handleCreate}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors"
           >
             <Plus size={18} />
             Add Preset
@@ -529,16 +533,16 @@ export default function MeetupPresetsPage() {
 
       {presets.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-          <MapPin size={48} className="mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <MapPin size={48} className="mx-auto text-[#69773D] mb-4" />
+          <h3 className="text-lg font-medium text-[#4A5130] mb-2">
             No presets found
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-[#69773D] mb-4">
             Create your first meetup preset to help users quickly select locations
           </p>
           <button
             onClick={handleCreate}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors"
           >
             <Plus size={18} />
             Add Preset
@@ -573,12 +577,12 @@ export default function MeetupPresetsPage() {
               {presets.map((preset) => (
                 <tr key={preset.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-[#4A5130]">
                       {preset.label}
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm text-[#4A5130]">
                       {preset.locationName}
                     </div>
                     {preset.address && (
@@ -596,9 +600,9 @@ export default function MeetupPresetsPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
                       onClick={() => handleToggleActive(preset)}
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                         preset.isActive
-                          ? "bg-green-100 text-green-800"
+                          ? "bg-[#69773D]/10 text-[#69773D]"
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
@@ -609,13 +613,15 @@ export default function MeetupPresetsPage() {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleEdit(preset)}
-                        className="text-blue-600 hover:text-blue-900 transition-colors"
+                        className="p-2 text-[#69773D] hover:bg-[#69773D]/10 rounded-lg transition-colors"
+                        title="Edit"
                       >
                         <Edit size={18} />
                       </button>
                       <button
                         onClick={() => setDeletingPreset(preset)}
-                        className="text-[#780606] hover:text-[#780606] transition-colors"
+                        className="p-2 text-[#780606] hover:bg-[#780606]/10 rounded-lg transition-colors"
+                        title="Delete"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -644,22 +650,22 @@ export default function MeetupPresetsPage() {
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-center gap-3 mb-4">
               <AlertCircle className="text-[#780606]" size={24} />
-              <h3 className="text-lg font-bold text-gray-900">Delete Preset</h3>
+              <h3 className="text-lg font-bold text-[#4A5130]">Delete Preset</h3>
             </div>
-            <p className="text-gray-600 mb-6">
+            <p className="text-[#4A5130] mb-6">
               Are you sure you want to delete &quot;{deletingPreset.label}&quot;? This action
               cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeletingPreset(null)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2 border border-gray-300 text-[#4A5130] rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
-                className="flex-1 px-4 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#780606] transition-colors"
+                className="flex-1 px-4 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#5c0505] transition-colors"
               >
                 Delete
               </button>

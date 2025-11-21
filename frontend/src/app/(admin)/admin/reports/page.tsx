@@ -34,8 +34,8 @@ const TYPE_OPTIONS: { value: "general" | "item" | "all"; label: string }[] = [
 
 const statusBadgeClasses: Record<ReportStatus, string> = {
   pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  in_review: "bg-blue-100 text-blue-800 border-blue-200",
-  resolved: "bg-green-100 text-green-800 border-green-200",
+  in_review: "bg-[#69773D]/10 text-[#69773D] border-transparent",
+  resolved: "bg-[#69773D]/10 text-[#69773D] border-transparent",
   dismissed: "bg-gray-100 text-gray-800 border-gray-200",
 };
 
@@ -75,12 +75,12 @@ function ReportCard({ report, onUpdate, updating }: ReportCardProps) {
     <article className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-5 py-4 border-b border-gray-100">
         <div className="flex items-start gap-3">
-          <div className="mt-1 rounded-full bg-[#780606] text-[#780606] p-2">
+          <div className="mt-1 rounded-full bg-[#780606] text-[#F6F2E5] p-2">
             <Flag className="w-4 h-4" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-base font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-[#4A5130]">
                 {report.itemTitle || report.category || "General Report"}
               </h3>
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
@@ -101,7 +101,7 @@ function ReportCard({ report, onUpdate, updating }: ReportCardProps) {
         <button
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
-          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+          className="text-sm font-medium text-[#69773D] hover:text-[#5a6530]"
         >
           {expanded ? "Hide details" : "View details"}
         </button>
@@ -171,14 +171,14 @@ function ReportCard({ report, onUpdate, updating }: ReportCardProps) {
 
       <footer className="px-5 py-4 bg-white space-y-3">
         <div className="flex flex-col md:flex-row md:items-center gap-3">
-          <label className="text-sm font-medium text-gray-700" htmlFor={`status-${report.id}`}>
+          <label className="text-sm font-medium text-[#4A5130]" htmlFor={`status-${report.id}`}>
             Update status
           </label>
           <select
             id={`status-${report.id}`}
             value={status}
             onChange={(e) => setStatus(e.target.value as ReportStatus)}
-            className="w-full md:w-[200px] border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full md:w-[200px] border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#69773D]"
           >
             {STATUS_OPTIONS.filter((option) => option.value !== "all").map((option) => (
               <option key={option.value} value={option.value}>
@@ -189,7 +189,7 @@ function ReportCard({ report, onUpdate, updating }: ReportCardProps) {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-gray-700" htmlFor={`notes-${report.id}`}>
+          <label className="text-sm font-medium text-[#4A5130]" htmlFor={`notes-${report.id}`}>
             Admin notes (optional)
           </label>
           <textarea
@@ -197,7 +197,7 @@ function ReportCard({ report, onUpdate, updating }: ReportCardProps) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-[#F6F2E5]/30 focus:outline-none focus:ring-2 focus:ring-[#69773D]"
             placeholder="Add context or next steps for the reporter"
           />
         </div>
@@ -209,7 +209,7 @@ function ReportCard({ report, onUpdate, updating }: ReportCardProps) {
               setStatus(report.status);
               setNotes(report.adminNotes || "");
             }}
-            className="text-sm font-medium text-gray-500 hover:text-gray-700"
+            className="text-sm font-medium text-[#4A5130] hover:text-[#69773D]"
             disabled={updating}
           >
             Reset
@@ -217,7 +217,7 @@ function ReportCard({ report, onUpdate, updating }: ReportCardProps) {
           <button
             type="button"
             onClick={handleSubmit}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#69773D] hover:bg-[#5a6530] transition disabled:opacity-60"
             disabled={updating}
           >
             {updating ? "Updating..." : "Save changes"}
@@ -297,26 +297,29 @@ export default function AdminReportsPage() {
 
   return (
     <div className="space-y-6" style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
-      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Reports</h1>
-          <p className="text-sm md:text-base text-gray-600">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130]">
+            Reports
+          </h1>
+          <p className="text-sm md:text-base text-[#69773D] mt-1">
             Review reports submitted by users and keep the marketplace safe.
           </p>
         </div>
         <button
           type="button"
           onClick={handleRefresh}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-blue-600 border border-blue-200 hover:bg-blue-50 transition"
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors whitespace-nowrap"
         >
-          <RefreshCcw className="w-4 h-4" />
+          <RefreshCcw size={18} className={loading ? "animate-spin" : ""} />
           Refresh
         </button>
       </header>
 
-      <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-5">
+      <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-5 mb-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center gap-2 text-gray-600">
+          <div className="flex items-center gap-2 text-[#4A5130]">
             <Filter className="w-4 h-4" />
             <span className="text-sm font-medium">Filters</span>
           </div>
@@ -324,7 +327,7 @@ export default function AdminReportsPage() {
             <select
               value={filters.status ?? "all"}
               onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#69773D]"
             >
               {STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -336,7 +339,7 @@ export default function AdminReportsPage() {
             <select
               value={filters.type ?? "all"}
               onChange={(e) => handleFilterChange("type", e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#69773D]"
             >
               {TYPE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -349,14 +352,14 @@ export default function AdminReportsPage() {
       </section>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64 text-gray-500">
+        <div className="flex items-center justify-center h-64 text-[#4A5130]">
           Loading reports...
         </div>
       ) : reports.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-xl p-10 text-center text-gray-500">
-          <Flag className="w-10 h-10 mx-auto mb-3 text-gray-400" />
-          <p className="text-lg font-semibold">No reports found</p>
-          <p className="text-sm text-gray-500">Try adjusting the filters or check back later.</p>
+        <div className="bg-white border border-gray-200 rounded-xl p-10 text-center">
+          <Flag className="w-10 h-10 mx-auto mb-3 text-[#69773D]" />
+          <p className="text-lg font-semibold text-[#4A5130]">No reports found</p>
+          <p className="text-sm text-[#69773D]">Try adjusting the filters or check back later.</p>
         </div>
       ) : (
         <div className="space-y-4">

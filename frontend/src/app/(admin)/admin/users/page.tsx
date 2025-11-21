@@ -45,10 +45,10 @@ const TableRow = memo(function TableRow({
     <tr className="border-b hover:bg-gray-50">
       <td className="px-6 py-4">
         <div>
-          <div className="font-medium text-gray-900">{user.name}</div>
+          <div className="font-medium text-[#4A5130]">{user.name}</div>
           <div className="text-sm text-gray-500">{user.email}</div>
           {isCurrentUser && (
-            <span className="text-xs text-blue-600 font-medium">(You)</span>
+            <span className="text-xs text-[#69773D] font-medium">(You)</span>
           )}
         </div>
       </td>
@@ -62,7 +62,7 @@ const TableRow = memo(function TableRow({
         <span
           className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${
             user.role === "admin"
-              ? "bg-purple-100 text-purple-800"
+              ? "bg-[#5C8140]/10 text-[#5C8140]"
               : "bg-gray-100 text-gray-800"
           }`}
         >
@@ -74,7 +74,7 @@ const TableRow = memo(function TableRow({
         <span
           className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${
             user.isVerified
-              ? "bg-green-100 text-green-800"
+              ? "bg-[#69773D]/10 text-[#69773D]"
               : "bg-yellow-100 text-yellow-800"
           }`}
         >
@@ -97,7 +97,7 @@ const TableRow = memo(function TableRow({
             <button
               onClick={() => onPromote(user.id, user.name)}
               disabled={isLoading}
-              className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors disabled:opacity-50"
+              className="p-2 text-[#5C8140] hover:bg-[#5C8140]/10 rounded-lg transition-colors disabled:opacity-50"
               title="Promote to Admin"
             >
               <UserPlus size={18} />
@@ -107,7 +107,7 @@ const TableRow = memo(function TableRow({
               <button
                 onClick={() => onDemote(user.id, user.name)}
                 disabled={isLoading}
-                className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-50"
+                className="p-2 text-[#7ba02e] hover:bg-[#7ba02e]/10 rounded-lg transition-colors disabled:opacity-50"
                 title="Demote to User"
               >
                 <UserMinus size={18} />
@@ -118,7 +118,7 @@ const TableRow = memo(function TableRow({
             <button
               onClick={() => onDelete(user.id, user.name)}
               disabled={isLoading}
-              className="p-2 text-[#780606] hover:bg-[#780606] rounded-lg transition-colors disabled:opacity-50"
+              className="p-2 text-[#780606] hover:bg-[#780606]/10 rounded-lg transition-colors disabled:opacity-50"
               title="Delete User"
             >
               <Trash2 size={18} />
@@ -252,40 +252,61 @@ export default function UsersPage() {
   return (
     <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       {/* Header */}
+      <div className="mb-6 md:mb-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130]">
             Users Management
           </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">
+            <p className="text-sm md:text-base text-[#69773D] mt-1">
             Manage users, roles, and permissions
           </p>
         </div>
         <button
           onClick={loadUsers}
           disabled={loading}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+            className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors whitespace-nowrap"
         >
           <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-          <span className="hidden sm:inline">Refresh</span>
+            Refresh
         </button>
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
-          <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-          <div className="text-sm text-gray-600">Total Users</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-500">
-          <div className="text-2xl font-bold text-gray-900">{stats.admins}</div>
-          <div className="text-sm text-gray-600">Administrators</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
-          <div className="text-2xl font-bold text-gray-900">
-            {stats.verified}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border-l-4 relative overflow-hidden" style={{ borderLeftColor: "#2F5A32" }}>
+          <div className="relative flex items-center justify-between h-full">
+            <div className="flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#4A5130]">Total Users</p>
+              <p className="text-3xl font-bold mt-3 text-[#4A5130]">{stats.total}</p>
+            </div>
+            <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-md" style={{ backgroundColor: "#2F5A3215", border: "2px solid #2F5A3240" }}>
+              <UserPlus size={28} style={{ color: "#2F5A32" }} />
+            </div>
           </div>
-          <div className="text-sm text-gray-600">Verified Users</div>
+        </div>
+        <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border-l-4 relative overflow-hidden" style={{ borderLeftColor: "#5C8140" }}>
+          <div className="relative flex items-center justify-between h-full">
+            <div className="flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#4A5130]">Administrators</p>
+              <p className="text-3xl font-bold mt-3 text-[#4A5130]">{stats.admins}</p>
+            </div>
+            <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-md" style={{ backgroundColor: "#5C814015", border: "2px solid #5C814040" }}>
+              <Shield size={28} style={{ color: "#5C8140" }} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border-l-4 relative overflow-hidden" style={{ borderLeftColor: "#7ba02e" }}>
+          <div className="relative flex items-center justify-between h-full">
+            <div className="flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#4A5130]">Verified Users</p>
+              <p className="text-3xl font-bold mt-3 text-[#4A5130]">{stats.verified}</p>
+            </div>
+            <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-md" style={{ backgroundColor: "#7ba02e15", border: "2px solid #7ba02e40" }}>
+              <CheckCircle size={28} style={{ color: "#7ba02e" }} />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -300,8 +321,8 @@ export default function UsersPage() {
             }}
             className={`px-3 md:px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-colors ${
               roleFilter === role
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100"
+                ? "bg-[#69773D] text-white"
+                : "bg-white text-[#4A5130] hover:bg-gray-100"
             }`}
           >
             {role.charAt(0).toUpperCase() + role.slice(1)}
@@ -330,11 +351,11 @@ export default function UsersPage() {
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="text-gray-500">Loading users...</div>
+            <div className="text-[#4A5130]">Loading users...</div>
           </div>
         ) : filteredUsers.length === 0 ? (
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            {searchQuery ? "No users match your search" : "No users found"}
+          <div className="flex items-center justify-center h-64">
+            <div className="text-[#4A5130]">{searchQuery ? "No users match your search" : "No users found"}</div>
           </div>
         ) : (
           <>

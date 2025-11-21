@@ -402,13 +402,13 @@ export default function BecomeASeller() {
             )}
             {shopStatus.status === "approved" && (
               <>
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-10 h-10 text-green-600" />
+                <div className="w-20 h-20 bg-[#69773D]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-10 h-10 text-[#69773D]" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                <h2 className="text-3xl font-bold text-[#4A5130] mb-2">
                   Shop Approved!
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-[#69773D]">
                   Congratulations! Your shop has been approved
                 </p>
               </>
@@ -476,7 +476,7 @@ export default function BecomeASeller() {
             )}
             <button
               onClick={() => (window.location.href = "/profile")}
-              className="flex-1 py-3 px-6 rounded-xl font-semibold bg-gray-200 hover:bg-gray-300 text-gray-800 transition-all shadow-md hover:shadow-lg"
+              className="flex-1 py-3 px-6 rounded-xl font-semibold bg-[#69773D] hover:bg-[#5a6530] text-white transition-all shadow-md hover:shadow-lg"
             >
               Back to Profile
             </button>

@@ -114,7 +114,7 @@ const CategoryModal = memo(function CategoryModal({
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+            <h2 className="text-2xl font-bold text-[#4A5130]">{title}</h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -125,7 +125,7 @@ const CategoryModal = memo(function CategoryModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-[#4A5130] mb-2">
                 Name *
               </label>
               <input
@@ -138,7 +138,7 @@ const CategoryModal = memo(function CategoryModal({
                 className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                   errors.name
                     ? "border-[#780606] focus:ring-red-500"
-                    : "border-gray-300 focus:ring-blue-500"
+                    : "border-gray-300 focus:ring-[#69773D]"
                 }`}
                 placeholder="e.g., Electronics"
                 required
@@ -153,7 +153,7 @@ const CategoryModal = memo(function CategoryModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-[#4A5130] mb-2">
                 Description
               </label>
               <textarea
@@ -165,7 +165,7 @@ const CategoryModal = memo(function CategoryModal({
                 className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                   errors.description
                     ? "border-[#780606] focus:ring-red-500"
-                    : "border-gray-300 focus:ring-blue-500"
+                    : "border-gray-300 focus:ring-[#69773D]"
                 }`}
                 placeholder="Optional description"
                 rows={3}
@@ -185,9 +185,10 @@ const CategoryModal = memo(function CategoryModal({
                 id="isActive"
                 checked={isActive}
                 onChange={(e) => setIsActive(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 accent-[#69773D] border-gray-300 rounded focus:ring-[#69773D]"
+                style={{ accentColor: '#69773D' }}
               />
-              <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+              <label htmlFor="isActive" className="text-sm font-medium text-[#4A5130]">
                 Active (visible in marketplace)
               </label>
             </div>
@@ -197,14 +198,14 @@ const CategoryModal = memo(function CategoryModal({
                 type="button"
                 onClick={onClose}
                 disabled={submitting}
-                className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors font-medium"
+                className="flex-1 px-4 py-2 border-2 border-gray-300 text-[#4A5130] rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors font-medium"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                className="flex-1 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
               >
                 {submitting ? "Saving..." : "Save"}
               </button>
@@ -308,7 +309,7 @@ export default function CategoriesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading categories...</div>
+        <div className="text-[#4A5130]">Loading categories...</div>
       </div>
     );
   }
@@ -316,25 +317,30 @@ export default function CategoriesPage() {
   return (
     <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
-          <p className="text-gray-600 mt-1">Manage product categories</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130]">
+            Categories
+          </h1>
+          <p className="text-sm md:text-base text-[#69773D] mt-1">
+            Manage product categories
+          </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={loadCategories}
             disabled={loading}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors whitespace-nowrap"
           >
             <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+            Refresh
           </button>
           <button
             onClick={() => {
               setEditingCategory(null);
               setShowModal(true);
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+            className="px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors font-medium flex items-center gap-2"
           >
             <Plus size={18} />
             Add Category
@@ -346,16 +352,16 @@ export default function CategoriesPage() {
       {categories.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-12 text-center">
           <FolderTree size={48} className="mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-[#4A5130] mb-2">
             No categories yet
           </h3>
-          <p className="text-gray-600 mb-4">Start by creating your first category</p>
+          <p className="text-[#69773D] mb-4">Start by creating your first category</p>
           <button
             onClick={() => {
               setEditingCategory(null);
               setShowModal(true);
             }}
-            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="inline-block px-6 py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors font-medium"
           >
             Add Category
           </button>
@@ -387,7 +393,7 @@ export default function CategoriesPage() {
                 {categories.map((cat) => (
                   <tr key={cat.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{cat.name}</div>
+                      <div className="font-medium text-[#4A5130]">{cat.name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">{cat.slug}</div>
@@ -399,9 +405,9 @@ export default function CategoriesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${
+                        className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${
                           cat.isActive
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-[#69773D]/10 text-[#69773D]"
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
@@ -425,17 +431,17 @@ export default function CategoriesPage() {
                             setEditingCategory(cat);
                             setShowModal(true);
                           }}
-                          className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs"
+                          className="p-2 text-[#69773D] hover:bg-[#69773D]/10 rounded-lg transition-colors"
+                          title="Edit"
                         >
-                          <Edit size={14} className="inline mr-1" />
-                          Edit
+                          <Edit size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(cat.id, cat.name)}
-                          className="px-3 py-1 bg-[#780606] text-white rounded-lg hover:bg-[#780606] transition-colors text-xs"
+                          className="p-2 text-[#780606] hover:bg-[#780606]/10 rounded-lg transition-colors"
+                          title="Delete"
                         >
-                          <Trash2 size={14} className="inline mr-1" />
-                          Delete
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </td>

@@ -475,7 +475,7 @@ export default function CheckoutPage() {
                   <label
                     className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
                       deliveryMethod === "pickup"
-                        ? "border-[#84B067] bg-green-50"
+                        ? "border-[#84B067] bg-[#69773D]/10"
                         : "border-gray-300 hover:border-[#84B067]"
                     }`}
                   >
@@ -504,7 +504,7 @@ export default function CheckoutPage() {
                   <label
                     className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
                       deliveryMethod === "delivery"
-                        ? "border-[#84B067] bg-green-50"
+                        ? "border-[#84B067] bg-[#69773D]/10"
                         : "border-gray-300 hover:border-[#84B067]"
                     }`}
                   >
@@ -777,7 +777,7 @@ export default function CheckoutPage() {
                                 <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
                                   Preferred Time
                                 </span>
-                                <span className="text-right text-sm font-medium text-blue-600">
+                                <span className="text-right text-sm font-medium text-[#4A5130]">
                                   {new Date(
                                     pickupDetails.preferredTime
                                   ).toLocaleString("th-TH", {
@@ -936,7 +936,7 @@ export default function CheckoutPage() {
                   <label
                     className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
                       paymentMethod === "cash"
-                        ? "border-[#84B067] bg-green-50"
+                        ? "border-[#84B067] bg-[#69773D]/10"
                         : "border-gray-300 hover:border-[#84B067]"
                     }`}
                   >
@@ -964,7 +964,7 @@ export default function CheckoutPage() {
                   <label
                     className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
                       paymentMethod === "promptpay"
-                        ? "border-[#84B067] bg-green-50"
+                        ? "border-[#84B067] bg-[#69773D]/10"
                         : "border-gray-300 hover:border-[#84B067]"
                     }`}
                   >
@@ -989,14 +989,14 @@ export default function CheckoutPage() {
 
                   {/* Show QR Code if PromptPay selected */}
                   {paymentMethod === "promptpay" && (
-                    <div className="mt-4 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
+                    <div className="mt-4 p-6 bg-[#4A5130]/10 rounded-lg border-2 border-[#4A5130]/20">
                       <div className="text-center mb-4">
                         <h3 className="text-lg font-bold text-gray-900 mb-2">
                           Scan QR Code to Pay
                         </h3>
                         <p className="text-sm text-gray-600">
                           Amount:{" "}
-                          <span className="font-bold text-[#84B067]">
+                          <span className="font-bold text-[#4A5130]">
                             ฿{getTotalPrice().toLocaleString("th-TH")}
                           </span>
                         </p>
@@ -1005,7 +1005,7 @@ export default function CheckoutPage() {
                       {/* QR Code Placeholder */}
                       <div className="flex justify-center mb-4">
                         <div className="bg-white p-4 rounded-lg shadow-md">
-                          <div className="w-48 h-48 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center">
+                          <div className="w-48 h-48 bg-[#69773D]/10 border-2 border-[#69773D]/20 rounded-lg flex items-center justify-center">
                             <div className="text-center">
                               <QrCode className="w-16 h-16 mx-auto mb-2 text-gray-400" />
                               <p className="text-xs text-gray-500">
@@ -1066,7 +1066,7 @@ export default function CheckoutPage() {
                         <p className="text-sm text-gray-600">
                           Qty: {item.quantity}
                         </p>
-                        <p className="text-sm font-bold text-[#84B067]">
+                        <p className="text-sm font-bold text-[#4A5130]">
                           ฿
                           {(item.price * item.quantity).toLocaleString("th-TH")}
                         </p>
@@ -1078,15 +1078,15 @@ export default function CheckoutPage() {
                 <div className="space-y-3 mb-6 border-t pt-4">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
-                    <span>฿{getTotalPrice().toLocaleString("th-TH")}</span>
+                    <span className="text-[#4A5130]">฿{getTotalPrice().toLocaleString("th-TH")}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
-                    <span className="text-green-600">Free</span>
+                    <span className="text-[#69773D]">Free</span>
                   </div>
                   <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-900">
                     <span>Total</span>
-                    <span className="text-[#84B067]">
+                    <span className="text-[#4A5130]">
                       ฿{getTotalPrice().toLocaleString("th-TH")}
                     </span>
                   </div>
@@ -1095,16 +1095,16 @@ export default function CheckoutPage() {
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="w-full px-6 py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full px-6 py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#84B067] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Confirm Order"}
                 </button>
 
                 {/* Order Info */}
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="mt-4 p-3 bg-[#4A5130]/10 border border-[#4A5130]/20 rounded-lg">
                   <div className="flex items-start gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-xs text-blue-800">
+                    <CheckCircle2 className="w-5 h-5 text-[#4A5130] flex-shrink-0 mt-0.5" />
+                    <div className="text-xs text-[#4A5130]">
                       <p className="font-medium mb-1">Order Details:</p>
                       <p className="mb-1">
                         <span className="font-medium">Delivery:</span>{" "}
@@ -1133,7 +1133,7 @@ export default function CheckoutPage() {
                       )}
                       {deliveryMethod === "pickup" &&
                         pickupDetails.preferredTime && (
-                        <p className="mb-1 text-blue-600">
+                        <p className="mb-1 text-[#4A5130]">
                           <span className="font-medium">Preferred time:</span>{" "}
                             {new Date(
                               pickupDetails.preferredTime
@@ -1168,13 +1168,13 @@ export default function CheckoutPage() {
             <div className="p-6">
               {/* Header */}
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-10 h-10 text-blue-600" />
+                <div className="w-16 h-16 bg-[#69773D]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-10 h-10 text-[#69773D]" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-[#4A5130] mb-2">
                   Confirm Your Order
                 </h2>
-                <p className="text-gray-600 text-sm">
+                <p className="text-[#69773D] text-sm">
                   Please review the details before confirming
                 </p>
               </div>
@@ -1194,7 +1194,7 @@ export default function CheckoutPage() {
                         <span className="text-gray-700 flex-1 mr-2 line-clamp-1">
                           {item.title} x{item.quantity}
                         </span>
-                        <span className="font-medium text-gray-900 whitespace-nowrap">
+                        <span className="font-medium text-[#4A5130] whitespace-nowrap">
                           ฿
                           {(item.price * item.quantity).toLocaleString("th-TH")}
                         </span>
@@ -1204,7 +1204,7 @@ export default function CheckoutPage() {
                   <div className="border-t mt-3 pt-3">
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total</span>
-                      <span className="text-[#84B067]">
+                      <span className="text-[#4A5130]">
                         ฿{getTotalPrice().toLocaleString("th-TH")}
                       </span>
                     </div>
@@ -1263,7 +1263,7 @@ export default function CheckoutPage() {
                           </p>
                         )}
                         {pickupDetails.preferredTime && (
-                          <p className="text-[11px] text-blue-600 font-medium">
+                          <p className="text-[11px] text-[#4A5130] font-medium">
                             Preferred time:{" "}
                             {new Date(
                               pickupDetails.preferredTime
@@ -1342,7 +1342,7 @@ export default function CheckoutPage() {
                 <button
                   onClick={handleConfirmOrder}
                   disabled={isProcessing}
-                  className="flex-1 px-6 py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#84B067] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isProcessing ? (
                     <>

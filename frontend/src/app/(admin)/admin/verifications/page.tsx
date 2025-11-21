@@ -33,7 +33,7 @@ const TableRow = memo(function TableRow({
     <tr className="border-b hover:bg-gray-50">
       <td className="px-6 py-4">
         <div>
-          <div className="font-medium text-gray-900">
+          <div className="font-medium text-[#4A5130]">
             {verification.user.name}
           </div>
           <div className="text-sm text-gray-500">{verification.user.email}</div>
@@ -53,8 +53,8 @@ const TableRow = memo(function TableRow({
             verification.status === "pending"
               ? "bg-yellow-100 text-yellow-800"
               : verification.status === "approved"
-              ? "bg-green-100 text-green-800"
-              : "bg-[#780606] text-[#780606]"
+              ? "bg-[#69773D]/10 text-[#69773D]"
+              : "bg-[#780606]/10 text-[#780606]"
           }`}
         >
           {verification.status}
@@ -72,7 +72,7 @@ const TableRow = memo(function TableRow({
                 `Document - ${verification.user.name}`
               )
             }
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="p-2 text-[#69773D] hover:bg-[#69773D]/10 rounded-lg transition-colors"
             title="View Document"
           >
             <Eye size={18} />
@@ -82,7 +82,7 @@ const TableRow = memo(function TableRow({
               <button
                 onClick={() => onApprove(verification.id)}
                 disabled={isLoading}
-                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                className="p-2 text-green-600 hover:bg-green-600/10 rounded-lg transition-colors disabled:opacity-50"
                 title="Approve"
               >
                 <CheckCircle size={18} />
@@ -90,7 +90,7 @@ const TableRow = memo(function TableRow({
               <button
                 onClick={() => onReject(verification.id)}
                 disabled={isLoading}
-                className="p-2 text-[#780606] hover:bg-[#780606] rounded-lg transition-colors disabled:opacity-50"
+                className="p-2 text-[#780606] hover:bg-[#780606]/10 rounded-lg transition-colors disabled:opacity-50"
                 title="Reject"
               >
                 <XCircle size={18} />
@@ -213,20 +213,20 @@ export default function VerificationsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130]">
             Verifications
           </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-[#69773D] mt-1">
             Review and manage identity verification requests
           </p>
         </div>
         <button
           onClick={loadVerifications}
           disabled={loading}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+          className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors"
         >
           <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-          <span className="hidden sm:inline">Refresh</span>
+          Refresh
         </button>
       </div>
 
@@ -241,8 +241,8 @@ export default function VerificationsPage() {
             }}
             className={`px-3 md:px-4 py-2 rounded-lg text-sm md:text-base font-medium transition-colors ${
               filter === status
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100"
+                ? "bg-[#69773D] text-white"
+                : "bg-white text-[#4A5130] hover:bg-gray-100"
             }`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -357,7 +357,7 @@ export default function VerificationsPage() {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="Please provide a reason..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#69773D] focus:border-transparent"
               rows={3}
             />
           </div>

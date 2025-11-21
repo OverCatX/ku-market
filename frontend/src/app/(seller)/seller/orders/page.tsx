@@ -202,9 +202,9 @@ export default function SellerOrders() {
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
       pending_seller_confirmation: "bg-yellow-100 text-yellow-800",
-      confirmed: "bg-blue-100 text-blue-800",
+      confirmed: "bg-[#69773D]/10 text-[#69773D]",
       rejected: "bg-[#780606] text-[#780606]",
-      completed: "bg-green-100 text-green-800",
+      completed: "bg-[#69773D]/10 text-[#69773D]",
       cancelled: "bg-gray-100 text-gray-800",
     };
     return styles[status] || styles.pending_seller_confirmation;
@@ -293,7 +293,7 @@ export default function SellerOrders() {
             <div key={order.id} className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">
+                  <h3 className="text-lg font-bold text-[#4A5130]">
                     Order #{order.id.slice(-8)}
                   </h3>
                   <p className="text-sm text-gray-600">
@@ -329,8 +329,8 @@ export default function SellerOrders() {
               </div>
 
               {/* Buyer Info */}
-              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-2">
+              <div className="mb-4 p-4 bg-[#F6F2E5]/30 rounded-lg">
+                <h4 className="font-semibold text-[#4A5130] mb-2">
                   Buyer Information
                 </h4>
                 <div className="text-sm text-gray-700 space-y-1">
@@ -362,17 +362,17 @@ export default function SellerOrders() {
                   )}
                   {order.deliveryMethod === "pickup" && order.pickupDetails && (
                     <div className="mt-2 pt-2 border-t border-gray-200">
-                      <p className="font-medium flex items-center gap-1 text-green-700">
-                        <MapPin size={14} />
+                      <p className="font-medium flex items-center gap-1 text-[#69773D]">
+                        <MapPin size={14} className="text-[#69773D]" />
                         Meetup Point
                       </p>
                       <div className="mt-1 space-y-1 text-gray-700">
-                        <p className="font-semibold">{order.pickupDetails.locationName}</p>
+                        <p className="font-semibold text-[#4A5130]">{order.pickupDetails.locationName}</p>
                         {order.pickupDetails.address && (
                           <p className="text-sm">{order.pickupDetails.address}</p>
                         )}
                         {order.pickupDetails.preferredTime && (
-                          <p className="text-sm text-blue-600">
+                          <p className="text-sm text-[#69773D]">
                             <Clock size={12} className="inline mr-1" />
                             Preferred time: {new Date(order.pickupDetails.preferredTime).toLocaleString("th-TH", {
                               year: "numeric",
@@ -397,7 +397,7 @@ export default function SellerOrders() {
                     </div>
                   )}
                   <p>
-                    <span className="font-medium">Payment:</span>{" "}
+                    <span className="font-medium text-[#4A5130]">Payment:</span>{" "}
                     {order.paymentMethod === "cash" ? "Cash" : "Transfer"}
                   </p>
                   {order.rejectionReason && (
@@ -424,12 +424,12 @@ export default function SellerOrders() {
                       </div>
                     )}
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">{item.title}</p>
+                      <p className="font-medium text-[#4A5130]">{item.title}</p>
                       <p className="text-sm text-gray-600">
                         Qty: {item.quantity} × ฿{item.price.toLocaleString()}
                       </p>
                     </div>
-                    <p className="font-bold text-green-600">
+                    <p className="font-bold text-[#69773D]">
                       ฿{(item.price * item.quantity).toLocaleString()}
                     </p>
                   </div>
@@ -439,8 +439,8 @@ export default function SellerOrders() {
               {/* Total & Label */}
               <div className="flex flex-col gap-3 pt-4 border-t">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-gray-900">Total</span>
-                  <span className="text-lg font-bold text-green-600">
+                  <span className="text-lg font-bold text-[#4A5130]">Total</span>
+                  <span className="text-lg font-bold text-[#69773D]">
                     ฿{order.totalPrice.toLocaleString()}
                   </span>
                 </div>
@@ -448,7 +448,7 @@ export default function SellerOrders() {
                   <Link
                     href={`/seller/orders/${order.id}/label`}
                     target="_blank"
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-emerald-500 hover:text-emerald-600 transition-colors font-medium"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 border-2 border-[#69773D] text-[#69773D] rounded-lg hover:border-[#5a6530] hover:text-[#5a6530] transition-colors font-medium"
                   >
                     <Printer size={16} />
                     Print Delivery Slip
@@ -461,7 +461,7 @@ export default function SellerOrders() {
                 <div className="flex gap-2 mt-4">
                   <button
                     onClick={() => handleConfirmOrder(order.id)}
-                    className="flex-1 px-4 py-2 bg-[#8c522f] text-white rounded-lg hover:bg-[#7a4526] transition-colors font-medium"
+                    className="flex-1 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors font-medium"
                   >
                     <CheckCircle size={18} className="inline mr-2" />
                     Confirm Order
@@ -481,7 +481,7 @@ export default function SellerOrders() {
                   <div className="mt-4">
                     <button
                       onClick={() => handleMarkDelivered(order.id)}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                      className="w-full px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors font-medium"
                     >
                       <CheckCircle size={18} className="inline mr-2" />
                       Mark as delivered
@@ -490,7 +490,7 @@ export default function SellerOrders() {
                 )}
               {order.sellerDelivered && (
                 <div className="mt-4">
-                  <div className="w-full px-4 py-2 bg-green-100 text-green-700 rounded-lg font-medium text-center">
+                  <div className="w-full px-4 py-2 bg-[#69773D]/10 text-[#69773D] rounded-lg font-medium text-center">
                     <CheckCircle size={18} className="inline mr-2" />
                     You have confirmed delivery
                   </div>
@@ -498,7 +498,7 @@ export default function SellerOrders() {
               )}
               {order.buyerReceived && order.sellerDelivered && (
                 <div className="mt-2">
-                  <div className="w-full px-4 py-2 bg-green-200 text-green-800 rounded-lg font-medium text-center">
+                  <div className="w-full px-4 py-2 bg-[#5C8140]/30 text-[#5C8140] rounded-lg font-medium text-center">
                     <CheckCircle size={18} className="inline mr-2" />
                     Both parties confirmed - Order completed
                   </div>

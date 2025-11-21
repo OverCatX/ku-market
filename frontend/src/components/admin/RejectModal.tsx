@@ -53,10 +53,10 @@ export default function RejectModal({
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#780606] rounded-full">
+              <div className="p-2 bg-[#780606]/10 rounded-full">
                 <AlertTriangle className="text-[#780606]" size={20} />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Reject Item</h2>
+              <h2 className="text-xl font-bold text-[#780606]">Reject Item</h2>
             </div>
             <button
               onClick={onClose}
