@@ -302,8 +302,6 @@ describe("NotificationBell Component", () => {
         createMockNotification({ id: "1", read: false, link: "/test" }),
       ];
       
-      // Mock to return read notification after marking as read
-      const readNotification = { ...notifications[0], read: true };
       (notificationsApi.getNotifications as jest.Mock).mockResolvedValue({
         notifications,
         unreadCount: 1,

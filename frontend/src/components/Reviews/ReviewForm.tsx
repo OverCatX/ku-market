@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Image as ImageIcon, Trash2, Shield, Info } from "lucide-react";
+import { X, Image as ImageIcon, Trash2, Shield } from "lucide-react";
 import StarRating from "./StarRating";
 import toast from "react-hot-toast";
 import {

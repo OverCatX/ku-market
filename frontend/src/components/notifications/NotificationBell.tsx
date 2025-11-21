@@ -27,7 +27,6 @@ interface NotificationBellProps {
 export function NotificationBell({ initialNotifications = [] }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
-  const [previousUnreadCount, setPreviousUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -65,10 +64,8 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
           }
           return data.notifications;
         });
-        setPreviousUnreadCount(newUnreadCount);
       } else {
         setNotifications(data.notifications);
-        setPreviousUnreadCount(newUnreadCount);
       }
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
@@ -153,27 +150,6 @@ export function NotificationBell({ initialNotifications = [] }: NotificationBell
   }, [isOpen]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const markAsRead = async (notificationId: string) => {
-    // Update UI optimistically (immediately)
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === notificationId ? { ...n, read: true } : n
-      )
-    );
-    // Call API in background
-    try {
-      await markNotificationAsRead(notificationId);
-    } catch (err) {
-      console.error("Failed to mark notification as read:", err);
-      // Revert on error
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === notificationId ? { ...n, read: false } : n
-        )
-      );
-    }
-  };
 
   const handleMarkAllAsRead = async () => {
     try {
