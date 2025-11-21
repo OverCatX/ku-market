@@ -79,16 +79,23 @@ export default class AuthController {
                 isVerified: user.isVerified || false
             };
 
-            // Log user login
+            // Log user login (with role-specific description)
+            const roleDescription = user.role === "admin" 
+                ? "Admin logged in via email/password"
+                : user.role === "seller"
+                ? "Seller logged in via email/password"
+                : "User logged in via email/password";
+            
             await logActivity({
                 req,
                 activityType: "user_login",
                 entityType: "user",
                 entityId: String(user._id),
-                description: `User logged in via email/password`,
+                description: roleDescription,
                 metadata: {
                     loginMethod: "email_password",
                     userEmail: user.kuEmail,
+                    userRole: user.role,
                 },
             });
             
@@ -157,16 +164,23 @@ export default class AuthController {
                 });
             }
 
-            // Log Google OAuth login
+            // Log Google OAuth login (with role-specific description)
+            const roleDescription = profile.role === "admin"
+                ? "Admin logged in via Google OAuth"
+                : profile.role === "seller"
+                ? "Seller logged in via Google OAuth"
+                : "User logged in via Google OAuth";
+            
             await logActivity({
                 req,
                 activityType: "user_login",
                 entityType: "user",
                 entityId: String(profile._id),
-                description: `User logged in via Google OAuth`,
+                description: roleDescription,
                 metadata: {
                     loginMethod: "google_oauth",
                     userEmail: profile.kuEmail,
+                    userRole: profile.role,
                 },
             });
 
@@ -212,13 +226,19 @@ export default class AuthController {
             const user = await User.findById(userId).select("kuEmail name role").lean();
             
             if (user) {
-                // Log user logout
+                // Log user logout (with role-specific description)
+                const roleDescription = user.role === "admin"
+                    ? "Admin logged out"
+                    : user.role === "seller"
+                    ? "Seller logged out"
+                    : "User logged out";
+                
                 await logActivity({
                     req,
                     activityType: "user_logout",
                     entityType: "user",
                     entityId: String(userId),
-                    description: `User logged out`,
+                    description: roleDescription,
                     metadata: {
                         userEmail: user.kuEmail,
                         userName: user.name,

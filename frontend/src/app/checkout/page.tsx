@@ -407,7 +407,7 @@ export default function CheckoutPage() {
   // Show loading state during SSR, initial mount, or auth check
   if (!isMounted || isCheckingAuth) {
     return (
-      <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
+      <div className="min-h-screen py-8" style={{ backgroundColor: "#F6F2E5" }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
@@ -429,7 +429,7 @@ export default function CheckoutPage() {
   // Show verification required page if not verified
   if (!isVerified) {
     return (
-      <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
+      <div className="min-h-screen py-8" style={{ backgroundColor: "#F6F2E5" }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-2xl">
           <div className="bg-white rounded-lg shadow-sm p-8 md:p-12 text-center">
             <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -484,7 +484,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen py-8" style={{ backgroundColor: '#F6F2E5' }}>
+    <div className="min-h-screen py-8" style={{ backgroundColor: "#F6F2E5" }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
 
@@ -690,15 +690,15 @@ export default function CheckoutPage() {
                               Meetup title *
                             </label>
                             <div className="relative">
-                            <input
-                              type="text"
-                              value={pickupDetails.locationName}
-                              onChange={(e) =>
-                                setPickupDetails((prev) => ({
-                                  ...prev,
-                                  locationName: e.target.value,
-                                }))
-                              }
+                              <input
+                                type="text"
+                                value={pickupDetails.locationName}
+                                onChange={(e) =>
+                                  setPickupDetails((prev) => ({
+                                    ...prev,
+                                    locationName: e.target.value,
+                                  }))
+                                }
                                 onFocus={() => setFocusedField("locationName")}
                                 onBlur={() => setFocusedField(null)}
                                 className={`w-full rounded-xl ${
@@ -715,8 +715,8 @@ export default function CheckoutPage() {
                                     ? "border-[#780606]"
                                     : "border-[#dfe7cf]"
                                 }`}
-                              placeholder="e.g. KU Avenue Plaza entrance"
-                            />
+                                placeholder="e.g. KU Avenue Plaza entrance"
+                              />
                               {isValidLocationName && (
                                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                                   <svg
@@ -893,16 +893,16 @@ export default function CheckoutPage() {
                       Full Name *
                     </label>
                     <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      value={shippingInfo.fullName}
-                      onChange={(e) =>
-                        setShippingInfo({
-                          ...shippingInfo,
-                          fullName: e.target.value,
-                        })
-                      }
+                      <input
+                        type="text"
+                        required
+                        value={shippingInfo.fullName}
+                        onChange={(e) =>
+                          setShippingInfo({
+                            ...shippingInfo,
+                            fullName: e.target.value,
+                          })
+                        }
                         onFocus={() => setFocusedField("fullName")}
                         onBlur={() => setFocusedField(null)}
                         className={`w-full px-4 py-2 ${
@@ -914,8 +914,8 @@ export default function CheckoutPage() {
                             ? "border-[#69773D]"
                             : "border-gray-300"
                         }`}
-                      placeholder="John Doe"
-                    />
+                        placeholder="John Doe"
+                      />
                       {shippingInfo.fullName.trim() && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           <svg
@@ -939,16 +939,16 @@ export default function CheckoutPage() {
                       Phone Number *
                     </label>
                     <div className="relative">
-                    <input
-                      type="tel"
-                      required
-                      value={shippingInfo.phone}
-                      onChange={(e) =>
-                        setShippingInfo({
-                          ...shippingInfo,
-                          phone: e.target.value,
-                        })
-                      }
+                      <input
+                        type="tel"
+                        required
+                        value={shippingInfo.phone}
+                        onChange={(e) =>
+                          setShippingInfo({
+                            ...shippingInfo,
+                            phone: e.target.value,
+                          })
+                        }
                         onFocus={() => setFocusedField("phone")}
                         onBlur={() => setFocusedField(null)}
                         className={`w-full px-4 py-2 pr-10 border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
@@ -960,8 +960,8 @@ export default function CheckoutPage() {
                             ? "border-[#780606]"
                             : "border-gray-300"
                         }`}
-                      placeholder="081-234-5678"
-                    />
+                        placeholder="081-234-5678"
+                      />
                       {shippingInfo.phone && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           {isValidPhone ? (
@@ -989,7 +989,7 @@ export default function CheckoutPage() {
                               />
                             </svg>
                           )}
-                  </div>
+                        </div>
                       )}
                     </div>
                     {shippingInfo.phone && isValidPhone === false && (
@@ -1029,15 +1029,15 @@ export default function CheckoutPage() {
                         Address *
                       </label>
                       <div className="relative">
-                      <textarea
-                        required
-                        value={shippingInfo.address}
-                        onChange={(e) =>
-                          setShippingInfo({
-                            ...shippingInfo,
-                            address: e.target.value,
-                          })
-                        }
+                        <textarea
+                          required
+                          value={shippingInfo.address}
+                          onChange={(e) =>
+                            setShippingInfo({
+                              ...shippingInfo,
+                              address: e.target.value,
+                            })
+                          }
                           onFocus={() => setFocusedField("address")}
                           onBlur={() => setFocusedField(null)}
                           className={`w-full px-4 py-2 ${
@@ -1051,9 +1051,9 @@ export default function CheckoutPage() {
                               ? "border-[#780606]"
                               : "border-gray-300"
                           }`}
-                        rows={3}
-                        placeholder="123 Main Street, Apt 4B"
-                      />
+                          rows={3}
+                          placeholder="123 Main Street, Apt 4B"
+                        />
                         {isValidAddress && (
                           <div className="absolute bottom-3 right-3">
                             <svg
@@ -1094,16 +1094,16 @@ export default function CheckoutPage() {
                           City *
                         </label>
                         <div className="relative">
-                        <input
-                          type="text"
-                          required
-                          value={shippingInfo.city}
-                          onChange={(e) =>
-                            setShippingInfo({
-                              ...shippingInfo,
-                              city: e.target.value,
-                            })
-                          }
+                          <input
+                            type="text"
+                            required
+                            value={shippingInfo.city}
+                            onChange={(e) =>
+                              setShippingInfo({
+                                ...shippingInfo,
+                                city: e.target.value,
+                              })
+                            }
                             onFocus={() => setFocusedField("city")}
                             onBlur={() => setFocusedField(null)}
                             className={`w-full px-4 py-2 ${
@@ -1117,8 +1117,8 @@ export default function CheckoutPage() {
                                 ? "border-[#780606]"
                                 : "border-gray-300"
                             }`}
-                          placeholder="Bangkok"
-                        />
+                            placeholder="Bangkok"
+                          />
                           {isValidCity && (
                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                               <svg
@@ -1158,16 +1158,16 @@ export default function CheckoutPage() {
                           Postal Code *
                         </label>
                         <div className="relative">
-                        <input
-                          type="text"
-                          required
-                          value={shippingInfo.postalCode}
-                          onChange={(e) =>
-                            setShippingInfo({
-                              ...shippingInfo,
-                              postalCode: e.target.value,
-                            })
-                          }
+                          <input
+                            type="text"
+                            required
+                            value={shippingInfo.postalCode}
+                            onChange={(e) =>
+                              setShippingInfo({
+                                ...shippingInfo,
+                                postalCode: e.target.value,
+                              })
+                            }
                             onFocus={() => setFocusedField("postalCode")}
                             onBlur={() => setFocusedField(null)}
                             className={`w-full px-4 py-2 pr-10 border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
@@ -1180,8 +1180,8 @@ export default function CheckoutPage() {
                                 ? "border-[#780606]"
                                 : "border-gray-300"
                             }`}
-                          placeholder="10110"
-                        />
+                            placeholder="10110"
+                          />
                           {shippingInfo.postalCode && (
                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                               {isValidPostalCode ? (
@@ -1209,7 +1209,7 @@ export default function CheckoutPage() {
                                   />
                                 </svg>
                               )}
-                      </div>
+                            </div>
                           )}
                         </div>
                         {shippingInfo.postalCode &&
@@ -1248,31 +1248,31 @@ export default function CheckoutPage() {
                 <div className="space-y-3">
                   {/* Cash Payment - Only show for pickup */}
                   {deliveryMethod === "pickup" && (
-                  <label
-                    className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
-                      paymentMethod === "cash"
-                        ? "border-[#84B067] bg-[#69773D]/10"
-                        : "border-gray-300 hover:border-[#84B067]"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="cash"
-                      checked={paymentMethod === "cash"}
-                      onChange={(e) =>
-                        setPaymentMethod(e.target.value as PaymentMethod)
-                      }
-                      className="w-4 h-4 text-[#84B067]"
-                    />
-                    <Package className="w-5 h-5 text-[#84B067]" />
-                    <div className="flex-1">
-                      <div className="font-medium">Cash</div>
-                      <div className="text-sm text-gray-600">
-                        Pay when you receive the item
+                    <label
+                      className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
+                        paymentMethod === "cash"
+                          ? "border-[#84B067] bg-[#69773D]/10"
+                          : "border-gray-300 hover:border-[#84B067]"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        value="cash"
+                        checked={paymentMethod === "cash"}
+                        onChange={(e) =>
+                          setPaymentMethod(e.target.value as PaymentMethod)
+                        }
+                        className="w-4 h-4 text-[#84B067]"
+                      />
+                      <Package className="w-5 h-5 text-[#84B067]" />
+                      <div className="flex-1">
+                        <div className="font-medium">Cash</div>
+                        <div className="text-sm text-gray-600">
+                          Pay when you receive the item
+                        </div>
                       </div>
-                    </div>
-                  </label>
+                    </label>
                   )}
 
                   {/* PromptPay Payment */}
@@ -1302,7 +1302,7 @@ export default function CheckoutPage() {
                     </div>
                   </label>
 
-                  {/* Show QR Code if PromptPay selected */}
+                  {/* Info message for PromptPay */}
                   {paymentMethod === "promptpay" && (
                     <div className="mt-4 p-6 bg-[#4A5130]/10 rounded-lg border-2 border-[#4A5130]/20">
                       <div className="text-center mb-4">
@@ -1393,7 +1393,9 @@ export default function CheckoutPage() {
                 <div className="space-y-3 mb-6 border-t pt-4">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
-                    <span className="text-[#4A5130]">฿{getTotalPrice().toLocaleString("th-TH")}</span>
+                    <span className="text-[#4A5130]">
+                      ฿{getTotalPrice().toLocaleString("th-TH")}
+                    </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
@@ -1448,19 +1450,19 @@ export default function CheckoutPage() {
                       )}
                       {deliveryMethod === "pickup" &&
                         pickupDetails.preferredTime && (
-                        <p className="mb-1 text-[#4A5130]">
-                          <span className="font-medium">Preferred time:</span>{" "}
+                          <p className="mb-1 text-[#4A5130]">
+                            <span className="font-medium">Preferred time:</span>{" "}
                             {new Date(
                               pickupDetails.preferredTime
                             ).toLocaleString("th-TH", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      )}
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        )}
                       <p>
                         <span className="font-medium">Payment:</span>{" "}
                         {paymentMethod === "cash"

@@ -20,7 +20,6 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
 import toast from "react-hot-toast";
 import { API_BASE } from "@/config/constants";
 import { useRouter } from "next/navigation";
@@ -264,12 +263,8 @@ export default function OrderDetailPage({
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [submittingPayment, setSubmittingPayment] = useState(false);
   const [contactingSeller, setContactingSeller] = useState(false);
   const [markingReceived, setMarkingReceived] = useState(false);
-  const [qrCodeData, setQrCodeData] = useState<string | null>(null);
-  const [loadingQrCode, setLoadingQrCode] = useState(false);
-  const [showQrCode, setShowQrCode] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     setLoading(true);
@@ -335,141 +330,19 @@ export default function OrderDetailPage({
     fetchOrder();
   }, [fetchOrder]);
 
-  // Auto-fetch QR code when order is confirmed and payment method is promptpay
-  useEffect(() => {
-    if (
-      order &&
-      order.paymentMethod === "promptpay" &&
-      order.status === "confirmed" &&
-      order.paymentStatus !== "paid" &&
-      order.paymentStatus !== "payment_submitted" &&
-      !qrCodeData
-    ) {
-      // Don't auto-fetch, let user click button to show QR code
-    }
-  }, [order, qrCodeData]);
-
   const handleMakePayment = useCallback(async () => {
     if (!order) {
       return;
     }
 
-    // Get token directly from localStorage to avoid auto-clearing
-    const token = localStorage.getItem("authentication") || localStorage.getItem("token");
-    if (!token) {
-      toast.error("Please login to submit payment");
-      router.push("/login?redirect=/order/" + order.id);
+    // Only for PromptPay method
+    if (order.paymentMethod !== "promptpay") {
       return;
     }
 
-    setSubmittingPayment(true);
-    try {
-      const response = await fetch(
-        `${API_BASE}/api/orders/${order.id}/payment`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include",
-        }
-      );
-
-      // Only clear tokens if we get 401 Unauthorized
-      if (response.status === 401) {
-        clearAuthTokens();
-        toast.error("Your session expired. Please login again.");
-        router.push("/login?redirect=/order/" + order.id);
-        return;
-      }
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        const message =
-          (payload as { error?: string }).error ||
-          (payload as { message?: string }).message ||
-          "Failed to submit payment";
-        throw new Error(message);
-      }
-
-      toast.success("Payment submitted! The seller will verify shortly.");
-      await fetchOrder();
-    } catch (err) {
-      console.error("Submit payment error:", err);
-      // Only show error if it's not a navigation error
-      if (err instanceof Error && !err.message.includes("session expired")) {
-        toast.error(
-          err instanceof Error ? err.message : "Failed to submit payment"
-        );
-      }
-    } finally {
-      setSubmittingPayment(false);
-    }
-  }, [fetchOrder, order, router]);
-
-  const fetchPaymentQr = useCallback(async () => {
-    if (!order || order.paymentMethod !== "promptpay" || order.status !== "confirmed") {
-      return;
-    }
-
-    if (order.paymentStatus === "paid" || order.paymentStatus === "payment_submitted") {
-      return;
-    }
-
-    // Get token directly from localStorage to avoid auto-clearing
-    const token = localStorage.getItem("authentication") || localStorage.getItem("token");
-    if (!token) {
-      toast.error("Please login to view QR code");
-      return;
-    }
-
-    setLoadingQrCode(true);
-    try {
-      const response = await fetch(
-        `${API_BASE}/api/orders/${order.id}/payment-qr`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Only clear tokens if we get 401 Unauthorized
-      if (response.status === 401) {
-        clearAuthTokens();
-        toast.error("Your session expired. Please login again.");
-        router.push("/login?redirect=/order/" + order.id);
-        return;
-      }
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        console.error("Failed to fetch payment QR:", payload);
-        toast.error("Failed to load QR code. Please try again.");
-        return;
-      }
-
-      const data = await response.json();
-      if (data.success && data.qrData?.promptpayData) {
-        setQrCodeData(data.qrData.promptpayData);
-        setShowQrCode(true);
-      }
-    } catch (err) {
-      console.error("Fetch payment QR error:", err);
-      toast.error("Failed to load QR code. Please try again.");
-    } finally {
-      setLoadingQrCode(false);
-    }
+    // Redirect to Stripe Elements payment page
+    router.push(`/payment/${order.id}`);
   }, [order, router]);
-
-  const handleShowQrCode = useCallback(() => {
-    if (qrCodeData) {
-      setShowQrCode(true);
-    } else {
-      fetchPaymentQr();
-    }
-  }, [qrCodeData, fetchPaymentQr]);
 
   const handleMarkReceived = useCallback(async () => {
     if (!order) {
@@ -658,7 +531,10 @@ export default function OrderDetailPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen py-12" style={{ backgroundColor: '#F6F2E5' }}>
+      <div
+        className="min-h-screen py-12"
+        style={{ backgroundColor: "#F6F2E5" }}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
           <div className="rounded-3xl bg-white p-8 shadow animate-pulse">
             <div className="h-8 w-40 rounded bg-gray-200" />
@@ -683,7 +559,10 @@ export default function OrderDetailPage({
 
   if (error || !order) {
     return (
-      <div className="min-h-screen py-12" style={{ backgroundColor: '#F6F2E5' }}>
+      <div
+        className="min-h-screen py-12"
+        style={{ backgroundColor: "#F6F2E5" }}
+      >
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-3xl">
           <div className="rounded-3xl bg-white p-8 shadow text-center">
             <XCircle className="mx-auto h-12 w-12 text-[#780606]" />
@@ -717,14 +596,16 @@ export default function OrderDetailPage({
   const StatusIcon = meta.icon;
 
   return (
-    <div className="min-h-screen py-10" style={{ backgroundColor: '#F6F2E5' }}>
+    <div className="min-h-screen bg-gradient-to-br from-[#f5f8f1] via-white to-[#eef4e6] py-4 sm:py-6 lg:py-10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-3 sm:mb-4">
           <Link
             href="/orders"
-            className="inline-flex items-center gap-2 text-sm font-medium text-[#4c5c2f] hover:text-[#2f3816]"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-[#4c5c2f] hover:text-[#2f3816]"
           >
-            <ArrowLeft size={16} /> Back to orders
+            <ArrowLeft size={14} className="sm:w-4 sm:h-4" />{" "}
+            <span className="hidden sm:inline">Back to orders</span>
+            <span className="sm:hidden">Back</span>
           </Link>
           <button
             onClick={fetchOrder}
@@ -736,35 +617,38 @@ export default function OrderDetailPage({
           </button>
         </div>
 
-        <div className="rounded-3xl bg-white/90 border border-[#e4ecd7] shadow-xl shadow-[#c8d3ba]/30 p-6 sm:p-8">
+        <div className="rounded-2xl sm:rounded-3xl bg-white/90 border border-[#e4ecd7] shadow-xl shadow-[#c8d3ba]/30 p-4 sm:p-6 lg:p-8">
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <div className="min-w-0 flex-1">
                 <span className="text-xs uppercase tracking-wide text-gray-500">
                   Order ID
                 </span>
-                <h1 className="text-2xl font-bold text-[#3d4a29]">
+                <h1 className="text-xl sm:text-2xl font-bold text-[#3d4a29] break-words">
                   {order.id}
                 </h1>
               </div>
-              <StatusIcon size={32} className="text-[#69773D]" />
+              <StatusIcon
+                size={28}
+                className="text-[#69773D] flex-shrink-0 sm:w-8 sm:h-8"
+              />
             </div>
 
             {statusBlock}
 
-            <div className="rounded-2xl bg-[#f3f8ed] border border-[#dfe7cf] p-4">
-              <p className="text-sm text-gray-600">
+            <div className="rounded-xl sm:rounded-2xl bg-[#f3f8ed] border border-[#dfe7cf] p-3 sm:p-4">
+              <p className="text-xs sm:text-sm text-gray-600">
                 {statusTips[normalizedStatus]}
               </p>
               {order.rejectionReason && (
-                <p className="mt-2 text-sm font-semibold text-[#780606]">
+                <p className="mt-2 text-xs sm:text-sm font-semibold text-[#780606]">
                   Reason: {order.rejectionReason}
                 </p>
               )}
             </div>
 
-            <section className="rounded-2xl border border-[#e4ecd7] bg-[#F6F2E5]/30 p-4 sm:p-6">
-              <h2 className="mb-4 text-lg font-semibold text-[#3d4a29]">
+            <section className="rounded-xl sm:rounded-2xl border border-[#e4ecd7] bg-white p-4 sm:p-6">
+              <h2 className="mb-3 sm:mb-4 text-base sm:text-lg font-semibold text-[#3d4a29]">
                 Items in this order
               </h2>
               <div className="space-y-4">
@@ -773,18 +657,18 @@ export default function OrderDetailPage({
                     key={item.itemId}
                     className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#eef2e1] pb-3 last:border-none"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="relative h-14 w-14 overflow-hidden rounded-xl bg-[#f5f9ef] border border-[#e4ecd7]">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="relative h-12 w-12 sm:h-14 sm:w-14 overflow-hidden rounded-lg sm:rounded-xl bg-[#f5f9ef] border border-[#e4ecd7] flex-shrink-0">
                         <Image
                           src={item.image || "/placeholder.png"}
                           alt={item.title}
                           fill
-                          sizes="56px"
+                          sizes="(max-width: 640px) 48px, 56px"
                           className="object-cover"
                         />
                       </div>
-                      <div>
-                        <div className="text-sm font-semibold text-[#4A5130]">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
                           {item.title}
                         </div>
                         <div className="text-xs text-gray-500">
@@ -792,7 +676,7 @@ export default function OrderDetailPage({
                         </div>
                       </div>
                     </div>
-                    <div className="text-sm font-semibold text-[#4A5130]">
+                    <div className="text-xs sm:text-sm font-semibold text-gray-900 flex-shrink-0">
                       {(item.price * item.quantity).toLocaleString()} THB
                     </div>
                   </div>
@@ -807,11 +691,11 @@ export default function OrderDetailPage({
             </section>
 
             <section className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-[#e4ecd7] bg-[#F6F2E5]/30 p-4">
-                <h3 className="text-sm font-semibold text-[#3d4a29]">
+              <div className="rounded-xl sm:rounded-2xl border border-[#e4ecd7] bg-white p-3 sm:p-4">
+                <h3 className="text-xs sm:text-sm font-semibold text-[#3d4a29] mb-2 sm:mb-0">
                   Delivery & payment
                 </h3>
-                <div className="mt-2 space-y-2 text-sm text-gray-600">
+                <div className="mt-2 space-y-2 text-xs sm:text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <Truck size={16} className="text-[#69773D]" />
                     <span className="capitalize">{order.deliveryMethod}</span>
@@ -863,7 +747,10 @@ export default function OrderDetailPage({
                       {order.pickupDetails.preferredTime && (
                         <p className="text-[11px] text-[#69773D] font-medium flex items-center gap-1">
                           <Clock size={10} />
-                          Preferred time: {new Date(order.pickupDetails.preferredTime).toLocaleString("th-TH", {
+                          Preferred time:{" "}
+                          {new Date(
+                            order.pickupDetails.preferredTime
+                          ).toLocaleString("th-TH", {
                             year: "numeric",
                             month: "short",
                             day: "numeric",
@@ -876,129 +763,54 @@ export default function OrderDetailPage({
                   )}
                 </div>
               </div>
-              <div className="rounded-2xl border border-[#e4ecd7] bg-[#F6F2E5]/30 p-4">
-                <h3 className="text-sm font-semibold text-[#3d4a29]">
+              <div className="rounded-xl sm:rounded-2xl border border-[#e4ecd7] bg-white p-3 sm:p-4">
+                <h3 className="text-xs sm:text-sm font-semibold text-[#3d4a29] mb-2 sm:mb-0">
                   Seller contact
                 </h3>
-                <div className="mt-2 text-sm text-gray-600">
-                  <p className="font-semibold text-gray-900">
+                <div className="mt-2 text-xs sm:text-sm text-gray-600">
+                  <p className="font-semibold text-gray-900 break-words">
                     {order.seller?.name || "Unknown"}
                   </p>
                   {order.seller?.contact && (
-                    <p>{order.seller.contact}</p>
+                    <p className="break-words">{order.seller.contact}</p>
                   )}
                 </div>
-                <div className="mt-4">
+                <div className="mt-3 sm:mt-4">
                   <button
                     type="button"
                     onClick={handleContactSeller}
                     disabled={contactingSeller}
-                    className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs sm:text-sm font-semibold transition ${
                       contactingSeller
                         ? "border-[#d6e4c3] bg-[#f3f8ed] text-gray-400 cursor-not-allowed"
                         : "bg-[#69773D]/80 text-[#F6F2E5] hover:bg-[#69773D]/90 border-[#69773D]"
                     }`}
                   >
-                    <MessageCircle size={16} />
-                    {contactingSeller ? "Opening chat..." : "Contact seller"}
+                    <MessageCircle size={14} className="sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">
+                      {contactingSeller ? "Opening chat..." : "Contact seller"}
+                    </span>
+                    <span className="sm:hidden">
+                      {contactingSeller ? "Opening..." : "Contact"}
+                    </span>
                   </button>
                 </div>
               </div>
             </section>
 
-            {/* QR Code Modal for PromptPay */}
-            {showQrCode && qrCodeData && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-                <div className="rounded-2xl bg-white p-6 max-w-md w-full">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      PromptPay QR Code
-                    </h3>
-                    <button
-                      onClick={() => setShowQrCode(false)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <XCircle size={24} />
-                    </button>
-                  </div>
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
-                      <QRCodeSVG
-                        value={qrCodeData}
-                        size={256}
-                        level="H"
-                        includeMargin={true}
-                      />
-                    </div>
-                    <p className="text-sm text-gray-600 text-center">
-                      Scan this QR code with your banking app to complete payment
-                    </p>
-                    <p className="text-lg font-semibold text-gray-900">
-                      Amount: {order.totalPrice.toLocaleString()} THB
-                    </p>
-                    <div className="flex gap-3 w-full">
-                      <button
-                        onClick={() => setShowQrCode(false)}
-                        className="flex-1 rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                      >
-                        Close
-                      </button>
-                      <button
-                        onClick={handleMakePayment}
-                        disabled={submittingPayment}
-                        className={`flex-1 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                          submittingPayment
-                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            : "bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
-                        }`}
-                      >
-                        {submittingPayment
-                          ? "Submitting..."
-                          : "I've Paid"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3">
               {/* Payment button for PromptPay when order is confirmed */}
               {normalizedStatus === "confirmed" &&
                 order.paymentMethod === "promptpay" &&
                 !paymentComplete && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleShowQrCode}
-                      disabled={loadingQrCode}
-                      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                        loadingQrCode
-                          ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                          : "bg-[#2F5A32] text-white hover:bg-[#254026]"
-                      }`}
-                    >
-                      <QrCode size={16} />
-                      {loadingQrCode
-                        ? "Loading QR Code..."
-                        : "Show QR Code"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleMakePayment}
-                      disabled={submittingPayment}
-                      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                        submittingPayment
-                          ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                          : "bg-[#5C8140] text-white hover:bg-[#4a6b33]"
-                      }`}
-                    >
-                      <CreditCard size={16} />
-                      {submittingPayment
-                        ? "Submitting..."
-                        : "Submit Payment Notification"}
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    onClick={handleMakePayment}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    <QrCode size={14} className="sm:w-4 sm:h-4" />
+                    Make Payment
+                  </button>
                 )}
               {/* Payment button for Transfer when order is confirmed */}
               {normalizedStatus === "confirmed" &&
@@ -1007,17 +819,13 @@ export default function OrderDetailPage({
                   <button
                     type="button"
                     onClick={handleMakePayment}
-                    disabled={submittingPayment}
-                    className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                      submittingPayment
-                        ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                        : "bg-[#5C8140] text-white hover:bg-[#4a6b33]"
-                    }`}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
                   >
-                    <CreditCard size={16} />
-                    {submittingPayment
-                      ? "Submitting..."
-                      : "Submit Payment Notification"}
+                    <CreditCard size={14} className="sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">
+                      Submit Payment Notification
+                    </span>
+                    <span className="sm:hidden">Submit Payment</span>
                   </button>
                 )}
               {normalizedStatus === "confirmed" &&
@@ -1028,61 +836,99 @@ export default function OrderDetailPage({
                     {(order.paymentMethod === "promptpay" ||
                       order.paymentMethod === "transfer") &&
                       !paymentComplete && (
-                        <div className="inline-flex items-center gap-2 rounded-xl bg-yellow-100 px-4 py-2 text-sm font-semibold text-yellow-800">
-                          <AlertCircle size={16} />
-                          Please submit payment first before confirming receipt
+                        <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-yellow-100 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-yellow-800">
+                          <AlertCircle
+                            size={14}
+                            className="sm:w-4 sm:h-4 flex-shrink-0"
+                          />
+                          <span className="hidden sm:inline">
+                            Please submit payment first before confirming
+                            receipt
+                          </span>
+                          <span className="sm:hidden">
+                            Submit payment first
+                          </span>
                         </div>
                       )}
                     {/* Show button only if: cash payment OR payment is completed */}
-                    {((order.paymentMethod === "cash") ||
-                      (order.paymentMethod === "promptpay" ||
+                    {(order.paymentMethod === "cash" ||
+                      ((order.paymentMethod === "promptpay" ||
                         order.paymentMethod === "transfer") &&
-                        paymentComplete) && (
+                        paymentComplete)) && (
                       <button
                         type="button"
                         onClick={handleMarkReceived}
                         disabled={markingReceived}
-                        className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                        className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition ${
                           markingReceived
                             ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
                             : "bg-[#e0cd95] text-[#8c522f] hover:bg-[#d4c085]"
                         }`}
                       >
-                        <CheckCircle size={16} />
-                        {markingReceived ? "Saving..." : "I received the product"}
+                        <CheckCircle size={14} className="sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">
+                          {markingReceived
+                            ? "Saving..."
+                            : "I received the product"}
+                        </span>
+                        <span className="sm:hidden">
+                          {markingReceived ? "Saving..." : "Received"}
+                        </span>
                       </button>
                     )}
                   </>
                 )}
-              {order.buyerReceived && (
-                <div className="inline-flex items-center gap-2 rounded-xl bg-[#e0cd95]/30 px-4 py-2 text-sm font-semibold text-[#8c522f]">
-                  <CheckCircle size={16} />
-                  You have confirmed receiving the product
+              {order.buyerReceived && !order.sellerDelivered && (
+                <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-[#e0cd95]/30 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-[#8c522f]">
+                  <CheckCircle
+                    size={14}
+                    className="sm:w-4 sm:h-4 flex-shrink-0"
+                  />
+                  <span className="hidden sm:inline">
+                    You have confirmed receiving the product
+                  </span>
+                  <span className="sm:hidden">Received</span>
                 </div>
               )}
               {order.sellerDelivered && !order.buyerReceived && (
-                <div className="inline-flex items-center gap-2 rounded-xl bg-[#69773D]/10 px-4 py-2 text-sm font-semibold text-[#69773D]">
-                  <CheckCircle size={16} />
-                  Seller has confirmed delivery - Please confirm receipt
+                <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-blue-100 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-blue-700">
+                  <CheckCircle
+                    size={14}
+                    className="sm:w-4 sm:h-4 flex-shrink-0"
+                  />
+                  <span className="hidden sm:inline">
+                    Seller has confirmed delivery - Please confirm receipt
+                  </span>
+                  <span className="sm:hidden">Please confirm receipt</span>
                 </div>
               )}
               {order.buyerReceived && order.sellerDelivered && (
-                <div className="inline-flex items-center gap-2 rounded-xl bg-[#5C8140]/40 px-4 py-2 text-sm font-semibold text-[#5C8140]">
-                  <CheckCircle size={16} />
-                  Both parties confirmed - Order completed
+                <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-green-200 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-green-800">
+                  <CheckCircle
+                    size={14}
+                    className="sm:w-4 sm:h-4 flex-shrink-0"
+                  />
+                  <span className="hidden sm:inline">
+                    Both parties confirmed - Order completed
+                  </span>
+                  <span className="sm:hidden">Order completed</span>
                 </div>
               )}
               <Link
                 href="/orders"
-                className="inline-flex items-center gap-2 rounded-xl bg-[#69773D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#55602f] transition"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl bg-[#69773D] px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-[#55602f] transition"
               >
-                <ArrowLeft size={16} /> Back to my orders
+                <ArrowLeft size={14} className="sm:w-4 sm:h-4" />{" "}
+                <span className="hidden sm:inline">Back to my orders</span>
+                <span className="sm:hidden">Back</span>
               </Link>
               <Link
                 href="/marketplace"
-                className="inline-flex items-center gap-2 rounded-xl border border-[#d6e4c3] px-4 py-2 text-sm font-semibold text-[#4c5c2f] hover:bg-[#f3f8ed] transition"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl border border-[#d6e4c3] px-4 py-2 text-xs sm:text-sm font-semibold text-[#4c5c2f] hover:bg-[#f3f8ed] transition"
               >
-                <ShoppingBag size={16} /> Continue shopping
+                <ShoppingBag size={14} className="sm:w-4 sm:h-4" />{" "}
+                <span className="hidden sm:inline">Continue shopping</span>
+                <span className="sm:hidden">Shop</span>
               </Link>
             </div>
           </div>

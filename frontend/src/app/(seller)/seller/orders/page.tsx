@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import dynamic from "next/dynamic";
 import {
   ShoppingBag,
   CheckCircle,
@@ -10,17 +9,12 @@ import {
   RefreshCw,
   Printer,
   MapPin,
-  ExternalLink,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { API_BASE } from "@/config/constants";
 import toast from "react-hot-toast";
 import { Pagination } from "@/components/admin/Pagination";
-
-const StaticMap = dynamic(() => import("@/components/maps/StaticMap"), {
-  ssr: false,
-});
 
 interface OrderItem {
   itemId: string;
@@ -40,8 +34,19 @@ interface OrderData {
   items: OrderItem[];
   totalPrice: number;
   deliveryMethod: "pickup" | "delivery";
-  paymentMethod: "cash" | "transfer";
-  status: "pending_seller_confirmation" | "confirmed" | "rejected" | "completed" | "cancelled";
+  paymentMethod: "cash" | "transfer" | "promptpay";
+  paymentStatus?:
+    | "pending"
+    | "awaiting_payment"
+    | "payment_submitted"
+    | "paid"
+    | "not_required";
+  status:
+    | "pending_seller_confirmation"
+    | "confirmed"
+    | "rejected"
+    | "completed"
+    | "cancelled";
   buyerContact: {
     fullName: string;
     phone: string;
@@ -95,16 +100,22 @@ export default function SellerOrders() {
 
       // Load all orders without pagination to count statuses
       const response = await fetch(`${API_BASE}/api/seller/orders?limit=1000`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
         const data = await response.json();
         const allOrders = data.orders || [];
         setStatusCounts({
-          pending_seller_confirmation: allOrders.filter((o: OrderData) => o.status === "pending_seller_confirmation").length,
-          confirmed: allOrders.filter((o: OrderData) => o.status === "confirmed").length,
-          completed: allOrders.filter((o: OrderData) => o.status === "completed").length,
+          pending_seller_confirmation: allOrders.filter(
+            (o: OrderData) => o.status === "pending_seller_confirmation"
+          ).length,
+          confirmed: allOrders.filter(
+            (o: OrderData) => o.status === "confirmed"
+          ).length,
+          completed: allOrders.filter(
+            (o: OrderData) => o.status === "completed"
+          ).length,
         });
       }
     } catch (error) {
@@ -131,7 +142,7 @@ export default function SellerOrders() {
       const url = `${API_BASE}/api/seller/orders?${params.toString()}`;
 
       const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) {
@@ -142,7 +153,7 @@ export default function SellerOrders() {
       setOrders(data.orders || []);
       setTotalPages(data.pagination?.totalPages || 1);
       setTotalItems(data.pagination?.total || 0);
-      
+
       // Update status counts after loading orders
       await loadStatusCounts();
     } catch (error) {
@@ -167,13 +178,16 @@ export default function SellerOrders() {
         return;
       }
 
-      const response = await fetch(`${API_BASE}/api/seller/orders/${orderId}/confirm`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `${API_BASE}/api/seller/orders/${orderId}/confirm`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -185,13 +199,15 @@ export default function SellerOrders() {
       await loadStatusCounts();
     } catch (error) {
       console.error("Failed to confirm order:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to confirm order");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to confirm order"
+      );
     }
   };
 
   const handleRejectOrder = async (orderId: string): Promise<void> => {
     const reason = prompt("Please provide a reason for rejection (optional):");
-    
+
     try {
       const token = localStorage.getItem("authentication");
       if (!token) {
@@ -199,14 +215,17 @@ export default function SellerOrders() {
         return;
       }
 
-      const response = await fetch(`${API_BASE}/api/seller/orders/${orderId}/reject`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ reason: reason || undefined }),
-      });
+      const response = await fetch(
+        `${API_BASE}/api/seller/orders/${orderId}/reject`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ reason: reason || undefined }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -218,7 +237,9 @@ export default function SellerOrders() {
       await loadStatusCounts();
     } catch (error) {
       console.error("Failed to reject order:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to reject order");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to reject order"
+      );
     }
   };
 
@@ -230,13 +251,16 @@ export default function SellerOrders() {
         return;
       }
 
-      const response = await fetch(`${API_BASE}/api/seller/orders/${orderId}/delivered`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `${API_BASE}/api/seller/orders/${orderId}/delivered`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -248,7 +272,9 @@ export default function SellerOrders() {
       await loadStatusCounts();
     } catch (error) {
       console.error("Failed to mark as delivered:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to mark as delivered");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to mark as delivered"
+      );
     }
   };
 
@@ -288,7 +314,13 @@ export default function SellerOrders() {
   }
 
   return (
-    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
+    <div
+      style={{
+        backgroundColor: "#F6F2E5",
+        minHeight: "100vh",
+        padding: "2rem",
+      }}
+    >
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
@@ -307,12 +339,12 @@ export default function SellerOrders() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {([
+        {[
           { value: "all" as const, label: "All" },
           { value: "pending_seller_confirmation" as const, label: "Pending" },
           { value: "confirmed" as const, label: "Confirmed" },
           { value: "completed" as const, label: "Completed" },
-        ]).map((f) => (
+        ].map((f) => (
           <button
             key={f.value}
             onClick={() => {
@@ -352,221 +384,259 @@ export default function SellerOrders() {
         ) : (
           <>
             {orders.map((order) => (
-            <div key={order.id} className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                <div>
-                  <h3 className="text-lg font-bold text-[#4A5130]">
-                    Order #{order.id.slice(-8)}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {order.createdAt ? (() => {
-                      try {
-                        const date = new Date(order.createdAt);
-                        if (isNaN(date.getTime())) {
-                          return "Invalid date";
-                        }
-                        return new Intl.DateTimeFormat("th-TH", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }).format(date);
-                      } catch {
-                        return "Invalid date";
-                      }
-                    })() : "N/A"}
-                  </p>
-                </div>
-                <span
-                  className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadge(
-                    order.status
-                  )}`}
-                >
-                  {order.status === "pending_seller_confirmation" && <Clock size={12} />}
-                  {order.status === "confirmed" && <CheckCircle size={12} />}
-                  {order.status === "rejected" && <XCircle size={12} />}
-                  {getStatusLabel(order.status)}
-                </span>
-              </div>
-
-              {/* Buyer Info */}
-              <div className="mb-4 p-4 bg-[#F6F2E5]/30 rounded-lg">
-                <h4 className="font-semibold text-[#4A5130] mb-2">
-                  Buyer Information
-                </h4>
-                <div className="text-sm text-gray-700 space-y-1">
-                  <p>
-                    <span className="font-medium">Name:</span>{" "}
-                    {order.buyerContact.fullName}
-                  </p>
-                  <p>
-                    <span className="font-medium">Email:</span>{" "}
-                    {order.buyer.email}
-                  </p>
-                  <p>
-                    <span className="font-medium">Phone:</span>{" "}
-                    {order.buyerContact.phone}
-                  </p>
-                  <p>
-                    <span className="font-medium">Delivery:</span>{" "}
-                    {order.deliveryMethod === "pickup"
-                      ? "Self Pick-up"
-                      : "Delivery"}
-                  </p>
-                  {order.deliveryMethod === "delivery" && order.shippingAddress && (
-                    <div className="mt-2 pt-2 border-t border-gray-200">
-                      <p className="font-medium">Shipping Address:</p>
-                      <p className="text-gray-600">
-                        {order.shippingAddress.address}, {order.shippingAddress.city} {order.shippingAddress.postalCode}
-                      </p>
-                    </div>
-                  )}
-                  {order.deliveryMethod === "pickup" && order.pickupDetails && (
-                    <div className="mt-2 pt-2 border-t border-gray-200">
-                      <p className="font-medium flex items-center gap-1 text-[#69773D]">
-                        <MapPin size={14} className="text-[#69773D]" />
-                        Meetup Point
-                      </p>
-                      <div className="mt-1 space-y-1 text-[#69773D]">
-                        <p className="font-semibold text-[#4A5130]">{order.pickupDetails.locationName}</p>
-                        {order.pickupDetails.address && (
-                          <p className="text-sm text-[#69773D]">{order.pickupDetails.address}</p>
-                        )}
-                        {order.pickupDetails.preferredTime && (
-                          <p className="text-sm text-[#69773D]">
-                            <Clock size={12} className="inline mr-1" />
-                            Preferred time: {new Date(order.pickupDetails.preferredTime).toLocaleString("th-TH", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        )}
-                        {order.pickupDetails.coordinates && (
-                          <p className="text-xs text-[#69773D]">
-                            📍 {order.pickupDetails.coordinates.lat.toFixed(5)}, {order.pickupDetails.coordinates.lng.toFixed(5)}
-                          </p>
-                        )}
-                        {order.pickupDetails.note && (
-                          <p className="text-sm text-[#69773D] italic">
-                            Note: {order.pickupDetails.note}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  <p>
-                    <span className="font-medium text-[#4A5130]">Payment:</span>{" "}
-                    {order.paymentMethod === "cash" ? "Cash" : "Transfer"}
-                  </p>
-                  {order.rejectionReason && (
-                    <p className="text-[#780606] mt-2">
-                      <span className="font-medium">Rejection Reason:</span>{" "}
-                      {order.rejectionReason}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Items */}
-              <div className="space-y-2 mb-4">
-                {order.items.map((item, index) => (
-                  <div key={item.itemId || index} className="flex items-center gap-3">
-                    {item.image && (
-                      <div className="relative w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                        <Image
-                          src={item.image}
-                          alt={item.title}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <p className="font-medium text-[#4A5130]">{item.title}</p>
-                      <p className="text-sm text-gray-600">
-                        Qty: {item.quantity} × ฿{item.price.toLocaleString()}
-                      </p>
-                    </div>
-                    <p className="font-bold text-[#69773D]">
-                      ฿{(item.price * item.quantity).toLocaleString()}
+              <div key={order.id} className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-[#4A5130]">
+                      Order #{order.id.slice(-8)}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {order.createdAt
+                        ? (() => {
+                            try {
+                              const date = new Date(order.createdAt);
+                              if (isNaN(date.getTime())) {
+                                return "Invalid date";
+                              }
+                              return new Intl.DateTimeFormat("th-TH", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }).format(date);
+                            } catch {
+                              return "Invalid date";
+                            }
+                          })()
+                        : "N/A"}
                     </p>
                   </div>
-                ))}
-              </div>
-
-              {/* Total & Label */}
-              <div className="flex flex-col gap-3 pt-4 border-t">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-[#4A5130]">Total</span>
-                  <span className="text-lg font-bold text-[#69773D]">
-                    ฿{order.totalPrice.toLocaleString()}
+                  <span
+                    className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadge(
+                      order.status
+                    )}`}
+                  >
+                    {order.status === "pending_seller_confirmation" && (
+                      <Clock size={12} />
+                    )}
+                    {order.status === "confirmed" && <CheckCircle size={12} />}
+                    {order.status === "rejected" && <XCircle size={12} />}
+                    {getStatusLabel(order.status)}
                   </span>
                 </div>
-                {order.deliveryMethod === "delivery" && (
-                  <Link
-                    href={`/seller/orders/${order.id}/label`}
-                    target="_blank"
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 border-2 border-[#69773D] text-[#69773D] rounded-lg hover:border-[#5a6530] hover:text-[#5a6530] transition-colors font-medium"
-                  >
-                    <Printer size={16} />
-                    Print Delivery Slip
-                  </Link>
-                )}
-              </div>
 
-              {/* Actions */}
-              {order.status === "pending_seller_confirmation" && (
-                <div className="flex gap-2 mt-4">
-                  <button
-                    onClick={() => handleConfirmOrder(order.id)}
-                    className="flex-1 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors font-medium"
-                  >
-                    <CheckCircle size={18} className="inline mr-2" />
-                    Confirm Order
-                  </button>
-                  <button
-                    onClick={() => handleRejectOrder(order.id)}
-                    className="flex-1 px-4 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#5c0505] transition-colors font-medium"
-                  >
-                    <XCircle size={18} className="inline mr-2" />
-                    Reject Order
-                  </button>
+                {/* Buyer Info */}
+                <div className="mb-4 p-4 bg-[#F6F2E5]/30 rounded-lg">
+                  <h4 className="font-semibold text-[#4A5130] mb-2">
+                    Buyer Information
+                  </h4>
+                  <div className="text-sm text-gray-700 space-y-1">
+                    <p>
+                      <span className="font-medium">Name:</span>{" "}
+                      {order.buyerContact.fullName}
+                    </p>
+                    <p>
+                      <span className="font-medium">Email:</span>{" "}
+                      {order.buyer.email}
+                    </p>
+                    <p>
+                      <span className="font-medium">Phone:</span>{" "}
+                      {order.buyerContact.phone}
+                    </p>
+                    <p>
+                      <span className="font-medium">Delivery:</span>{" "}
+                      {order.deliveryMethod === "pickup"
+                        ? "Self Pick-up"
+                        : "Delivery"}
+                    </p>
+                    {order.deliveryMethod === "delivery" &&
+                      order.shippingAddress && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <p className="font-medium">Shipping Address:</p>
+                          <p className="text-gray-600">
+                            {order.shippingAddress.address},{" "}
+                            {order.shippingAddress.city}{" "}
+                            {order.shippingAddress.postalCode}
+                          </p>
+                        </div>
+                      )}
+                    {order.deliveryMethod === "pickup" &&
+                      order.pickupDetails && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <p className="font-medium flex items-center gap-1 text-[#69773D]">
+                            <MapPin size={14} className="text-[#69773D]" />
+                            Meetup Point
+                          </p>
+                          <div className="mt-1 space-y-1 text-[#69773D]">
+                            <p className="font-semibold text-[#4A5130]">
+                              {order.pickupDetails.locationName}
+                            </p>
+                            {order.pickupDetails.address && (
+                              <p className="text-sm text-[#69773D]">
+                                {order.pickupDetails.address}
+                              </p>
+                            )}
+                            {order.pickupDetails.preferredTime && (
+                              <p className="text-sm text-[#69773D]">
+                                <Clock size={12} className="inline mr-1" />
+                                Preferred time:{" "}
+                                {new Date(
+                                  order.pickupDetails.preferredTime
+                                ).toLocaleString("th-TH", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            )}
+                            {order.pickupDetails.coordinates && (
+                              <p className="text-xs text-[#69773D]">
+                                📍{" "}
+                                {order.pickupDetails.coordinates.lat.toFixed(5)}
+                                ,{" "}
+                                {order.pickupDetails.coordinates.lng.toFixed(5)}
+                              </p>
+                            )}
+                            {order.pickupDetails.note && (
+                              <p className="text-sm text-[#69773D] italic">
+                                Note: {order.pickupDetails.note}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    <p>
+                      <span className="font-medium text-[#4A5130]">
+                        Payment:
+                      </span>{" "}
+                      {order.paymentMethod === "cash" ? "Cash" : "Transfer"}
+                    </p>
+                    {order.rejectionReason && (
+                      <p className="text-[#780606] mt-2">
+                        <span className="font-medium">Rejection Reason:</span>{" "}
+                        {order.rejectionReason}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              )}
-              {order.status === "confirmed" &&
-                order.deliveryMethod === "pickup" &&
-                !order.sellerDelivered && (
-                  <div className="mt-4">
+
+                {/* Items */}
+                <div className="space-y-2 mb-4">
+                  {order.items.map((item, index) => (
+                    <div
+                      key={item.itemId || index}
+                      className="flex items-center gap-3"
+                    >
+                      {item.image && (
+                        <div className="relative w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          <Image
+                            src={item.image}
+                            alt={item.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="font-medium text-[#4A5130]">
+                          {item.title}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Qty: {item.quantity} × ฿{item.price.toLocaleString()}
+                        </p>
+                      </div>
+                      <p className="font-bold text-[#69773D]">
+                        ฿{(item.price * item.quantity).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Total & Label */}
+                <div className="flex flex-col gap-3 pt-4 border-t">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-bold text-[#4A5130]">
+                      Total
+                    </span>
+                    <span className="text-lg font-bold text-[#69773D]">
+                      ฿{order.totalPrice.toLocaleString()}
+                    </span>
+                  </div>
+                  {order.deliveryMethod === "delivery" && (
+                    <Link
+                      href={`/seller/orders/${order.id}/label`}
+                      target="_blank"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 border-2 border-[#69773D] text-[#69773D] rounded-lg hover:border-[#5a6530] hover:text-[#5a6530] transition-colors font-medium"
+                    >
+                      <Printer size={16} />
+                      Print Delivery Slip
+                    </Link>
+                  )}
+                </div>
+
+                {/* Actions */}
+                {order.status === "pending_seller_confirmation" && (
+                  <div className="flex gap-2 mt-4">
                     <button
-                      onClick={() => handleMarkDelivered(order.id)}
-                      className="w-full px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors font-medium"
+                      onClick={() => handleConfirmOrder(order.id)}
+                      className="flex-1 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors font-medium"
                     >
                       <CheckCircle size={18} className="inline mr-2" />
-                      Mark as delivered
+                      Confirm Order
+                    </button>
+                    <button
+                      onClick={() => handleRejectOrder(order.id)}
+                      className="flex-1 px-4 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#5c0505] transition-colors font-medium"
+                    >
+                      <XCircle size={18} className="inline mr-2" />
+                      Reject Order
                     </button>
                   </div>
                 )}
-              {order.sellerDelivered && (
-                <div className="mt-4">
-                  <div className="w-full px-4 py-2 bg-[#69773D]/10 text-[#69773D] rounded-lg font-medium text-center">
-                    <CheckCircle size={18} className="inline mr-2" />
-                    You have confirmed delivery
+                {order.status === "confirmed" &&
+                  order.deliveryMethod === "pickup" &&
+                  !order.sellerDelivered && (
+                    <div className="mt-4">
+                      {/* Check if payment is required and completed */}
+                      {(order.paymentMethod === "promptpay" ||
+                        order.paymentMethod === "transfer") &&
+                      order.paymentStatus !== "paid" &&
+                      order.paymentStatus !== "payment_submitted" ? (
+                        <div className="w-full px-4 py-2 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg font-medium text-center">
+                          <Clock size={18} className="inline mr-2" />
+                          Waiting for buyer payment
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleMarkDelivered(order.id)}
+                          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                        >
+                          <CheckCircle size={18} className="inline mr-2" />
+                          Mark as delivered
+                        </button>
+                      )}
+                    </div>
+                  )}
+                {order.sellerDelivered && (
+                  <div className="mt-4">
+                    <div className="w-full px-4 py-2 bg-[#69773D]/10 text-[#69773D] rounded-lg font-medium text-center">
+                      <CheckCircle size={18} className="inline mr-2" />
+                      You have confirmed delivery
+                    </div>
                   </div>
-                </div>
-              )}
-              {order.buyerReceived && order.sellerDelivered && (
-                <div className="mt-2">
-                  <div className="w-full px-4 py-2 bg-[#5C8140]/30 text-[#5C8140] rounded-lg font-medium text-center">
-                    <CheckCircle size={18} className="inline mr-2" />
-                    Both parties confirmed - Order completed
+                )}
+                {order.buyerReceived && order.sellerDelivered && (
+                  <div className="mt-2">
+                    <div className="w-full px-4 py-2 bg-[#5C8140]/30 text-[#5C8140] rounded-lg font-medium text-center">
+                      <CheckCircle size={18} className="inline mr-2" />
+                      Both parties confirmed - Order completed
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
             ))}
             {totalPages > 1 && (
               <div className="mt-6">

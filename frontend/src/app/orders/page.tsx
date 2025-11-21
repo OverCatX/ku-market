@@ -222,7 +222,7 @@ export default function OrdersPage() {
         router.replace("/login?redirect=/orders");
         return;
       }
-      
+
       const params = new URLSearchParams();
       if (filter !== "all") {
         params.set("status", filter);
@@ -279,6 +279,13 @@ export default function OrdersPage() {
       return;
     }
 
+    // For PromptPay, redirect to Stripe Elements payment page
+    if (order.paymentMethod === "promptpay") {
+      router.push(`/payment/${order.id}`);
+      return;
+    }
+
+    // For other payment methods, submit payment notification directly
     setSubmittingPaymentOrderId(order.id);
 
     try {
@@ -527,7 +534,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="min-h-screen py-10" style={{ backgroundColor: '#F6F2E5' }}>
+    <div className="min-h-screen py-10" style={{ backgroundColor: "#F6F2E5" }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
         <section className="rounded-3xl bg-white/90 border border-[#e4ecd7] shadow-xl shadow-[#c8d3ba]/30 p-6 sm:p-8 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -537,36 +544,38 @@ export default function OrdersPage() {
                 Manage and track your orders
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Link
                 href="/guide"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a632d] transition-colors text-sm font-medium shadow-sm hover:shadow-md"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a632d] transition-colors text-xs sm:text-sm font-medium shadow-sm hover:shadow-md"
               >
-                <HelpCircle size={18} />
-                User Guide
+                <HelpCircle size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <span className="hidden xs:inline">User Guide</span>
+                <span className="xs:hidden">Guide</span>
               </Link>
               <button
                 onClick={loadOrders}
                 disabled={loading}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-[#4A5130] text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 text-xs sm:text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
               >
                 <RefreshCw
-                  size={16}
-                  className={loading ? "animate-spin" : ""}
+                  size={14}
+                  className={`sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`}
                 />
-                Refresh
+                <span className="hidden sm:inline">Refresh</span>
               </button>
               <Link
                 href="/marketplace"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#5C8140] text-white text-sm font-medium hover:bg-[#4a6b33] transition"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-[#5C8140] text-white text-xs sm:text-sm font-medium hover:bg-[#4a6b33] transition"
               >
-                Continue Shopping
+                <span className="hidden sm:inline">Continue Shopping</span>
+                <span className="sm:hidden">Shop</span>
               </Link>
             </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             {[
               {
                 label: "Total",
@@ -612,10 +621,18 @@ export default function OrdersPage() {
                 />
                 <div className="relative flex items-center justify-between">
                   <div className="flex-1">
-                    <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: titleColor || borderColor || color }}>
+                    <p
+                      className="text-xs font-semibold uppercase tracking-wide mb-1"
+                      style={{ color: titleColor || borderColor || color }}
+                    >
                       {label}
                     </p>
-                    <p className="text-3xl font-bold" style={{ color: titleColor || borderColor || color }}>{value}</p>
+                    <p
+                      className="text-3xl font-bold"
+                      style={{ color: titleColor || borderColor || color }}
+                    >
+                      {value}
+                    </p>
                   </div>
                   <div
                     className="w-14 h-14 rounded-xl flex items-center justify-center shadow-md transition-transform group-hover:scale-110"
@@ -633,7 +650,10 @@ export default function OrdersPage() {
                 >
                   <div
                     className="absolute inset-0 rounded-full"
-                    style={{ backgroundColor: color, transform: "translate(30%, -30%)" }}
+                    style={{
+                      backgroundColor: color,
+                      transform: "translate(30%, -30%)",
+                    }}
                   />
                 </div>
               </div>
@@ -642,26 +662,28 @@ export default function OrdersPage() {
         </section>
 
         {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {filterOptions.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => {
-                setFilter(option.value);
-                setCurrentPage(1);
-              }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === option.value
-                  ? "bg-[#5C8140] text-white"
-                  : "bg-white text-[#4A5130] hover:bg-gray-50 border border-gray-200"
-              }`}
-            >
-              {option.label}
-              <span className="ml-1.5 text-xs opacity-75">
-                ({option.count})
-              </span>
-            </button>
-          ))}
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 mb-6">
+          <div className="flex gap-2 min-w-max sm:flex-wrap">
+            {filterOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  setFilter(option.value);
+                  setCurrentPage(1);
+                }}
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                  filter === option.value
+                    ? "bg-[#5C8140] text-white"
+                    : "bg-white text-[#4A5130] hover:bg-gray-50 border border-gray-200"
+                }`}
+              >
+                {option.label}
+                <span className="ml-1.5 text-xs opacity-75">
+                  ({option.count})
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Orders List */}
@@ -686,162 +708,176 @@ export default function OrdersPage() {
           <>
             <div className="space-y-4">
               {orders.map((order) => {
-              const normalizedMethod = normalizePaymentMethod(
-                order.paymentMethod
-              );
-              const normalizedStatus = normalizeStatus(order.status);
-              const normalizedPaymentStatus = normalizePaymentStatus(
-                order.paymentStatus
-              );
+                const normalizedMethod = normalizePaymentMethod(
+                  order.paymentMethod
+                );
+                const normalizedStatus = normalizeStatus(order.status);
+                const normalizedPaymentStatus = normalizePaymentStatus(
+                  order.paymentStatus
+                );
 
-              const rawMethod = order.paymentMethod
-                ? order.paymentMethod.trim().toLowerCase()
-                : null;
-              const requiresPayment =
-                normalizedMethod === "promptpay" ||
-                normalizedMethod === "transfer" ||
-                (rawMethod !== null && rawMethod !== "cash");
-              const awaitingBuyerPayment =
-                requiresPayment &&
-                normalizedStatus === "confirmed" &&
-                (normalizedPaymentStatus === "awaiting_payment" ||
-                  normalizedPaymentStatus === "pending" ||
-                  normalizedPaymentStatus === null);
-              const paymentComplete =
-                normalizedPaymentStatus === "payment_submitted" ||
-                normalizedPaymentStatus === "paid";
-              const displayStatus =
-                normalizedStatus ?? "pending_seller_confirmation";
+                const rawMethod = order.paymentMethod
+                  ? order.paymentMethod.trim().toLowerCase()
+                  : null;
+                const requiresPayment =
+                  normalizedMethod === "promptpay" ||
+                  normalizedMethod === "transfer" ||
+                  (rawMethod !== null && rawMethod !== "cash");
+                const awaitingBuyerPayment =
+                  requiresPayment &&
+                  normalizedStatus === "confirmed" &&
+                  (normalizedPaymentStatus === "awaiting_payment" ||
+                    normalizedPaymentStatus === "pending" ||
+                    normalizedPaymentStatus === null);
+                const paymentComplete =
+                  normalizedPaymentStatus === "payment_submitted" ||
+                  normalizedPaymentStatus === "paid";
+                const displayStatus =
+                  normalizedStatus ?? "pending_seller_confirmation";
 
-              return (
-                <div
-                  key={order.id}
-                  className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors overflow-hidden"
-                >
-                  {/* Order Header */}
-                  <div className="p-5 border-b border-gray-100">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                        {statusBadge(displayStatus)}
+                return (
+                  <div
+                    key={order.id}
+                    className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors overflow-hidden"
+                  >
+                    {/* Order Header */}
+                    <div className="p-4 sm:p-5 border-b border-gray-100">
+                      <div className="flex flex-col gap-3 sm:gap-4">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                          {statusBadge(displayStatus)}
                           {paymentStatusBadge(
                             normalizedPaymentStatus ?? undefined
                           )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#69773D]">
-                          <span>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-[#69773D]">
+                              <span>
+                                <span className="font-medium text-[#4A5130]">
+                                  {order.totalPrice.toLocaleString()} THB
+                                </span>
+                              </span>
+                              <span className="text-gray-300 hidden sm:inline">
+                                •
+                              </span>
+                              <span className="capitalize">
+                                {order.deliveryMethod}
+                              </span>
+                              <span className="text-gray-300 hidden sm:inline">
+                                •
+                              </span>
+                              <span className="break-words">
+                                {formatPaymentMethod(order.paymentMethod)}
+                              </span>
+                              <span className="text-gray-300 hidden sm:inline">
+                                •
+                              </span>
+                              <span className="text-[#69773D] text-xs">
+                                {formatDate(order.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-xs sm:text-sm text-[#69773D]">
+                            <span className="text-[#69773D]">Seller:</span>{" "}
                             <span className="font-medium text-[#4A5130]">
-                              {order.totalPrice.toLocaleString()} THB
+                              {order.seller?.name || "Unknown"}
                             </span>
-                          </span>
-                          <span className="text-gray-300">•</span>
-                          <span className="capitalize">
-                            {order.deliveryMethod}
-                          </span>
-                          <span className="text-gray-300">•</span>
-                          <span>
-                            {formatPaymentMethod(order.paymentMethod)}
-                          </span>
-                          <span className="text-gray-300">•</span>
-                          <span className="text-[#69773D]">
-                            {formatDate(order.createdAt)}
-                          </span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-sm text-[#69773D]">
-                        <span className="text-[#69773D]">Seller:</span>{" "}
-                        <span className="font-medium text-[#4A5130]">
-                          {order.seller?.name || "Unknown"}
-                        </span>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Order Items */}
-                  <div className="p-5">
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-                    {order.items.slice(0, 3).map((it, idx) => (
-                      <div
-                        key={`${order.id}-${idx}`}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={it.image || "/placeholder.png"}
-                          alt={it.title}
-                            className="w-14 h-14 rounded-md object-cover border border-gray-200"
-                        />
-                          <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium text-[#4A5130] truncate">
-                            {it.title}
+                    {/* Order Items */}
+                    <div className="p-4 sm:p-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                        {order.items.slice(0, 3).map((it, idx) => (
+                          <div
+                            key={`${order.id}-${idx}`}
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={it.image || "/placeholder.png"}
+                              alt={it.title}
+                              className="w-12 h-12 sm:w-14 sm:h-14 rounded-md object-cover border border-gray-200 flex-shrink-0"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs sm:text-sm font-medium text-[#4A5130] truncate">
+                                {it.title}
+                              </div>
+                              <div className="text-xs text-[#69773D]">
+                                {it.quantity} × {it.price.toLocaleString()} THB
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs text-[#69773D]">
-                              {it.quantity} × {it.price.toLocaleString()} THB
-                          </div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
 
-                    {order.items.length > 3 && (
-                      <p className="text-xs text-[#69773D] mb-4">
-                        +{order.items.length - 3} more item
-                        {order.items.length - 3 > 1 ? "s" : ""}
-                      </p>
-                    )}
-
-                    {order.deliveryMethod === "pickup" &&
-                      order.pickupDetails && (
-                        <PickupLocationSection
-                          pickupDetails={order.pickupDetails}
-                        />
+                      {order.items.length > 3 && (
+                        <p className="text-xs text-[#69773D] mb-4">
+                          +{order.items.length - 3} more item
+                          {order.items.length - 3 > 1 ? "s" : ""}
+                        </p>
                       )}
 
-                    {/* Action Buttons */}
-                    <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-2">
-                      <Link
-                        href={`/order/${order.id}`}
-                        className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-lg bg-[#5C8140] text-white hover:bg-[#4a6b33] transition text-center"
-                      >
-                        View Details
-                      </Link>
-                      {awaitingBuyerPayment && !paymentComplete && (
+                      {order.deliveryMethod === "pickup" &&
+                        order.pickupDetails && (
+                          <PickupLocationSection
+                            pickupDetails={order.pickupDetails}
+                          />
+                        )}
+
+                      {/* Action Buttons */}
+                      <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-2">
+                        <Link
+                          href={`/order/${order.id}`}
+                          className="flex-1 px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-[#5C8140] text-white hover:bg-[#4a6b33] transition text-center"
+                        >
+                          View Details
+                        </Link>
+                        {awaitingBuyerPayment && !paymentComplete && (
+                          <button
+                            type="button"
+                            onClick={() => handleMakePayment(order)}
+                            disabled={submittingPaymentOrderId === order.id}
+                            className={`flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition ${
+                              submittingPaymentOrderId === order.id
+                                ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
+                                : "bg-white border-gray-300 text-[#4A5130] hover:bg-gray-50"
+                            }`}
+                          >
+                            <CreditCard size={14} className="sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">
+                              {submittingPaymentOrderId === order.id
+                                ? "Submitting..."
+                                : "Make Payment"}
+                            </span>
+                            <span className="sm:hidden">Pay</span>
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => handleMakePayment(order)}
-                          disabled={submittingPaymentOrderId === order.id}
-                          className={`px-4 py-2 text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition ${
-                            submittingPaymentOrderId === order.id
+                          onClick={() => handleContactSeller(order)}
+                          disabled={contactingOrderId === order.id}
+                          className={`flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition ${
+                            contactingOrderId === order.id
                               ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
                               : "bg-white border-gray-300 text-[#4A5130] hover:bg-gray-50"
                           }`}
                         >
-                          <CreditCard size={16} />
-                          {submittingPaymentOrderId === order.id
-                            ? "Submitting..."
-                            : "Make Payment"}
+                          <MessageCircle size={14} className="sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">
+                            {contactingOrderId === order.id
+                              ? "Opening..."
+                              : "Contact"}
+                          </span>
+                          <span className="sm:hidden">Chat</span>
                         </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleContactSeller(order)}
-                        disabled={contactingOrderId === order.id}
-                        className={`px-4 py-2 text-sm font-medium rounded-lg border flex items-center justify-center gap-2 transition ${
-                          contactingOrderId === order.id
-                            ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
-                            : "bg-white border-gray-300 text-[#4A5130] hover:bg-gray-50"
-                        }`}
-                      >
-                        <MessageCircle size={16} />
-                        {contactingOrderId === order.id
-                          ? "Opening..."
-                          : "Contact"}
-                      </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-                    })            }
+                );
+              })}
             </div>
             {totalPages > 1 && (
               <div className="mt-6">
@@ -852,7 +888,7 @@ export default function OrdersPage() {
                   totalItems={totalItems}
                   itemsPerPage={itemsPerPage}
                 />
-          </div>
+              </div>
             )}
           </>
         )}
