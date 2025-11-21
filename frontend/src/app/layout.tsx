@@ -8,10 +8,16 @@ import { Titan_One, Ubuntu } from "next/font/google";
 import { CartProvider } from "@/contexts/CartContext";
 
 // Lazy load ConditionalHeader to reduce initial bundle
-const ConditionalHeader = dynamic(() => import("@/components/ConditionalHeader").then(mod => ({ default: mod.ConditionalHeader })), {
-  ssr: true,
-  loading: () => <div className="h-[68px]" />,
-});
+const ConditionalHeader = dynamic(
+  () =>
+    import("@/components/ConditionalHeader").then((mod) => ({
+      default: mod.ConditionalHeader,
+    })),
+  {
+    ssr: true,
+    loading: () => <div className="h-[68px]" />,
+  }
+);
 
 // Font - Header
 const titanOne = Titan_One({

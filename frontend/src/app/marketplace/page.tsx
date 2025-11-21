@@ -537,8 +537,14 @@ export default function MarketPage() {
                   initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
                   animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
                   exit={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-                  whileHover={prefersReducedMotion ? {} : { y: -4, scale: 1.01 }}
-                  transition={prefersReducedMotion ? {} : { duration: 0.15, ease: "easeOut" }}
+                  whileHover={
+                    prefersReducedMotion ? {} : { y: -4, scale: 1.01 }
+                  }
+                  transition={
+                    prefersReducedMotion
+                      ? {}
+                      : { duration: 0.15, ease: "easeOut" }
+                  }
                   className="h-full transition-shadow"
                 >
                   <Link
