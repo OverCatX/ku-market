@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Package,
   Edit,
@@ -14,6 +14,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { API_BASE } from "@/config/constants";
 import toast from "react-hot-toast";
+import { Pagination } from "@/components/admin/Pagination";
 
 interface ItemData {
   id: string;
@@ -33,12 +34,12 @@ export default function SellerItems() {
   const [items, setItems] = useState<ItemData[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 12;
 
-  useEffect(() => {
-    loadItems();
-  }, []);
-
-  const loadItems = async (): Promise<void> => {
+  const loadItems = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       const token = localStorage.getItem("authentication");
@@ -47,7 +48,11 @@ export default function SellerItems() {
         return;
       }
 
-      const response = await fetch(`${API_BASE}/api/seller/items`, {
+      const params = new URLSearchParams();
+      params.set("page", String(currentPage));
+      params.set("limit", String(itemsPerPage));
+
+      const response = await fetch(`${API_BASE}/api/seller/items?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -57,6 +62,8 @@ export default function SellerItems() {
 
       const data = await response.json();
       setItems(data.items || []);
+      setTotalPages(data.pagination?.totalPages || 1);
+      setTotalItems(data.pagination?.total || 0);
     } catch (error) {
       console.error("Failed to load items:", error);
       toast.error("Failed to load items");
@@ -64,7 +71,16 @@ export default function SellerItems() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    loadItems();
+  }, [loadItems]);
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const handleStatusChange = async (
     itemId: string,
@@ -114,6 +130,7 @@ export default function SellerItems() {
     }
   };
 
+
   if (loading) {
     return <div className="text-center py-12">Loading items...</div>;
   }
@@ -158,8 +175,9 @@ export default function SellerItems() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {items.map((item) => (
             <div
               key={item.id}
               className="bg-white rounded-lg shadow-sm overflow-hidden"
@@ -332,8 +350,20 @@ export default function SellerItems() {
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+            ))}
+          </div>
+            {totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  totalItems={totalItems}
+                  itemsPerPage={itemsPerPage}
+                />
+              </div>
+            )}
+        </>
       )}
     </div>
   );

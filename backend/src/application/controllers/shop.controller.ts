@@ -4,6 +4,7 @@ import User, { IUser } from "../../data/models/User";
 import { uploadToCloudinary } from "../../lib/cloudinary";
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
 import { AuthenticatedRequest } from "../middlewares/authentication";
+import { logActivity } from "../../lib/activityLogger";
 
 export default class ShopController {
     userRequestShop = async(req: Request, res: Response) => {
@@ -90,6 +91,22 @@ export default class ShopController {
 
             await shop.save();
 
+            // Log seller action
+            await logActivity({
+                req,
+                activityType: "shop_created",
+                entityType: "shop",
+                entityId: String(shop._id),
+                description: `Seller created shop request: "${shop.shopName}" - Type: ${shop.shopType}`,
+                metadata: {
+                    shopId: String(shop._id),
+                    shopName: shop.shopName,
+                    shopType: shop.shopType,
+                    productCategory: shop.productCategory,
+                    shopStatus: shop.shopStatus,
+                },
+            });
+
             return res.status(201).json({
                 success: true,
                 message: "Shop request submitted successfully",
@@ -173,6 +190,29 @@ export default class ShopController {
 
             await shop.save();
 
+            // Log seller action
+            await logActivity({
+                req,
+                activityType: "shop_updated",
+                entityType: "shop",
+                entityId: String(shop._id),
+                description: `Seller updated shop: "${shop.shopName}"`,
+                metadata: {
+                    shopId: String(shop._id),
+                    shopName: shop.shopName,
+                    shopType: shop.shopType,
+                    productCategory: shop.productCategory,
+                    shopStatus: shop.shopStatus,
+                    updatedFields: {
+                        shopName: !!shopName,
+                        shopType: !!shopType,
+                        shopdescription: !!shopdescription,
+                        productCategory: !!productCategory,
+                        photo: !!req.file,
+                    },
+                },
+            });
+
             return res.status(200).json({
                 success: true,
                 message: "Shop updated successfully",
@@ -205,15 +245,32 @@ export default class ShopController {
                 return res.status(404).json({ error: "Shop not found" });
             }
 
+            const shopId = String(shop._id);
+            const shopName = shop.shopName;
+            const shopStatus = shop.shopStatus;
             await Shop.findByIdAndDelete(shop._id);
+
+            // Log seller action
+            await logActivity({
+                req,
+                activityType: "shop_deleted",
+                entityType: "shop",
+                entityId: shopId,
+                description: `Seller deleted shop: "${shopName}" - Status: ${shopStatus}`,
+                metadata: {
+                    shopId: shopId,
+                    shopName: shopName,
+                    shopStatus: shopStatus,
+                },
+            });
             
             return res.status(200).json({
                 success: true,
                 message: "Shop deleted successfully",
                 deletedShop: {
                     id: shop._id,
-                    shopName: shop.shopName,
-                    shopStatus: shop.shopStatus
+                    shopName: shopName,
+                    shopStatus: shopStatus
                 }
             });
         } catch (err: unknown) {
@@ -242,7 +299,25 @@ export default class ShopController {
                 return res.status(400).json({ error: "Cannot cancel an approved shop" });
             }
 
+            const shopId = String(shop._id);
+            const shopName = shop.shopName;
+            const shopStatus = shop.shopStatus;
             await Shop.findByIdAndDelete(shop._id);
+
+            // Log seller action
+            await logActivity({
+                req,
+                activityType: "shop_cancelled",
+                entityType: "shop",
+                entityId: shopId,
+                description: `Seller cancelled shop request: "${shopName}" - Status: ${shopStatus}`,
+                metadata: {
+                    shopId: shopId,
+                    shopName: shopName,
+                    shopStatus: shopStatus,
+                },
+            });
+
             return res.status(200).json({ 
                 success: true,
                 message: "Shop request canceled successfully" 
@@ -627,6 +702,24 @@ export default class ShopController {
             };
 
             await shop.save();
+
+            // Log seller action
+            await logActivity({
+                req,
+                activityType: "shop_updated",
+                entityType: "shop",
+                entityId: String(shop._id),
+                description: `Seller updated sender address for shop: "${shop.shopName}"`,
+                metadata: {
+                    shopId: String(shop._id),
+                    shopName: shop.shopName,
+                    senderAddress: {
+                        address: address.trim(),
+                        city: city.trim(),
+                        postalCode: postalCode.trim(),
+                    },
+                },
+            });
 
             return res.status(200).json({
                 success: true,

@@ -8,6 +8,7 @@ import HelpfulVote from "../../data/models/HelpfulVote";
 import { AuthenticatedRequest } from "../middlewares/authentication";
 import { createNotification } from "../../lib/notifications";
 import { uploadToCloudinary } from "../../lib/cloudinary";
+import { logActivity } from "../../lib/activityLogger";
 
 export default class ReviewController {
   // POST /api/reviews - Create a review
@@ -121,6 +122,22 @@ export default class ReviewController {
       });
 
       await review.save();
+
+      // Log review creation
+      await logActivity({
+        req,
+        activityType: "review_created",
+        entityType: "review",
+        entityId: String(review._id),
+        description: `User created ${rating}-star review for item "${item.title}"`,
+        metadata: {
+          reviewId: String(review._id),
+          itemId: String(item._id),
+          itemTitle: item.title,
+          rating: rating,
+          verifiedPurchase: hasPurchased,
+        },
+      });
 
       // Populate user info for response (including profilePicture)
       await review.populate("user", "name kuEmail profilePicture");
@@ -496,7 +513,25 @@ export default class ReviewController {
         });
       }
 
+      // Get item info for logging
+      const item = await Item.findById(review.item).select("title").lean();
+
       await Review.findByIdAndDelete(id);
+
+      // Log review deletion
+      await logActivity({
+        req,
+        activityType: "review_deleted",
+        entityType: "review",
+        entityId: id,
+        description: `User deleted review for item "${item?.title || "Unknown"}"`,
+        metadata: {
+          reviewId: id,
+          itemId: String(review.item),
+          itemTitle: item?.title || "Unknown",
+          rating: review.rating,
+        },
+      });
 
       return res.json({
         success: true,

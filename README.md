@@ -2,8 +2,6 @@
 
 An online marketplace platform for Kasetsart University students to buy and sell items within the campus community.
 
-![Backend Tests](https://img.shields.io/badge/backend%20tests-passing-brightgreen)
-![Frontend Lint](https://img.shields.io/badge/frontend%20lint-passing-brightgreen)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
@@ -13,12 +11,14 @@ An online marketplace platform for Kasetsart University students to buy and sell
 
 - **Authentication** - Email validation (@ku.th users, @ku.ac.th admins), Google OAuth login, OTP password reset, identity verification
 - **Marketplace** - Browse, search, filter items. Create branded shops with custom categories
-- **Payments** - Cash, PromptPay QR, Bank Transfer with instant QR generation
+- **Payments** - Cash, PromptPay QR, Bank Transfer with instant QR generation and comprehensive payment logging
 - **Delivery** - Pickup at meetup points or home delivery with interactive maps
 - **Communication** - Real-time notifications, live chat between buyers/sellers
-- **Orders** - Two-step confirmation workflow, complete order tracking
-- **Reviews & Ratings** - Product reviews with verified purchase badges, rate limiting, and anti-abuse protection
-- **Admin Panel** - Dashboard, verification management, shop moderation, meetup preset manager
+- **Orders** - Two-step confirmation workflow, complete order tracking with detailed status updates
+- **Reviews & Ratings** - Product reviews with verified purchase badges, rate limiting (5 reviews/hour), and anti-abuse protection
+- **Admin Panel** - Dashboard, verification management, shop moderation, meetup preset manager, comprehensive activity logging
+- **Activity Logging** - Complete audit trail of all user, seller, and admin actions with IP tracking and timestamps for security and non-repudiation
+- **Security & Compliance** - Rate limiting, identity verification, payment transaction logging, and comprehensive activity monitoring
 
 ## Quick Start
 
@@ -60,6 +60,7 @@ npm install && npm run dev
 - [Installation Guide](docs/INSTALLATION.md) - Setup instructions
 - [User Guide](docs/USER_GUIDE.md) - How to use the platform
 - [API Documentation](docs/API.md) - API reference
+- [Code Guidelines](docs/CODE_GUIDELINES.md) - Performance optimization techniques and coding standards
 - [Project Wiki](https://github.com/OverCatX/ku-market/wiki) - Project overview
 
 **Interactive Guide:** Visit `/guide` in the application for a visual, step-by-step guide with role-specific instructions (Buyer, Seller, Admin) and detailed order tracking workflows.

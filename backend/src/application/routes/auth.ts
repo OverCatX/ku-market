@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import AuthController from "../controllers/auth.controller";
 import {userSignup, userLogin, forgotPassword, verifyOtp, resetPassword} from "../middlewares/validators/auth.validation";
+import { authenticate } from "../middlewares/authentication";
 import passport from "passport";
 import dotenv from "dotenv";
 
@@ -14,6 +15,9 @@ router.post("/signup", userSignup, authController.userSignup)
 
 // Login
 router.post("/login", userLogin, authController.userLogin)
+
+// Logout (requires authentication)
+router.post("/logout", authenticate, authController.userLogout)
 
 // Forgot password - sends OTP (no authentication required)
 router.post("/forgot-password", forgotPassword, authController.forgotPassword)

@@ -4,6 +4,7 @@ import Report, { ReportStatus } from "../../data/models/Report";
 import Item from "../../data/models/Item";
 import { AuthenticatedRequest } from "../middlewares/authentication";
 import { uploadToCloudinary } from "../../lib/cloudinary";
+import { logActivity } from "../../lib/activityLogger";
 
 const ALLOWED_STATUSES: ReportStatus[] = [
   "pending",
@@ -68,6 +69,20 @@ export default class ReportController {
       });
 
       await report.save();
+
+      // Log report submission
+      await logActivity({
+        req,
+        activityType: "report_submitted",
+        entityType: "system",
+        entityId: String(report._id),
+        description: `User submitted general report: ${category}`,
+        metadata: {
+          reportId: String(report._id),
+          reportType: "general",
+          category: category.trim(),
+        },
+      });
 
       return res.status(201).json({
         success: true,
@@ -165,6 +180,22 @@ export default class ReportController {
 
       await report.save();
 
+      // Log item report submission
+      await logActivity({
+        req,
+        activityType: "report_item_submitted",
+        entityType: "system",
+        entityId: String(report._id),
+        description: `User reported item "${item.title}": ${reasonRaw.trim()}`,
+        metadata: {
+          reportId: String(report._id),
+          reportType: "item",
+          itemId: String(item._id),
+          itemTitle: item.title,
+          reason: reasonRaw.trim(),
+        },
+      });
+
       return res.status(201).json({
         success: true,
         message: "Item report submitted successfully",
@@ -185,9 +216,25 @@ export default class ReportController {
         return res.status(401).json({ success: false, error: "Unauthorized" });
       }
 
-      const reports = await Report.find({ user: userId })
-        .sort({ createdAt: -1 })
-        .lean();
+      const { page, limit } = req.query as {
+        page?: string;
+        limit?: string;
+      };
+
+      // Pagination
+      const pageNum = parseInt(page || "1", 10);
+      const limitNum = Math.min(parseInt(limit || "10", 10), 50); // Max 50 per page
+      const skip = (pageNum - 1) * limitNum;
+
+      // Get total count and paginated reports in parallel
+      const [total, reports] = await Promise.all([
+        Report.countDocuments({ user: userId }),
+        Report.find({ user: userId })
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
+      ]);
 
       return res.json({
         success: true,
@@ -207,6 +254,12 @@ export default class ReportController {
           createdAt: report.createdAt,
           updatedAt: report.updatedAt,
         })),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum),
+        },
       });
     } catch (error) {
       console.error("Get my reports error:", error);
@@ -218,7 +271,12 @@ export default class ReportController {
 
   getAdminReports = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { status, type } = req.query as { status?: string; type?: string };
+      const { status, type, page, limit } = req.query as { 
+        status?: string; 
+        type?: string;
+        page?: string;
+        limit?: string;
+      };
 
       const filter: mongoose.FilterQuery<typeof Report> = {};
 
@@ -230,10 +288,21 @@ export default class ReportController {
         filter.type = type as "general" | "item";
       }
 
-      const reports = await Report.find(filter)
-        .sort({ createdAt: -1 })
-        .populate("user", "name kuEmail")
-        .lean();
+      // Pagination
+      const pageNum = parseInt(page || "1", 10);
+      const limitNum = Math.min(parseInt(limit || "10", 10), 50); // Max 50 per page
+      const skip = (pageNum - 1) * limitNum;
+
+      // Get total count and paginated reports in parallel
+      const [total, reports] = await Promise.all([
+        Report.countDocuments(filter),
+        Report.find(filter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .populate("user", "name kuEmail")
+          .lean(),
+      ]);
 
       return res.json({
         success: true,
@@ -270,6 +339,12 @@ export default class ReportController {
               }
             : undefined,
         })),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum),
+        },
       });
     } catch (error) {
       console.error("Get admin reports error:", error);

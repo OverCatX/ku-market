@@ -13,8 +13,6 @@ import {
   Package,
   CreditCard,
   MapPin,
-  FileCheck,
-  Flag,
   ArrowRight,
   X,
   Sparkles,
@@ -96,39 +94,6 @@ const sellerSteps: Step[] = [
     icon: CheckCircle,
     title: "6. Track Revenue",
     description: "Monitor earnings and completed orders",
-  },
-];
-
-const adminSteps: Step[] = [
-  {
-    icon: Shield,
-    title: "1. Admin Login",
-    description: "Use your Admin account to login to the system",
-  },
-  {
-    icon: FileCheck,
-    title: "2. Approve Verifications",
-    description: "Review and approve user identity verifications",
-  },
-  {
-    icon: Store,
-    title: "3. Approve Shops",
-    description: "Review and approve shop applications from Sellers",
-  },
-  {
-    icon: Package,
-    title: "4. Approve Items",
-    description: "Review and approve items added by Sellers",
-  },
-  {
-    icon: MapPin,
-    title: "5. Manage Meetup Points",
-    description: "Add, edit, or delete meetup locations for Pickup orders",
-  },
-  {
-    icon: Flag,
-    title: "6. Manage Reports",
-    description: "Review and handle reports from users",
   },
 ];
 
@@ -630,9 +595,7 @@ function TrackOrdersDescription() {
 
 export default function GuidePage() {
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState<
-    "buyer" | "seller" | "admin"
-  >("buyer");
+  const [selectedRole, setSelectedRole] = useState<"buyer" | "seller">("buyer");
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -644,21 +607,17 @@ export default function GuidePage() {
       typeof user.role === "string"
     ) {
       const role = user.role.toLowerCase();
-      if (role === "buyer" || role === "seller" || role === "admin") {
+      if (role === "buyer" || role === "seller") {
         setSelectedRole(role);
       }
     }
   }, []);
 
   const currentSteps = useMemo(() => {
-    return selectedRole === "buyer"
-      ? buyerSteps
-      : selectedRole === "seller"
-      ? sellerSteps
-      : adminSteps;
+    return selectedRole === "buyer" ? buyerSteps : sellerSteps;
   }, [selectedRole]);
 
-  const handleRoleChange = useCallback((role: "buyer" | "seller" | "admin") => {
+  const handleRoleChange = useCallback((role: "buyer" | "seller") => {
     setSelectedRole(role);
   }, []);
 
@@ -763,29 +722,6 @@ export default function GuidePage() {
               )}
               <Store size={18} className="relative z-10" />
               <span className="relative z-10">For Sellers</span>
-            </motion.button>
-            <motion.button
-              whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
-              whileTap={prefersReducedMotion ? {} : { scale: 0.98 }}
-              onClick={() => handleRoleChange("admin")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors relative overflow-hidden ${
-                selectedRole === "admin"
-                  ? "bg-[#69773D] text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {selectedRole === "admin" && !prefersReducedMotion && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute inset-0 bg-[#69773D] rounded-lg"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-                />
-              )}
-              {selectedRole === "admin" && prefersReducedMotion && (
-                <div className="absolute inset-0 bg-[#69773D] rounded-lg" />
-              )}
-              <Shield size={18} className="relative z-10" />
-              <span className="relative z-10">For Admins</span>
             </motion.button>
           </div>
         </motion.div>

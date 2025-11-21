@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -8,6 +8,7 @@ import { Flag, RefreshCcw, ArrowLeft } from "lucide-react";
 
 import { getMyReports } from "@/config/reports";
 import { ReportSummary, ReportStatus } from "@/types/report";
+import { Pagination } from "@/components/admin/Pagination";
 
 const statusBadgeClasses: Record<ReportStatus, string> = {
   pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -28,12 +29,18 @@ export default function MyReportsPage() {
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 10;
 
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getMyReports();
-      setReports(data);
+      const data = await getMyReports(currentPage, itemsPerPage);
+      setReports(data.reports);
+      setTotalPages(data.pagination.totalPages);
+      setTotalItems(data.pagination.total);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to load reports";
       toast.error(message);
@@ -43,14 +50,13 @@ export default function MyReportsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, itemsPerPage, router]);
 
   useEffect(() => {
     loadReports();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadReports]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await loadReports();
@@ -58,7 +64,13 @@ export default function MyReportsPage() {
     } finally {
       setRefreshing(false);
     }
-  };
+  }, [loadReports]);
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
 
   return (
     <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', paddingTop: '2rem', paddingBottom: '2rem' }}>
@@ -110,8 +122,9 @@ export default function MyReportsPage() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
-          {reports.map((report) => (
+        <>
+          <div className="space-y-4">
+            {reports.map((report) => (
             <article
               key={report.id}
               className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden"
@@ -187,8 +200,20 @@ export default function MyReportsPage() {
                 )}
               </div>
             </article>
-          ))}
-        </div>
+            ))}
+          </div>
+            {totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  totalItems={totalItems}
+                  itemsPerPage={itemsPerPage}
+                />
+              </div>
+            )}
+        </>
       )}
       </div>
     </div>

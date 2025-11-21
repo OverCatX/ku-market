@@ -4,6 +4,7 @@ import Cart from "../../data/models/Cart";
 import mongoose from "mongoose";
 import { AuthenticatedRequest } from "../middlewares/authentication";
 import { createNotification } from "../../lib/notifications";
+import { logActivity } from "../../lib/activityLogger";
 
 interface PopulatedItem {
   _id: mongoose.Types.ObjectId;
@@ -270,6 +271,22 @@ export default class OrderController {
         const order = await Order.create(orderData);
         orders.push(order);
 
+        // Log order creation
+        await logActivity({
+          req,
+          activityType: "order_created",
+          entityType: "order",
+          entityId: String(order._id),
+          description: `Buyer created order ${order._id} with ${items.length} item(s), total ${totalPrice} THB`,
+          metadata: {
+            orderId: String(order._id),
+            orderTotal: totalPrice,
+            paymentMethod: paymentMethod,
+            deliveryMethod: deliveryMethod,
+            itemCount: items.length,
+          },
+        });
+
         // Notify seller about new order
         await createNotification(
           sellerId,
@@ -318,16 +335,32 @@ export default class OrderController {
         return res.status(401).json({ success: false, error: "Unauthorized" });
       }
 
-      const { status } = req.query;
+      const { status, page, limit } = req.query as {
+        status?: string;
+        page?: string;
+        limit?: string;
+      };
       const filter: OrderFilter = { buyer: new mongoose.Types.ObjectId(userId) };
 
       if (status && typeof status === "string" && ["pending_seller_confirmation", "confirmed", "rejected", "completed", "cancelled"].includes(status)) {
         filter.status = status;
       }
 
-      const orders = await Order.find(filter)
-        .populate("seller", "name")
-        .sort({ createdAt: -1 });
+      // Pagination
+      const pageNum = parseInt(page || "1", 10);
+      const limitNum = Math.min(parseInt(limit || "10", 10), 50); // Max 50 per page
+      const skip = (pageNum - 1) * limitNum;
+
+      // Get total count and paginated orders in parallel
+      const [total, orders] = await Promise.all([
+        Order.countDocuments(filter),
+        Order.find(filter)
+          .populate("seller", "name")
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
+      ]);
 
       return res.json({
         success: true,
@@ -357,6 +390,12 @@ export default class OrderController {
           createdAt: order.createdAt,
           updatedAt: order.updatedAt,
         })),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum),
+        },
       });
     } catch (error) {
       console.error("Get buyer orders error:", error);
@@ -495,6 +534,24 @@ export default class OrderController {
       order.paymentSubmittedAt = new Date();
       await order.save();
 
+      // Log payment submission (CRITICAL for payment tracking - especially QR code payments)
+      const paymentMethodLabel = order.paymentMethod === "promptpay" ? "PromptPay QR" : order.paymentMethod === "transfer" ? "Bank Transfer" : "Cash";
+      await logActivity({
+        req,
+        activityType: "payment_submitted",
+        entityType: "payment",
+        entityId: String(order._id),
+        description: `Buyer submitted payment notification for order ${order._id} via ${paymentMethodLabel} - Amount: ${order.totalPrice} THB`,
+        metadata: {
+          orderId: String(order._id),
+          orderTotal: order.totalPrice,
+          paymentMethod: order.paymentMethod,
+          paymentStatus: order.paymentStatus,
+          isQRPayment: order.paymentMethod === "promptpay",
+          paymentSubmittedAt: new Date().toISOString(),
+        },
+      });
+
       await createNotification(
         order.seller,
         "order",
@@ -571,10 +628,40 @@ export default class OrderController {
       order.buyerReceived = true;
       order.buyerReceivedAt = new Date();
 
+      // Log buyer received (at pickup point)
+      const pickupLocation = order.pickupDetails?.locationName || order.pickupDetails?.address || "Pickup point";
+      await logActivity({
+        req,
+        activityType: "buyer_received",
+        entityType: "order",
+        entityId: String(order._id),
+        description: `Buyer confirmed receiving order ${order._id} at pickup point: ${pickupLocation}`,
+        metadata: {
+          orderId: String(order._id),
+          orderTotal: order.totalPrice,
+          deliveryMethod: order.deliveryMethod,
+          pickupLocation: pickupLocation,
+          receivedAtPickupPoint: true,
+        },
+      });
+
       // If both buyer and seller confirmed, complete the order
       if (order.buyerReceived && order.sellerDelivered) {
         order.status = "completed";
         order.completedAt = new Date();
+
+        // Log order completion
+        await logActivity({
+          req,
+          activityType: "order_completed",
+          entityType: "order",
+          entityId: String(order._id),
+          description: `Order ${order._id} completed`,
+          metadata: {
+            orderId: String(order._id),
+            orderTotal: order.totalPrice,
+          },
+        });
 
         // Notify both parties
         await createNotification(
@@ -675,6 +762,23 @@ export default class OrderController {
         // For now, return data that frontend can use to generate QR
         promptpayData: `00020101021229370016A00000067701011101130066${String(order._id).slice(-10)}5303764540${(order.totalPrice * 100).toFixed(0)}5802TH6304`,
       };
+
+      // Log QR code generation for payment (CRITICAL for payment tracking)
+      await logActivity({
+        req,
+        activityType: "payment_qr_generated",
+        entityType: "payment",
+        entityId: String(order._id),
+        description: `QR code generated for PromptPay payment - Order ${order._id}, Amount: ${order.totalPrice} THB`,
+        metadata: {
+          orderId: String(order._id),
+          orderTotal: order.totalPrice,
+          paymentMethod: "promptpay",
+          qrAmount: order.totalPrice,
+          currency: "THB",
+          qrGenerated: true,
+        },
+      });
 
       return res.json({
         success: true,

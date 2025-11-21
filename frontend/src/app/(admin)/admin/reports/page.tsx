@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, memo } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import {
@@ -17,6 +17,7 @@ import {
   AdminReportFilters,
 } from "@/config/reports";
 import { ReportStatus, ReportSummary } from "@/types/report";
+import { Pagination } from "@/components/admin/Pagination";
 
 const STATUS_OPTIONS: { value: ReportStatus | "all"; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -52,7 +53,7 @@ interface ReportCardProps {
   updating: boolean;
 }
 
-function ReportCard({ report, onUpdate, updating }: ReportCardProps) {
+const ReportCard = memo(function ReportCard({ report, onUpdate, updating }: ReportCardProps) {
   const [status, setStatus] = useState<ReportStatus>(report.status);
   const [notes, setNotes] = useState(report.adminNotes || "");
   const [expanded, setExpanded] = useState(false);
@@ -226,7 +227,7 @@ function ReportCard({ report, onUpdate, updating }: ReportCardProps) {
       </footer>
     </article>
   );
-}
+});
 
 export default function AdminReportsPage() {
   const router = useRouter();
@@ -234,12 +235,18 @@ export default function AdminReportsPage() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [filters, setFilters] = useState<AdminReportFilters>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 10;
 
-  const loadReports = async (options: AdminReportFilters = filters) => {
+  const loadReports = useCallback(async (options: AdminReportFilters = filters, page: number = currentPage) => {
     setLoading(true);
     try {
-      const data = await getAdminReports(options);
-      setReports(data);
+      const data = await getAdminReports(options, page, itemsPerPage);
+      setReports(data.reports);
+      setTotalPages(data.pagination.totalPages);
+      setTotalItems(data.pagination.total);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to load reports";
       toast.error(message);
@@ -249,14 +256,13 @@ export default function AdminReportsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, currentPage, itemsPerPage, router]);
 
   useEffect(() => {
-    loadReports();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    loadReports(filters, currentPage);
+  }, [loadReports, filters, currentPage]);
 
-  const handleFilterChange = async (
+  const handleFilterChange = useCallback(async (
     key: keyof AdminReportFilters,
     value: string
   ) => {
@@ -265,15 +271,16 @@ export default function AdminReportsPage() {
       [key]: value === "all" ? undefined : (value as AdminReportFilters[keyof AdminReportFilters]),
     };
     setFilters(nextFilters);
-    await loadReports(nextFilters);
-  };
+    setCurrentPage(1);
+    await loadReports(nextFilters, 1);
+  }, [filters, loadReports]);
 
-  const handleRefresh = async () => {
-    await loadReports(filters);
+  const handleRefresh = useCallback(async () => {
+    await loadReports(filters, currentPage);
     toast.success("Reports refreshed");
-  };
+  }, [filters, currentPage, loadReports]);
 
-  const handleUpdate = async (
+  const handleUpdate = useCallback(async (
     reportId: string,
     payload: { status: ReportStatus; notes?: string }
   ) => {
@@ -293,7 +300,12 @@ export default function AdminReportsPage() {
     } finally {
       setUpdatingId(null);
     }
-  };
+  }, [router]);
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   return (
     <div className="space-y-6" style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
@@ -362,16 +374,29 @@ export default function AdminReportsPage() {
           <p className="text-sm text-[#69773D]">Try adjusting the filters or check back later.</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {reports.map((report) => (
-            <ReportCard
-              key={report.id}
-              report={report}
-              updating={updatingId === report.id}
-              onUpdate={(payload) => handleUpdate(report.id, payload)}
-            />
-          ))}
-        </div>
+        <>
+          <div className="space-y-4">
+            {reports.map((report) => (
+              <ReportCard
+                key={report.id}
+                report={report}
+                updating={updatingId === report.id}
+                onUpdate={(payload) => handleUpdate(report.id, payload)}
+              />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

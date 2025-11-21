@@ -3,6 +3,7 @@ import { uploadToCloudinary } from "../../lib/cloudinary";
 import Item, { IItem } from "../../data/models/Item"
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
 import { AuthenticatedRequest } from "../middlewares/authentication";
+import { logActivity } from "../../lib/activityLogger";
 
 export default class ItemController {
     userUpload = async(req: Request, res: Response) => {
@@ -56,6 +57,22 @@ export default class ItemController {
             };
     
             const item = await Item.create(newItem);
+
+            // Log item creation
+            await logActivity({
+                req,
+                activityType: "item_created",
+                entityType: "item",
+                entityId: String(item._id),
+                description: `Seller created item: "${item.title}" - Price: ${item.price} THB`,
+                metadata: {
+                    itemId: String(item._id),
+                    itemTitle: item.title,
+                    itemPrice: item.price,
+                    itemCategory: item.category,
+                    photoCount: imageUrls.length,
+                },
+            });
     
             return res.status(201).json({ 
                 success: true, 
@@ -158,8 +175,28 @@ export default class ItemController {
             if (!existingItem) {
                 return res.status(404).json({ error: "Item not found" });
             }
+
+            const userId = (req as AuthenticatedRequest).user?.id;
+            const itemTitle = existingItem.title;
+            const itemPrice = existingItem.price;
     
             await Item.findByIdAndDelete(id);
+
+            // Log item deletion
+            if (userId) {
+                await logActivity({
+                    req,
+                    activityType: "item_deleted",
+                    entityType: "item",
+                    entityId: id,
+                    description: `Seller deleted item: "${itemTitle}" - Price: ${itemPrice} THB`,
+                    metadata: {
+                        itemId: id,
+                        itemTitle: itemTitle,
+                        itemPrice: itemPrice,
+                    },
+                });
+            }
     
             return res.status(200).json({ 
                 success: true, 

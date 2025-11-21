@@ -12,6 +12,8 @@ import {
   FolderTree,
   Flag,
   HelpCircle,
+  Activity,
+  MapPin,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -297,6 +299,32 @@ export default function AdminDashboard() {
               </div>
               <div className="text-sm text-[#69773D] group-hover:text-gray-700">
                 Investigate user and item reports
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/meetup-presets"
+            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-teal-500 hover:bg-teal-50 transition-all"
+          >
+            <MapPin className="text-teal-600" size={24} />
+            <div>
+              <div className="font-semibold text-gray-900">Meetup Presets</div>
+              <div className="text-sm text-gray-600">
+                Manage pickup locations and meetup points
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/admin/activity-logs"
+            className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-cyan-500 hover:bg-cyan-50 transition-all"
+          >
+            <Activity className="text-cyan-600" size={24} />
+            <div>
+              <div className="font-semibold text-gray-900">Activity Logs</div>
+              <div className="text-sm text-gray-600">
+                View all user activities and system logs
               </div>
             </div>
           </Link>

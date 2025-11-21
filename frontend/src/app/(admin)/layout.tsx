@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   MapPin,
+  Activity,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -36,6 +37,7 @@ const navItems: NavItem[] = [
   { label: "Meetup Presets", path: "/admin/meetup-presets", icon: MapPin },
   { label: "Reports", path: "/admin/reports", icon: Flag },
   { label: "Users", path: "/admin/users", icon: Users },
+  { label: "Activity Logs", path: "/admin/activity-logs", icon: Activity },
 ];
 
 export default function AdminLayout({ children }: AdminLayoutProps) {

@@ -5,9 +5,11 @@ import User from "../../data/models/User";
 import Item from "../../data/models/Item";
 import Review, { IReview } from "../../data/models/Review";
 import MeetupPreset from "../../data/models/MeetupPreset";
+import ActivityLog from "../../data/models/ActivityLog";
 import mongoose from "mongoose";
 import { createNotification } from "../../lib/notifications";
 import { AuthenticatedRequest } from "../middlewares/authentication";
+import { logActivity } from "../../lib/activityLogger";
 
 export default class AdminController {
   // GET /api/admin/verifications - Get all verification requests
@@ -103,6 +105,22 @@ export default class AdminController {
         "/profile"
       );
 
+      // Log admin action
+      const user = await User.findById(verification.userId).select("kuEmail name").lean();
+      await logActivity({
+        req,
+        activityType: "admin_verification_approved",
+        entityType: "verification",
+        entityId: id,
+        description: `Admin approved verification for user: ${user?.kuEmail || verification.userId}`,
+        metadata: {
+          verificationId: id,
+          userId: String(verification.userId),
+          userEmail: user?.kuEmail,
+          userName: user?.name,
+        },
+      });
+
       return res.json({
         success: true,
         message: "Verification approved successfully",
@@ -154,6 +172,23 @@ export default class AdminController {
         `Your identity verification was rejected. Reason: ${reason}`,
         "/verify-identity"
       );
+
+      // Log admin action
+      const user = await User.findById(verification.userId).select("kuEmail name").lean();
+      await logActivity({
+        req,
+        activityType: "admin_verification_rejected",
+        entityType: "verification",
+        entityId: id,
+        description: `Admin rejected verification for user: ${user?.kuEmail || verification.userId} - Reason: ${reason}`,
+        metadata: {
+          verificationId: id,
+          userId: String(verification.userId),
+          userEmail: user?.kuEmail,
+          userName: user?.name,
+          rejectionReason: reason,
+        },
+      });
 
       return res.json({
         success: true,
@@ -256,6 +291,23 @@ export default class AdminController {
         "/seller/dashboard"
       );
 
+      // Log admin action
+      const owner = await User.findById(shop.owner).select("kuEmail name").lean();
+      await logActivity({
+        req,
+        activityType: "admin_shop_approved",
+        entityType: "shop",
+        entityId: id,
+        description: `Admin approved shop: "${shop.shopName}" for user: ${owner?.kuEmail || shop.owner}`,
+        metadata: {
+          shopId: id,
+          shopName: shop.shopName,
+          ownerId: String(shop.owner),
+          ownerEmail: owner?.kuEmail,
+          ownerName: owner?.name,
+        },
+      });
+
       return res.json({
         success: true,
         message: "Shop approved successfully",
@@ -301,6 +353,24 @@ export default class AdminController {
         `Your shop request was rejected. Reason: ${reason}`,
         "/seller/dashboard"
       );
+
+      // Log admin action
+      const owner = await User.findById(shop.owner).select("kuEmail name").lean();
+      await logActivity({
+        req,
+        activityType: "admin_shop_rejected",
+        entityType: "shop",
+        entityId: id,
+        description: `Admin rejected shop: "${shop.shopName}" for user: ${owner?.kuEmail || shop.owner} - Reason: ${reason}`,
+        metadata: {
+          shopId: id,
+          shopName: shop.shopName,
+          ownerId: String(shop.owner),
+          ownerEmail: owner?.kuEmail,
+          ownerName: owner?.name,
+          rejectionReason: reason,
+        },
+      });
 
       return res.json({
         success: true,
@@ -378,6 +448,22 @@ export default class AdminController {
       user.role = "admin";
       await user.save();
 
+      // Log admin action
+      await logActivity({
+        req,
+        activityType: "admin_user_promoted",
+        entityType: "user",
+        entityId: userId,
+        description: `Admin promoted user to admin: ${user.kuEmail} (${user.name})`,
+        metadata: {
+          promotedUserId: userId,
+          promotedUserName: user.name,
+          promotedUserEmail: user.kuEmail,
+          previousRole: "user",
+          newRole: "admin",
+        },
+      });
+
       return res.json({
         success: true,
         message: `User ${user.name} promoted to admin`,
@@ -414,6 +500,22 @@ export default class AdminController {
 
       user.role = "user";
       await user.save();
+
+      // Log admin action
+      await logActivity({
+        req,
+        activityType: "admin_user_demoted",
+        entityType: "user",
+        entityId: userId,
+        description: `Admin demoted admin to user: ${user.kuEmail} (${user.name})`,
+        metadata: {
+          demotedUserId: userId,
+          demotedUserName: user.name,
+          demotedUserEmail: user.kuEmail,
+          previousRole: "admin",
+          newRole: "user",
+        },
+      });
 
       return res.json({
         success: true,
@@ -551,11 +653,29 @@ export default class AdminController {
       }
 
       // Delete user
+      const userName = user.name;
+      const userEmail = user.kuEmail;
+      const userRole = user.role;
       await User.findByIdAndDelete(userId);
+
+      // Log admin action
+      await logActivity({
+        req,
+        activityType: "admin_user_deleted",
+        entityType: "user",
+        entityId: userId,
+        description: `Admin deleted user: ${userEmail} (${userName}) - Role: ${userRole}`,
+        metadata: {
+          deletedUserId: userId,
+          deletedUserName: userName,
+          deletedUserEmail: userEmail,
+          deletedUserRole: userRole,
+        },
+      });
 
       return res.json({
         success: true,
-        message: `User ${user.name} has been deleted`,
+        message: `User ${userName} has been deleted`,
       });
     } catch (error) {
       console.error("Delete user error:", error);
@@ -603,7 +723,12 @@ export default class AdminController {
   // GET /api/admin/items - Get all items for management
   getItems = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { approvalStatus, status } = req.query;
+      const { approvalStatus, status, page, limit } = req.query as {
+        approvalStatus?: string;
+        status?: string;
+        page?: string;
+        limit?: string;
+      };
       const filter: { approvalStatus?: string; status?: string } = {};
 
       if (approvalStatus && typeof approvalStatus === "string" && ["pending", "approved", "rejected"].includes(approvalStatus)) {
@@ -615,15 +740,27 @@ export default class AdminController {
         filter.status = status;
       }
 
+      // Pagination
+      const pageNum = parseInt(page || "1", 10);
+      const limitNum = Math.min(parseInt(limit || "12", 10), 50); // Max 50 per page
+      const skip = (pageNum - 1) * limitNum;
+
       interface PopulatedOwner {
         _id: mongoose.Types.ObjectId;
         name: string;
         kuEmail: string;
       }
 
-      const items = await Item.find(filter)
-        .populate("owner", "name kuEmail")
-        .sort({ createAt: -1 });
+      // Get total count and paginated items in parallel
+      const [total, items] = await Promise.all([
+        Item.countDocuments(filter),
+        Item.find(filter)
+          .populate("owner", "name kuEmail")
+          .sort({ createAt: -1 })
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
+      ]);
 
       return res.json({
         success: true,
@@ -654,6 +791,12 @@ export default class AdminController {
             updatedAt: (item as unknown as { updatedAt?: Date }).updatedAt || item.updateAt || new Date(),
           };
         }),
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum),
+        },
       });
     } catch (error) {
       console.error("Get items error:", error);
@@ -699,6 +842,22 @@ export default class AdminController {
         `Your item "${item.title}" has been approved and is now visible in the marketplace!`,
         `/marketplace/${item._id}`
       );
+
+      // Log admin action
+      await logActivity({
+        req,
+        activityType: "admin_item_approved",
+        entityType: "item",
+        entityId: id,
+        description: `Admin approved item: "${item.title}" - Price: ${item.price} THB`,
+        metadata: {
+          itemId: id,
+          itemTitle: item.title,
+          itemPrice: item.price,
+          itemCategory: item.category,
+          ownerId: String(item.owner),
+        },
+      });
 
       return res.json({
         success: true,
@@ -758,6 +917,22 @@ export default class AdminController {
           : `Your item "${item.title}" was rejected by an admin.`,
         "/seller/items"
       );
+
+      // Log admin action
+      await logActivity({
+        req,
+        activityType: "admin_item_rejected",
+        entityType: "item",
+        entityId: id,
+        description: `Admin rejected item: "${item.title}" - Reason: ${reason || "No reason provided"}`,
+        metadata: {
+          itemId: id,
+          itemTitle: item.title,
+          itemPrice: item.price,
+          ownerId: String(item.owner),
+          rejectionReason: reason || "No reason provided",
+        },
+      });
 
       return res.json({
         success: true,
@@ -826,6 +1001,28 @@ export default class AdminController {
         );
       }
 
+      // Log admin action
+      await logActivity({
+        req,
+        activityType: "admin_item_updated",
+        entityType: "item",
+        entityId: id,
+        description: `Admin updated item: "${item.title}"`,
+        metadata: {
+          itemId: id,
+          itemTitle: item.title,
+          updatedFields: {
+            title: title !== undefined,
+            description: description !== undefined,
+            price: price !== undefined,
+            status: status !== undefined,
+            category: category !== undefined,
+          },
+          previousStatus: previousStatus,
+          newStatus: item.status,
+        },
+      });
+
       return res.json({
         success: true,
         message: "Item updated successfully",
@@ -865,7 +1062,24 @@ export default class AdminController {
       }
 
       const itemTitle = item.title;
+      const itemPrice = item.price;
+      const ownerId = String(item.owner);
       await Item.findByIdAndDelete(id);
+
+      // Log admin action
+      await logActivity({
+        req,
+        activityType: "admin_item_deleted",
+        entityType: "item",
+        entityId: id,
+        description: `Admin deleted item: "${itemTitle}" - Price: ${itemPrice} THB`,
+        metadata: {
+          itemId: id,
+          itemTitle: itemTitle,
+          itemPrice: itemPrice,
+          ownerId: ownerId,
+        },
+      });
 
       return res.json({
         success: true,
@@ -896,7 +1110,25 @@ export default class AdminController {
         return res.status(404).json({ success: false, error: "Review not found" });
       }
 
+      // Get review info before deletion
+      const reviewItem = await Item.findById(review.item).select("title").lean();
       await Review.findByIdAndDelete(id);
+
+      // Log admin action
+      await logActivity({
+        req,
+        activityType: "admin_review_deleted",
+        entityType: "review",
+        entityId: id,
+        description: `Admin deleted review for item: "${reviewItem?.title || "Unknown"}" - Rating: ${review.rating}`,
+        metadata: {
+          reviewId: id,
+          itemId: String(review.item),
+          itemTitle: reviewItem?.title || "Unknown",
+          rating: review.rating,
+          userId: String(review.user),
+        },
+      });
 
       return res.json({
         success: true,
@@ -1112,6 +1344,24 @@ export default class AdminController {
 
       await preset.save();
 
+      // Log admin action
+      await logActivity({
+        req,
+        activityType: "admin_meetup_preset_updated",
+        entityType: "system",
+        entityId: id,
+        description: `Admin updated meetup preset: "${preset.label}" at ${preset.locationName}`,
+        metadata: {
+          presetId: id,
+          presetLabel: preset.label,
+          locationName: preset.locationName,
+          address: preset.address,
+          lat: preset.lat,
+          lng: preset.lng,
+          isActive: preset.isActive,
+        },
+      });
+
       return res.json({
         success: true,
         message: "Meetup preset updated successfully",
@@ -1151,6 +1401,20 @@ export default class AdminController {
         return res.status(404).json({ success: false, error: "Meetup preset not found" });
       }
 
+      // Log admin action
+      await logActivity({
+        req,
+        activityType: "admin_meetup_preset_deleted",
+        entityType: "system",
+        entityId: id,
+        description: `Admin deleted meetup preset: "${preset.label}" at ${preset.locationName}`,
+        metadata: {
+          presetId: id,
+          presetLabel: preset.label,
+          locationName: preset.locationName,
+        },
+      });
+
       return res.json({
         success: true,
         message: "Meetup preset deleted successfully",
@@ -1158,6 +1422,169 @@ export default class AdminController {
     } catch (error) {
       console.error("Delete meetup preset error:", error);
       return res.status(500).json({ success: false, error: "Server error" });
+    }
+  };
+
+  /**
+   * GET /api/admin/activity-logs - Get activity logs with pagination and filtering
+   */
+  getActivityLogs = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const skip = (page - 1) * limit;
+
+      // Filter options
+      const userId = req.query.userId as string;
+      const userRole = req.query.userRole as string;
+      const activityType = req.query.activityType as string;
+      const entityType = req.query.entityType as string;
+      const entityId = req.query.entityId as string;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+      const search = req.query.search as string; // Search in description, userName, userEmail
+
+      // Build filter
+      const filter: Record<string, unknown> = {};
+
+      if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+        filter.userId = new mongoose.Types.ObjectId(userId);
+      }
+
+      if (userRole && ["buyer", "seller", "admin"].includes(userRole)) {
+        filter.userRole = userRole;
+      }
+
+      if (activityType) {
+        filter.activityType = activityType;
+      }
+
+      if (entityType) {
+        filter.entityType = entityType;
+      }
+
+      if (entityId && mongoose.Types.ObjectId.isValid(entityId)) {
+        filter.entityId = new mongoose.Types.ObjectId(entityId);
+      }
+
+      if (startDate || endDate) {
+        filter.createdAt = {} as { $gte?: Date; $lte?: Date };
+        if (startDate) {
+          (filter.createdAt as { $gte: Date }).$gte = new Date(startDate);
+        }
+        if (endDate) {
+          (filter.createdAt as { $lte: Date }).$lte = new Date(endDate);
+        }
+      }
+
+      if (search) {
+        filter.$or = [
+          { description: { $regex: search, $options: "i" } },
+          { userName: { $regex: search, $options: "i" } },
+          { userEmail: { $regex: search, $options: "i" } },
+        ];
+      }
+
+      // Get total count for pagination
+      const total = await ActivityLog.countDocuments(filter);
+
+      // Get logs with pagination
+      const logs = await ActivityLog.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+
+      return res.json({
+        success: true,
+        logs,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error) {
+      console.error("Get activity logs error:", error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Server error",
+      });
+    }
+  };
+
+  /**
+   * GET /api/admin/activity-logs/stats - Get activity log statistics
+   */
+  getActivityLogStats = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+
+      const dateFilter: Record<string, unknown> = {};
+      if (startDate || endDate) {
+        dateFilter.createdAt = {} as { $gte?: Date; $lte?: Date };
+        if (startDate) {
+          (dateFilter.createdAt as { $gte: Date }).$gte = new Date(startDate);
+        }
+        if (endDate) {
+          (dateFilter.createdAt as { $lte: Date }).$lte = new Date(endDate);
+        }
+      }
+
+      // Get statistics
+      const [
+        totalLogs,
+        logsByType,
+        logsByRole,
+        recentActivity,
+      ] = await Promise.all([
+        ActivityLog.countDocuments(dateFilter),
+        ActivityLog.aggregate([
+          { $match: dateFilter },
+          { $group: { _id: "$activityType", count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+        ]),
+        ActivityLog.aggregate([
+          { $match: dateFilter },
+          { $group: { _id: "$userRole", count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+        ]),
+        ActivityLog.find(dateFilter)
+          .sort({ createdAt: -1 })
+          .limit(10)
+          .select("activityType userName userEmail createdAt")
+          .lean(),
+      ]);
+
+      return res.json({
+        success: true,
+        stats: {
+          totalLogs,
+          logsByType: logsByType.reduce(
+            (acc, item) => {
+              acc[item._id] = item.count;
+              return acc;
+            },
+            {} as Record<string, number>
+          ),
+          logsByRole: logsByRole.reduce(
+            (acc, item) => {
+              acc[item._id] = item.count;
+              return acc;
+            },
+            {} as Record<string, number>
+          ),
+          recentActivity,
+        },
+      });
+    } catch (error) {
+      console.error("Get activity log stats error:", error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Server error",
+      });
     }
   };
 }

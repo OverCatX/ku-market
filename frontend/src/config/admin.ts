@@ -201,11 +201,18 @@ export interface ItemData {
 
 export async function getItems(
   token: string,
-  approvalStatus?: string
-): Promise<ItemData[]> {
-  const url = approvalStatus
-    ? `${API_BASE}/api/admin/items?approvalStatus=${approvalStatus}`
-    : `${API_BASE}/api/admin/items`;
+  approvalStatus?: string,
+  page: number = 1,
+  limit: number = 12
+): Promise<{ items: ItemData[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
+  const params = new URLSearchParams();
+  if (approvalStatus) {
+    params.set("approvalStatus", approvalStatus);
+  }
+  params.set("page", String(page));
+  params.set("limit", String(limit));
+  
+  const url = `${API_BASE}/api/admin/items?${params.toString()}`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -214,7 +221,7 @@ export async function getItems(
     throw new Error(errorData.error || "Failed to fetch items");
   }
   const data = await res.json();
-  return data.items;
+  return { items: data.items, pagination: data.pagination };
 }
 
 export async function approveItem(token: string, id: string): Promise<void> {
@@ -422,4 +429,129 @@ export async function deleteReview(token: string, reviewId: string): Promise<voi
     const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
     throw new Error(errorData.error || "Failed to delete review");
   }
+}
+
+export interface ActivityLog {
+  _id: string;
+  userId: string;
+  userRole: "buyer" | "seller" | "admin";
+  userName: string;
+  userEmail: string;
+  activityType: string;
+  entityType: string;
+  entityId?: string;
+  description: string;
+  metadata?: Record<string, unknown>;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: string;
+}
+
+export interface ActivityLogsResponse {
+  success: boolean;
+  logs: ActivityLog[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface ActivityLogStats {
+  success: boolean;
+  stats: {
+    totalLogs: number;
+    logsByType: Record<string, number>;
+    logsByRole: Record<string, number>;
+    recentActivity: ActivityLog[];
+  };
+}
+
+export async function getActivityLogs(params?: {
+  page?: number;
+  limit?: number;
+  userId?: string;
+  userRole?: string;
+  activityType?: string;
+  entityType?: string;
+  entityId?: string;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+}): Promise<ActivityLogsResponse> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Please login");
+  }
+
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.append("page", String(params.page));
+  if (params?.limit) queryParams.append("limit", String(params.limit));
+  if (params?.userId) queryParams.append("userId", params.userId);
+  if (params?.userRole) queryParams.append("userRole", params.userRole);
+  if (params?.activityType) queryParams.append("activityType", params.activityType);
+  if (params?.entityType) queryParams.append("entityType", params.entityType);
+  if (params?.entityId) queryParams.append("entityId", params.entityId);
+  if (params?.startDate) queryParams.append("startDate", params.startDate);
+  if (params?.endDate) queryParams.append("endDate", params.endDate);
+  if (params?.search) queryParams.append("search", params.search);
+
+  const response = await fetch(
+    `${API_BASE}/api/admin/activity-logs?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthTokens();
+      throw new Error("Please login");
+    }
+    const error = await response.json().catch(() => ({ error: "Failed to fetch activity logs" }));
+    throw new Error(error.error || "Failed to fetch activity logs");
+  }
+
+  return response.json();
+}
+
+export async function getActivityLogStats(params?: {
+  startDate?: string;
+  endDate?: string;
+}): Promise<ActivityLogStats> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Please login");
+  }
+
+  const queryParams = new URLSearchParams();
+  if (params?.startDate) queryParams.append("startDate", params.startDate);
+  if (params?.endDate) queryParams.append("endDate", params.endDate);
+
+  const response = await fetch(
+    `${API_BASE}/api/admin/activity-logs/stats?${queryParams.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthTokens();
+      throw new Error("Please login");
+    }
+    const error = await response.json().catch(() => ({ error: "Failed to fetch activity log stats" }));
+    throw new Error(error.error || "Failed to fetch activity log stats");
+  }
+
+  return response.json();
 }
