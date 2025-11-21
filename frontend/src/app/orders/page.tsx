@@ -141,7 +141,7 @@ function PickupLocationSection({
             {pickupDetails.coordinates && (
               <button
                 onClick={() => setShowMap(!showMap)}
-                className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#84B067] hover:text-[#73995a] hover:bg-white rounded-md transition"
+                className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#5C8140] hover:text-[#4a6b33] hover:bg-white rounded-md transition"
               >
                 <MapPin size={14} />
                 {showMap ? "Hide Map" : "Show Map"}
@@ -431,12 +431,12 @@ export default function OrdersPage() {
       },
       confirmed: {
         label: "Confirmed",
-        className: "bg-blue-50 text-blue-700 border-blue-200",
+        className: "bg-[#69773D]/10 text-[#69773D] border-[#69773D]/20",
         Icon: Package,
       },
       completed: {
         label: "Completed",
-        className: "bg-green-50 text-green-700 border-green-200",
+        className: "bg-[#69773D]/10 text-[#69773D] border-[#69773D]/20",
         Icon: CheckCircle,
       },
       rejected: {
@@ -477,15 +477,15 @@ export default function OrdersPage() {
       },
       awaiting_payment: {
         label: "Awaiting payment",
-        className: "bg-orange-50 text-orange-700 border-orange-200",
+        className: "bg-[#780606]/10 text-[#780606] border-[#780606]/20",
       },
       payment_submitted: {
         label: "Payment submitted",
-        className: "bg-blue-50 text-blue-700 border-blue-200",
+        className: "bg-[#69773D]/10 text-[#69773D] border-[#69773D]/20",
       },
       paid: {
         label: "Paid",
-        className: "bg-green-50 text-green-700 border-green-200",
+        className: "bg-[#69773D]/10 text-[#69773D] border-[#69773D]/20",
       },
       not_required: {
         label: "Not required",
@@ -537,7 +537,7 @@ export default function OrdersPage() {
               </button>
               <Link
                 href="/marketplace"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#84B067] text-white text-sm font-medium hover:bg-[#73995a] transition"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#5C8140] text-white text-sm font-medium hover:bg-[#4a6b33] transition"
               >
                 Continue Shopping
               </Link>
@@ -550,38 +550,70 @@ export default function OrdersPage() {
               {
                 label: "Total",
                 value: totalCount,
-                color: "text-gray-700",
+                color: "#2F5A32",
+                borderColor: "#2F5A32",
+                titleColor: "#2F5A32",
                 Icon: Package,
               },
               {
                 label: "Pending",
                 value: statusCounts.pending_seller_confirmation,
-                color: "text-yellow-600",
+                color: "#eab308",
+                borderColor: "#eab308",
+                titleColor: "#eab308",
                 Icon: Clock,
               },
               {
                 label: "Confirmed",
                 value: statusCounts.confirmed,
-                color: "text-blue-600",
+                color: "#7ba02e",
+                borderColor: "#7ba02e",
+                titleColor: "#7ba02e",
                 Icon: Package,
               },
               {
                 label: "Completed",
                 value: statusCounts.completed,
-                color: "text-green-600",
+                color: "#8fb88f",
+                borderColor: "#8fb88f",
+                titleColor: "#8fb88f",
                 Icon: CheckCircle,
               },
-            ].map(({ label, value, color, Icon }) => (
+            ].map(({ label, value, color, borderColor, titleColor, Icon }) => (
               <div
                 key={label}
-                className="bg-white rounded-lg border border-gray-200 p-4"
+                className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border-l-4 relative overflow-hidden group"
+                style={{ borderLeftColor: borderColor || color }}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">{label}</p>
-                    <p className={`text-2xl font-bold ${color}`}>{value}</p>
+                <div
+                  className="absolute inset-0 bg-gradient-to-br from-transparent to-gray-50/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ borderColor: color }}
+                />
+                <div className="relative flex items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: titleColor || borderColor || color }}>
+                      {label}
+                    </p>
+                    <p className="text-3xl font-bold" style={{ color: titleColor || borderColor || color }}>{value}</p>
+                  </div>
+                  <div
+                    className="w-14 h-14 rounded-xl flex items-center justify-center shadow-md transition-transform group-hover:scale-110"
+                    style={{
+                      backgroundColor: color + "15",
+                      border: `2px solid ${color}40`,
+                    }}
+                  >
+                    <Icon size={28} style={{ color }} />
+                  </div>
                 </div>
-                  <Icon size={20} className={`${color} opacity-60`} />
+                <div
+                  className="absolute top-0 right-0 w-20 h-20 opacity-10"
+                  style={{ borderColor: color }}
+                >
+                  <div
+                    className="absolute inset-0 rounded-full"
+                    style={{ backgroundColor: color, transform: "translate(30%, -30%)" }}
+                  />
                 </div>
               </div>
             ))}
@@ -596,7 +628,7 @@ export default function OrdersPage() {
               onClick={() => setFilter(option.value)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === option.value
-                  ? "bg-[#84B067] text-white"
+                  ? "bg-[#5C8140] text-white"
                   : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
               }`}
             >
@@ -742,7 +774,7 @@ export default function OrdersPage() {
                     <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-2">
                       <Link
                         href={`/order/${order.id}`}
-                        className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-lg bg-[#84B067] text-white hover:bg-[#73995a] transition text-center"
+                        className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-lg bg-[#5C8140] text-white hover:bg-[#4a6b33] transition text-center"
                       >
                         View Details
                       </Link>
