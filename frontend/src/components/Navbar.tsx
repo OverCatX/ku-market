@@ -9,7 +9,10 @@ import { useCart } from "@/contexts/CartContext";
 
 // Lazy load NotificationBell to reduce initial bundle
 const NotificationBell = dynamic(
-  () => import("@/components/notifications").then((mod) => ({ default: mod.NotificationBell })),
+  () =>
+    import("@/components/notifications").then((mod) => ({
+      default: mod.NotificationBell,
+    })),
   { ssr: false }
 );
 
@@ -21,9 +24,16 @@ const NAV_LINKS = [
   { href: "/report", label: "report" },
 ] as const;
 
-// Memoize cart badge component
-const CartBadge = memo(function CartBadge({ count }: { count: number }) {
-  if (count <= 0) return null;
+// Memoize cart badge component - client-side only to prevent hydration mismatch
+const CartBadge = memo(function CartBadge({
+  count,
+  mounted,
+}: {
+  count: number;
+  mounted: boolean;
+}) {
+  // Don't render on server to prevent hydration mismatch
+  if (!mounted || count <= 0) return null;
   return (
     <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-gradient-to-br from-red-500 to-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg ring-2 ring-white">
       {count > 9 ? "9+" : count}
@@ -37,6 +47,7 @@ export const Header = memo(function Header() {
   const pathName = usePathname();
   const [profileLink, setProfileLink] = useState("/login");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { getTotalItems } = useCart();
 
   const linkClasses = useCallback(
@@ -48,6 +59,7 @@ export const Header = memo(function Header() {
   );
 
   useEffect(() => {
+    setMounted(true);
     const token = localStorage.getItem("authentication");
     setProfileLink(token ? "/profile" : "/login");
   }, []);
@@ -96,7 +108,7 @@ export const Header = memo(function Header() {
               title="Cart"
             >
               <ShoppingCart className="w-5 h-5 text-gray-800 group-hover:text-[#69773D] group-hover:scale-110 transition-all duration-300" />
-              <CartBadge count={totalItems} />
+              <CartBadge count={totalItems} mounted={mounted} />
             </Link>
 
             <div className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-gradient-to-br hover:from-green-50 hover:to-emerald-50/60 transition-all duration-300 border border-transparent hover:border-[#69773D]/10 hover:shadow-md hover:shadow-green-900/5">
@@ -161,7 +173,7 @@ export const Header = memo(function Header() {
                   <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   <span className="font-medium">Cart</span>
                 </div>
-                <CartBadge count={totalItems} />
+                <CartBadge count={totalItems} mounted={mounted} />
               </Link>
 
               <Link
