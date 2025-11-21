@@ -21,6 +21,12 @@ interface ShippingAddress {
   postalCode: string;
 }
 
+interface SenderAddress {
+  address: string;
+  city: string;
+  postalCode: string;
+}
+
 interface OrderDetailResponse {
   order: {
     id: string;
@@ -68,6 +74,121 @@ export default function SellerOrderLabelPage(): ReactElement {
 
   const [data, setData] = useState<OrderDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [senderAddress, setSenderAddress] = useState<SenderAddress>({
+    address: "",
+    city: "",
+    postalCode: "",
+  });
+  const [originalSenderAddress, setOriginalSenderAddress] = useState<SenderAddress>({
+    address: "",
+    city: "",
+    postalCode: "",
+  });
+  const [isEditingSender, setIsEditingSender] = useState(false);
+
+  // Load sender address from backend or localStorage
+  useEffect(() => {
+    const loadSenderAddress = async () => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("authentication") : null;
+      if (!token) {
+        // Fallback to localStorage if not logged in
+        const saved = localStorage.getItem("senderAddress");
+        if (saved) {
+          try {
+            const loaded = JSON.parse(saved);
+            setSenderAddress(loaded);
+            setOriginalSenderAddress(loaded);
+          } catch {
+            // Invalid JSON, ignore
+          }
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/api/shop/sender-address`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.senderAddress) {
+            const addr = result.senderAddress;
+            // Only set if address exists (not empty)
+            if (addr.address || addr.city || addr.postalCode) {
+              const loadedAddress = {
+                address: addr.address || "",
+                city: addr.city || "",
+                postalCode: addr.postalCode || "",
+              };
+              setSenderAddress(loadedAddress);
+              setOriginalSenderAddress(loadedAddress);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load sender address from backend:", error);
+        // Fallback to localStorage
+        const saved = localStorage.getItem("senderAddress");
+        if (saved) {
+          try {
+            const loaded = JSON.parse(saved);
+            setSenderAddress(loaded);
+            setOriginalSenderAddress(loaded);
+          } catch {
+            // Invalid JSON, ignore
+          }
+        }
+      }
+    };
+
+    void loadSenderAddress();
+  }, [orderId]);
+
+  // Show warning toast when sender address is missing after data loads
+  useEffect(() => {
+    if (!loading && data && !isEditingSender) {
+      const hasAddress = !!(senderAddress.address && senderAddress.city && senderAddress.postalCode);
+      if (!hasAddress && data.order.deliveryMethod === "delivery") {
+        // Show toast once when page loads
+        const hasShownWarning = sessionStorage.getItem("senderAddressWarningShown");
+        if (!hasShownWarning) {
+          toast(
+            (t) => (
+              <div className="flex items-center gap-2">
+                <span>⚠️ Please add your sender address for the delivery label</span>
+                <button
+                  onClick={() => {
+                    setOriginalSenderAddress({ ...senderAddress });
+                    setIsEditingSender(true);
+                    toast.dismiss(t.id);
+                  }}
+                  className="text-yellow-800 underline font-medium text-sm"
+                >
+                  Add Now
+                </button>
+              </div>
+            ),
+            {
+              duration: 5000,
+              icon: "⚠️",
+            }
+          );
+          sessionStorage.setItem("senderAddressWarningShown", "true");
+        }
+      }
+    }
+  }, [loading, data, senderAddress, isEditingSender]);
+
+  // Clear warning flag when address is saved
+  useEffect(() => {
+    const hasAddress = !!(senderAddress.address && senderAddress.city && senderAddress.postalCode);
+    if (hasAddress) {
+      sessionStorage.removeItem("senderAddressWarningShown");
+    }
+  }, [senderAddress]);
 
   useEffect(() => {
     if (!orderId) {
@@ -109,6 +230,56 @@ export default function SellerOrderLabelPage(): ReactElement {
 
     void loadOrder();
   }, [orderId, router]);
+
+  const handleSenderAddressChange = (field: keyof SenderAddress, value: string) => {
+    const updated = { ...senderAddress, [field]: value };
+    setSenderAddress(updated);
+    // Save to localStorage as backup
+    if (typeof window !== "undefined") {
+      localStorage.setItem("senderAddress", JSON.stringify(updated));
+    }
+  };
+
+  const handleSaveSenderAddress = async () => {
+    if (!senderAddress.address || !senderAddress.city || !senderAddress.postalCode) {
+      toast.error("Please fill in all sender address fields");
+      return;
+    }
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("authentication") : null;
+    if (!token) {
+      // Fallback to localStorage only
+      setIsEditingSender(false);
+      toast.success("Sender address saved locally");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/shop/sender-address`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(senderAddress),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to save sender address");
+      }
+
+      setIsEditingSender(false);
+      setOriginalSenderAddress(senderAddress);
+      toast.success("Sender address saved successfully");
+    } catch (error) {
+      console.error("Failed to save sender address:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to save sender address");
+      // Still save to localStorage as backup
+      setIsEditingSender(false);
+      toast("Saved locally as backup", { icon: "⚠️" });
+    }
+  };
 
   const isDeliveryOrder = useMemo(() => data?.order.deliveryMethod === "delivery", [data?.order.deliveryMethod]);
 
@@ -174,9 +345,44 @@ export default function SellerOrderLabelPage(): ReactElement {
   }
 
   const labelRef = data.order.id.slice(-8).toUpperCase();
+  const hasSenderAddress = !!(senderAddress.address && senderAddress.city && senderAddress.postalCode);
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 print:bg-white print:p-0">
+      {/* Warning banner if sender address is missing */}
+      {!hasSenderAddress && !isEditingSender && (
+        <div className="max-w-4xl mx-auto mb-4 print:hidden">
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg shadow-sm">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Sender Address Required
+                  </h3>
+                  <p className="mt-1 text-sm text-yellow-700">
+                    Please add your sender address to complete the delivery label. This information is required for shipping labels.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setOriginalSenderAddress({ ...senderAddress });
+                  setIsEditingSender(true);
+                }}
+                className="ml-4 flex-shrink-0 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-yellow-800 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+              >
+                Add Address Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center max-w-4xl mx-auto mb-4 print:hidden">
         <button
           onClick={() => router.back()}
@@ -212,13 +418,98 @@ export default function SellerOrderLabelPage(): ReactElement {
         <div className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="border border-gray-200 rounded-lg p-4">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">Sender</h2>
+              <div className="flex justify-between items-start mb-2 print:hidden">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase">Sender</h2>
+                {!isEditingSender && (
+                  <button
+                    onClick={() => {
+                      setOriginalSenderAddress({ ...senderAddress });
+                      setIsEditingSender(true);
+                    }}
+                    className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                  >
+                    Edit Address
+                  </button>
+                )}
+              </div>
+              <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2 hidden print:block">Sender</h2>
               <p className="text-lg font-bold text-gray-900">{data.seller.shopName || data.seller.name}</p>
-              <p className="text-sm text-gray-600 mt-1">
-                {data.seller.name}
-                {data.seller.phone ? ` • ${data.seller.phone}` : ""}
-              </p>
+              <p className="text-sm text-gray-600 mt-1">{data.seller.name}</p>
+              {data.seller.phone && <p className="text-sm text-gray-600 mt-1">Phone: {data.seller.phone}</p>}
               <p className="text-sm text-gray-500 mt-1">{data.seller.email}</p>
+              
+              {isEditingSender ? (
+                <div className="mt-4 space-y-3 print:hidden">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Address</label>
+                    <input
+                      type="text"
+                      value={senderAddress.address}
+                      onChange={(e) => handleSenderAddressChange("address", e.target.value)}
+                      placeholder="Enter street address"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">City</label>
+                      <input
+                        type="text"
+                        value={senderAddress.city}
+                        onChange={(e) => handleSenderAddressChange("city", e.target.value)}
+                        placeholder="City"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Postal Code</label>
+                      <input
+                        type="text"
+                        value={senderAddress.postalCode}
+                        onChange={(e) => handleSenderAddressChange("postalCode", e.target.value)}
+                        placeholder="Postal code"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSaveSenderAddress}
+                      className="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-medium"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingSender(false);
+                        // Revert to original state before editing
+                        setSenderAddress({ ...originalSenderAddress });
+                      }}
+                      className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-medium"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-3">
+                  {senderAddress.address && senderAddress.city && senderAddress.postalCode ? (
+                    <p className="text-sm text-gray-600 mt-1">
+                      {senderAddress.address}, {senderAddress.city} {senderAddress.postalCode}
+                    </p>
+                  ) : (
+                    <div className="mt-2 print:hidden">
+                      <div className="bg-amber-50 border border-amber-200 rounded-md p-2">
+                        <p className="text-xs text-amber-800 font-medium mb-1">⚠️ Sender address missing</p>
+                        <p className="text-xs text-amber-700">
+                          This address is required for delivery labels. Please add your address above.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <p className="text-xs text-gray-400 mt-3">Shop type: {data.seller.shopType}</p>
             </div>
 

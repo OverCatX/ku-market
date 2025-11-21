@@ -282,6 +282,7 @@ export default class ShopController {
                     shopRequestDate: shop.shopRequestDate,
                     shopApprovalDate: shop.shopApprovalDate,
                     shopRejectionReason: shop.shopRejectionReason,
+                    senderAddress: shop.senderAddress,
                     owner: shop.owner,
                     createdAt: shop.createdAt,
                     updatedAt: shop.updatedAt
@@ -561,6 +562,79 @@ export default class ShopController {
             });
         } catch (err: unknown) {
             console.error("Reject shop error:", err);
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
+        }
+    }
+
+    // Get sender address for shop
+    getSenderAddress = async(req: Request, res: Response) => {
+        try {
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
+
+            const shop = await Shop.findOne({ owner: new mongoose.Types.ObjectId(userId) });
+            if (!shop) {
+                return res.status(404).json({ error: "Shop not found" });
+            }
+
+            return res.status(200).json({
+                success: true,
+                senderAddress: shop.senderAddress || {
+                    address: "",
+                    city: "",
+                    postalCode: ""
+                }
+            });
+        } catch (err: unknown) {
+            console.error("Get sender address error:", err);
+            const message = err instanceof Error ? err.message : "Server error";
+            return res.status(500).json({ error: message });
+        }
+    }
+
+    // Update sender address for shop
+    updateSenderAddress = async(req: Request, res: Response) => {
+        try {
+            const userId = (req as AuthenticatedRequest).user?.id;
+            if (!userId) {
+                return res.status(401).json({ error: "User not authenticated" });
+            }
+
+            const { address, city, postalCode } = req.body;
+
+            // Validate required fields
+            if (!address || !city || !postalCode) {
+                return res.status(400).json({ error: "Address, city, and postal code are required" });
+            }
+
+            const shop = await Shop.findOne({ owner: new mongoose.Types.ObjectId(userId) });
+            if (!shop) {
+                return res.status(404).json({ error: "Shop not found" });
+            }
+
+            if (shop.shopStatus !== "approved") {
+                return res.status(400).json({ error: "Only approved shops can update sender address" });
+            }
+
+            // Update sender address
+            shop.senderAddress = {
+                address: address.trim(),
+                city: city.trim(),
+                postalCode: postalCode.trim(),
+            };
+
+            await shop.save();
+
+            return res.status(200).json({
+                success: true,
+                message: "Sender address updated successfully",
+                senderAddress: shop.senderAddress
+            });
+        } catch (err: unknown) {
+            console.error("Update sender address error:", err);
             const message = err instanceof Error ? err.message : "Server error";
             return res.status(500).json({ error: message });
         }

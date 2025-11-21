@@ -32,6 +32,8 @@ router.put(
 router.delete("/delete", authenticate, shopController.userDeleteShop);
 router.delete("/cancel", authenticate, shopController.cancelShopRequest);
 router.get("/my-shop", authenticate, shopController.userGetShop);
+router.get("/sender-address", authenticate, shopController.getSenderAddress);
+router.put("/sender-address", authenticate, shopController.updateSenderAddress);
 
 // Public shop browsing
 router.get("/", validatePagination, shopController.getAllShops);
