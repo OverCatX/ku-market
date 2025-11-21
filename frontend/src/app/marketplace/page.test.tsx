@@ -115,17 +115,6 @@ Object.defineProperty(window, "scrollTo", {
   writable: true,
 });
 
-// Helper function to wait for categories to load
-const waitForCategories = async () => {
-  await waitFor(() => {
-    const categorySelect = screen.getAllByRole("combobox")[1];
-    const electronicsOption = Array.from(categorySelect.querySelectorAll("option")).find(
-      (opt) => opt.getAttribute("value") === "electronics"
-    );
-    expect(electronicsOption).toBeInTheDocument();
-  }, { timeout: 3000 });
-};
-
 describe("MarketPage - Integration Tests", () => {
   const mockItems = [
     createMockItem({
@@ -157,7 +146,7 @@ describe("MarketPage - Integration Tests", () => {
   afterEach(() => {
     try {
       jest.runOnlyPendingTimers();
-    } catch (e) {
+    } catch {
       // Ignore if no fake timers are active
     }
     jest.useRealTimers();

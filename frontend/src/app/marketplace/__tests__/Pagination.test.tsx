@@ -2,10 +2,7 @@ import {
   render,
   screen,
   waitFor,
-  fireEvent,
-  act,
 } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import MarketPage from "../page";
 import { listItems } from "@/config/items";
 import type { MockListItems } from "@/test/types//test-types";

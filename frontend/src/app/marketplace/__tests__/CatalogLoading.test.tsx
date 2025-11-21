@@ -78,7 +78,7 @@ describe("Catalog Loading Tests", () => {
   afterEach(() => {
     try {
       jest.runOnlyPendingTimers();
-    } catch (e) {
+    } catch {
       // Ignore if no fake timers are active
     }
     jest.useRealTimers();
