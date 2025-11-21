@@ -125,7 +125,36 @@ For pickup orders, you'll meet the seller at a designated **meetup point**. The 
 1. After payment, wait for the seller to **ship your order**. You'll receive updates on the shipping status.
 2. The order will be marked as **completed** automatically after the delivery is confirmed. No additional action is required from you.
 
-### 7. Manage Profile
+### 7. Write Reviews
+
+After completing an order, you can write a review to share your experience with other buyers.
+
+1. Go to the item page you purchased
+2. Scroll to the "Reviews" section
+3. Click "Write a Review" button
+4. Fill in:
+   - **Rating** (1-5 stars) - Required
+   - **Title** (optional, max 200 characters)
+   - **Comment** (required, 10-2000 characters)
+   - **Photos** (optional, up to 5 images)
+5. Click "Submit Review"
+
+**Review Guidelines:**
+
+- You can only review items you've purchased
+- One review per item (you can edit or delete your review)
+- Reviews are marked as "Verified Purchase" if you bought the item
+- Be honest and helpful to other buyers
+
+**Review Protection:**
+
+- ✅ **Identity Verification Required** - You must verify your identity before submitting reviews
+- ✅ **One Review Per Item** - Prevents duplicate reviews from the same user
+- ✅ **Rate Limiting** - Limited to 5 reviews per hour to prevent spam
+- ✅ **Verified Purchase Badge** - Reviews from actual buyers are marked as verified
+- ✅ **Input Validation** - All reviews are validated for content length and format
+
+### 8. Manage Profile
 
 1. Go to `/profile`
 2. View/edit personal information
@@ -179,7 +208,24 @@ After approval:
 3. Edit or delete items
 4. Update stock quantities
 
-### 5. Manage Orders
+### 5. View Product Reviews
+
+1. Go to your item page
+2. Scroll to the "Reviews" section
+3. View all reviews from buyers:
+   - Rating and comments
+   - Verified purchase badges
+   - Helpful votes
+   - Review photos
+4. Reviews help build trust with potential buyers
+
+**Review Management:**
+
+- You cannot delete buyer reviews (only buyers can delete their own)
+- Respond to reviews by improving your products and service
+- Monitor review ratings to understand customer satisfaction
+
+### 6. Manage Orders
 
 1. Go to `/seller/orders`
 2. View customer orders:
@@ -281,6 +327,39 @@ For a visual, interactive guide with step-by-step instructions, visit the **User
 - The guide provides role-specific instructions (Buyer, Seller, Admin)
 - Includes detailed order tracking workflows with visual status indicators
 - Interactive elements and animations for better understanding
+
+## Review & Rating System
+
+### Security & Protection Measures
+
+KU Market implements multiple layers of protection to ensure review authenticity and prevent abuse:
+
+#### 🔐 Authentication & Verification
+
+- **Identity Verification Required**: Users must complete identity verification before submitting reviews
+- **Account Authentication**: Only logged-in users can write reviews
+- **Verified Purchase Badge**: Reviews from users who actually purchased the item are marked as "Verified Purchase"
+
+#### 🛡️ Anti-Abuse Protection
+
+- **One Review Per Item**: Each user can only write one review per item (prevents duplicate reviews)
+- **Rate Limiting**:
+  - Maximum 5 reviews per hour per user
+  - Maximum 20 helpful votes per hour per user
+  - Maximum 10 review deletions per hour per user
+- **Input Validation**:
+  - Rating must be between 1-5 stars
+  - Comment must be 10-2000 characters
+  - Title must not exceed 200 characters
+  - Maximum 5 images per review
+
+#### ✅ Quality Assurance
+
+- **Duplicate Prevention**: Database-level unique constraint prevents multiple reviews from the same user on the same item
+- **Content Moderation**: All reviews are subject to platform guidelines
+- **User Accountability**: Reviews are tied to verified user accounts
+
+These measures ensure that reviews are authentic, helpful, and trustworthy for all users.
 
 ## Need Help?
 

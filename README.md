@@ -17,6 +17,7 @@ An online marketplace platform for Kasetsart University students to buy and sell
 - **Delivery** - Pickup at meetup points or home delivery with interactive maps
 - **Communication** - Real-time notifications, live chat between buyers/sellers
 - **Orders** - Two-step confirmation workflow, complete order tracking
+- **Reviews & Ratings** - Product reviews with verified purchase badges, rate limiting, and anti-abuse protection
 - **Admin Panel** - Dashboard, verification management, shop moderation, meetup preset manager
 
 ## Quick Start
