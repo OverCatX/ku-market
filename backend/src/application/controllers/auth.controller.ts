@@ -321,9 +321,21 @@ export default class AuthController {
             try {
                 await sendPasswordResetOtp(user.kuEmail, otp, user.name);
             } catch (emailError) {
-                logger.error("Error sending password reset OTP:", emailError);
+                const errorMessage = emailError instanceof Error ? emailError.message : String(emailError);
+                logger.error("Error sending password reset OTP:", errorMessage);
+                
+                // Provide more specific error message to user
+                let userFriendlyMessage = "Failed to send OTP email. Please try again later.";
+                if (errorMessage.includes("SMTP credentials not configured")) {
+                    userFriendlyMessage = "Email service is not configured. Please contact support.";
+                } else if (errorMessage.includes("authentication failed")) {
+                    userFriendlyMessage = "Email service authentication failed. Please contact support.";
+                } else if (errorMessage.includes("timeout")) {
+                    userFriendlyMessage = "Email service is temporarily unavailable. Please try again in a moment.";
+                }
+                
                 return res.status(500).json({ 
-                    error: "Failed to send OTP email. Please try again later." 
+                    error: userFriendlyMessage 
                 });
             }
 
