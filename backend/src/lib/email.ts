@@ -7,39 +7,75 @@ interface SendEmailOptions {
   html: string;
 }
 
+// Reusable transporter instance (singleton pattern)
+let emailTransporter: nodemailer.Transporter | null = null;
+
+function getEmailTransporter(): nodemailer.Transporter | null {
+  // Return existing transporter if already created
+  if (emailTransporter) {
+    return emailTransporter;
+  }
+
+  // Verify transporter configuration
+  const smtpEmail = process.env.SMTP_EMAIL?.trim() || process.env.SMTP_USER?.trim();
+  const smtpPassword = process.env.SMTP_PASSWORD?.trim() || process.env.SMTP_PASS?.trim();
+  
+  if (!smtpEmail || !smtpPassword) {
+    logger.warn("SMTP credentials not configured. Email will not be sent.");
+    return null;
+  }
+  
+  // Create transporter with Gmail defaults and timeout settings
+  emailTransporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: smtpEmail,
+      pass: smtpPassword,
+    },
+    connectionTimeout: 10000, // 10 seconds connection timeout
+    socketTimeout: 10000, // 10 seconds socket timeout
+    greetingTimeout: 10000, // 10 seconds greeting timeout
+    pool: true, // Use connection pooling
+    maxConnections: 5, // Maximum number of connections in pool
+    maxMessages: 100, // Maximum messages per connection
+  });
+
+  return emailTransporter;
+}
+
 export async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<void> {
   try {
-    // Verify transporter configuration
-    const smtpEmail = process.env.SMTP_EMAIL?.trim() || process.env.SMTP_USER?.trim();
-    const smtpPassword = process.env.SMTP_PASSWORD?.trim() || process.env.SMTP_PASS?.trim();
+    const transporter = getEmailTransporter();
     
-    if (!smtpEmail || !smtpPassword) {
-      logger.warn("SMTP credentials not configured. Email will not be sent.");
+    if (!transporter) {
+      logger.warn("Email transporter not available. Email will not be sent.");
       logger.log("Email that would be sent:", { to, subject });
       return;
     }
-    
-    // Create transporter with Gmail defaults
-    const emailTransporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: smtpEmail,
-        pass: smtpPassword,
-      },
-    });
 
-    const info = await emailTransporter.sendMail({
-      from: `"KU Market" <${smtpEmail}>`,
-      to,
-      subject,
-      html,
-    });
+    // Send email with timeout
+    const info = await Promise.race([
+      transporter.sendMail({
+        from: `"KU Market" <${process.env.SMTP_EMAIL?.trim() || process.env.SMTP_USER?.trim()}>`,
+        to,
+        subject,
+        html,
+      }),
+      new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error("Email sending timeout after 15 seconds")), 15000)
+      ),
+    ]);
 
     logger.log("Email sent successfully:", info.messageId);
   } catch (error) {
     logger.error("Error sending email:", error);
+    // Reset transporter on error to force recreation on next attempt
+    if (emailTransporter) {
+      emailTransporter.close();
+      emailTransporter = null;
+    }
     throw error;
   }
 }

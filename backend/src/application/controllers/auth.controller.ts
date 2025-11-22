@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { sendPasswordResetOtp } from "../../lib/email";
 import { logActivity } from "../../lib/activityLogger";
 import { AuthenticatedRequest } from "../middlewares/authentication";
+import { logger } from "../../lib/logger";
 
 interface GoogleProfile {
     kuEmail?: string;
@@ -320,7 +321,7 @@ export default class AuthController {
             try {
                 await sendPasswordResetOtp(user.kuEmail, otp, user.name);
             } catch (emailError) {
-                console.error("Error sending password reset OTP:", emailError);
+                logger.error("Error sending password reset OTP:", emailError);
                 return res.status(500).json({ 
                     error: "Failed to send OTP email. Please try again later." 
                 });
@@ -331,7 +332,7 @@ export default class AuthController {
                 message: "OTP has been sent to your email. Please check your inbox.",
             });
         } catch (err: unknown) {
-            console.error("Forgot password error:", err);
+            logger.error("Forgot password error:", err);
             const message = err instanceof Error ? err.message : "Server error";
             return res.status(500).json({ error: message });
         }
@@ -384,7 +385,7 @@ export default class AuthController {
                 resetToken: resetToken, // Return token for frontend to use
             });
         } catch (err: unknown) {
-            console.error("Verify OTP error:", err);
+            logger.error("Verify OTP error:", err);
             const message = err instanceof Error ? err.message : "Server error";
             return res.status(500).json({ error: message });
         }
@@ -423,7 +424,7 @@ export default class AuthController {
                 message: "Password has been reset successfully",
             });
         } catch (err: unknown) {
-            console.error("Reset password error:", err);
+            logger.error("Reset password error:", err);
             const message = err instanceof Error ? err.message : "Server error";
             return res.status(500).json({ error: message });
         }
