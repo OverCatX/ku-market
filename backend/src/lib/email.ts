@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { logger } from "./logger";
 
 interface SendEmailOptions {
   to: string;
@@ -13,8 +14,8 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
     const smtpPassword = process.env.SMTP_PASSWORD?.trim() || process.env.SMTP_PASS?.trim();
     
     if (!smtpEmail || !smtpPassword) {
-      console.warn("SMTP credentials not configured. Email will not be sent.");
-      console.log("Email that would be sent:", { to, subject });
+      logger.warn("SMTP credentials not configured. Email will not be sent.");
+      logger.log("Email that would be sent:", { to, subject });
       return;
     }
     
@@ -36,9 +37,9 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
       html,
     });
 
-    console.log("Email sent successfully:", info.messageId);
+    logger.log("Email sent successfully:", info.messageId);
   } catch (error) {
-    console.error("Error sending email:", error);
+    logger.error("Error sending email:", error);
     throw error;
   }
 }

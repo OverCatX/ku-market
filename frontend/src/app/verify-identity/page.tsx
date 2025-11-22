@@ -62,7 +62,6 @@ export default function VerifyIdentityPage() {
           }
         } catch {
           // No verification found, that's okay
-          console.log("No existing verification found");
         }
       } catch (error) {
         console.error("Error fetching data:", error);

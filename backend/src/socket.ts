@@ -57,7 +57,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
       return;
     }
 
-    console.log(`User ${userId} connected: ${socket.id}`);
+    // User connected (logged via morgan in production)
     
     // Store user's socket ID
     activeUsers.set(userId, socket.id);
@@ -278,7 +278,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
 
     // Handle disconnect
     socket.on("disconnect", () => {
-      console.log(`User ${userId} disconnected: ${socket.id}`);
+      // User disconnected (logged via morgan in production)
       activeUsers.delete(userId);
     });
   });

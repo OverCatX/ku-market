@@ -8,7 +8,6 @@ const parseStoredUser = (): Record<string, unknown> | null => {
     if (!raw) return null;
     return JSON.parse(raw) as Record<string, unknown>;
   } catch (error) {
-    console.warn("Failed to parse stored user", error);
     return null;
   }
 };
@@ -33,7 +32,6 @@ export function getAuthToken(): string | null {
   
   // Check if token is expired
   if (isTokenExpired(token)) {
-    console.log("🔑 Token expired, clearing authentication");
     clearAuthTokens();
     return null;
   }
@@ -66,7 +64,6 @@ export function updateStoredUser(partial: Record<string, unknown>): void {
     const merged = { ...current, ...partial };
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(merged));
   } catch (error) {
-    console.warn("Failed to update stored user", error);
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(partial));
     } catch {

@@ -4,8 +4,13 @@ import { createServer } from "http";
 import app from "./app";
 import { initializeSocket } from "./socket";
 import { startWakeUpService } from "./lib/wake-up.service";
+import { validateEnv } from "./lib/envValidation";
+import { logger } from "./lib/logger";
 
 dotenv.config();
+
+// Validate environment variables
+validateEnv();
 
 const PORT = process.env.PORT || 5000;
 
@@ -17,7 +22,7 @@ process.env.HEALTH_ENDPOINT = HEALTH_URL;
 
 mongoose.connect(process.env.MONGO_URL as string)
   .then(() => {
-    console.log("MongoDB connected");
+    logger.log("MongoDB connected");
     
     // Create HTTP server
     const httpServer = createServer(app);
@@ -27,11 +32,11 @@ mongoose.connect(process.env.MONGO_URL as string)
     
     // Start server
     httpServer.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`WebSocket server initialized`);
+      logger.log(`Server running on port ${PORT}`);
+      logger.log(`WebSocket server initialized`);
 
       // Start wake-up service after server is ready
       startWakeUpService();
     });
   })
-  .catch(err => console.error("MongoDB connection error:", err));
+  .catch(err => logger.error("MongoDB connection error:", err));

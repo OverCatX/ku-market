@@ -1,9 +1,10 @@
-import express, { Application } from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 import passport from "./lib/passport";
+import { logger } from "./lib/logger";
 import authRoutes from "./application/routes/auth";
 import profileRoutes from "./application/routes/profile";
 import itemRoutes from "./application/routes/items";
@@ -35,8 +36,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(express.json());
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 if (process.env.SESSION_SECRET) {
   app.use(session({
@@ -66,5 +68,30 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/checkout", checkoutRoutes);
 app.use("/api/meetup-presets", meetupPresetRoutes);
+
+// Error handling middleware (must be last)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  logger.error("Error:", err);
+  
+  // Don't leak error details in production
+  const message = process.env.NODE_ENV === "production" 
+    ? "Internal server error" 
+    : err.message;
+  
+  res.status(500).json({
+    success: false,
+    message,
+    ...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
+  });
+});
+
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
 
 export default app;

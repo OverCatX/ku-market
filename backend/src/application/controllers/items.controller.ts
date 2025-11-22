@@ -33,7 +33,7 @@ export default class ItemController {
             
             for (let i = 0; i < files.length; i++) {
                 try {
-                    console.log(`Uploading image ${i + 1}/${files.length}...`);
+                    // Uploading image (progress not logged in production)
                     const imageUrl = await uploadToCloudinary(files[i].buffer);
                     imageUrls.push(imageUrl);
                 } catch (uploadError) {

@@ -102,7 +102,6 @@ export default function ProfilePage() {
           }
         } catch (err) {
           // No shop or error - ignore
-          console.log("No shop found:", err);
         }
       } catch {
         localStorage.removeItem("authentication");

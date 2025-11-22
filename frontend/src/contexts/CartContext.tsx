@@ -72,7 +72,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         errorMessage.toLowerCase().includes("cannot connect to server") ||
         errorMessage.toLowerCase().includes("network error")
       ) {
-        console.warn("⚠️ Cannot connect to backend. Using local cart storage.");
+        // Cannot connect to backend, using local storage
         const saved = localStorage.getItem("cart");
         if (saved) {
           try {
@@ -91,9 +91,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         errorMessage.toLowerCase().includes("unauthorized") ||
         errorMessage.toLowerCase().includes("please login")
       ) {
-        console.log(
-          "🔑 Invalid token detected, clearing and switching to guest mode"
-        );
+        // Invalid token detected, clearing and switching to guest mode
         clearAuthTokens();
       }
 
@@ -129,7 +127,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         try {
           localStorage.setItem("cart", JSON.stringify(items));
         } catch (error) {
-          console.warn("Failed to save cart to localStorage:", error);
+          // Failed to save cart to localStorage
         }
       }, 300); // 300ms debounce
     }
@@ -168,7 +166,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           errorMessage.toLowerCase().includes("unauthorized") ||
           errorMessage.toLowerCase().includes("please login")
         ) {
-          console.log("🔑 Invalid token detected during refresh, clearing");
+          // Invalid token detected during refresh, clearing
           clearAuthTokens();
         }
 
@@ -202,7 +200,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           newItem.sellerId &&
           String(user._id) === String(newItem.sellerId)
         ) {
-          console.warn("Attempt to add own item to cart blocked");
+          // Attempt to add own item to cart blocked
           throw new Error("You cannot purchase your own item");
         }
       } catch {
@@ -318,7 +316,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           errorMessage.toLowerCase().includes("unauthorized") ||
           errorMessage.toLowerCase().includes("please login")
         ) {
-          console.log("🔑 Invalid token, switching to guest mode for add");
+          // Invalid token, switching to guest mode for add
           clearAuthTokens();
           // Add to cart locally with quantity limit check
           setItems((prev) => {
@@ -411,7 +409,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           errorMessage.toLowerCase().includes("unauthorized") ||
           errorMessage.toLowerCase().includes("please login")
         ) {
-          console.log("🔑 Invalid token, switching to guest mode for remove");
+          // Invalid token, switching to guest mode for remove
           clearAuthTokens();
           return;
         }
@@ -507,7 +505,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           errorMessage.toLowerCase().includes("unauthorized") ||
           errorMessage.toLowerCase().includes("please login")
         ) {
-          console.log("🔑 Invalid token, switching to guest mode for update");
+          // Invalid token, switching to guest mode for update
           clearAuthTokens();
           return;
         }
@@ -546,7 +544,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         errorMessage.toLowerCase().includes("unauthorized") ||
         errorMessage.toLowerCase().includes("please login")
       ) {
-        console.log("🔑 Invalid token, switching to guest mode for clear");
+        // Invalid token, switching to guest mode for clear
         clearAuthTokens();
         localStorage.removeItem("cart");
         return;

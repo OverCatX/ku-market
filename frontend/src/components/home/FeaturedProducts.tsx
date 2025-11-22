@@ -64,7 +64,6 @@ export default function FeaturedProducts() {
     } catch (error) {
       // Only log non-AbortError errors
       if (error instanceof Error && error.name !== "AbortError") {
-        console.warn("Fetch featured items error:", error);
       }
       setItems([]);
     } finally {

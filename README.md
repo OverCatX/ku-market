@@ -64,6 +64,7 @@ npm install && npm run dev
 - [User Guide](docs/USER_GUIDE.md) - How to use the platform
 - [API Documentation](docs/API.md) - API reference
 - [Code Guidelines](docs/CODE_GUIDELINES.md) - Performance optimization techniques and coding standards
+- [Production Deployment](docs/PRODUCTION.md) - Production deployment guide
 - [Frontend Project Structure](frontend/PROJECT_STRUCTURE.md) - Frontend architecture and structure
 - [Backend Project Structure](backend/PROJECT_STRUCTURE.md) - Backend architecture and structure
 - [Project Wiki](https://github.com/OverCatX/ku-market/wiki) - Project overview

@@ -197,7 +197,6 @@ export default function MarketPage() {
       }
       // Only log non-AbortError errors
       if (err instanceof Error) {
-        console.warn("Fetch items error:", err.message);
       }
       setError(
         "Failed to load items. Please check your connection and try again."

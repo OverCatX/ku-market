@@ -2,15 +2,16 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import dotenv from "dotenv";
 import User from "../data/models/User";
+import { logger } from "./logger";
 
 dotenv.config();
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     const callbackURL = process.env.GOOGLE_REDIRECT_URI as string;
-    console.log("🔐 Google OAuth Configuration:");
-    console.log("   Callback URL:", callbackURL);
-    console.log("   ⚠️  Make sure this EXACT URL is in Google Cloud Console > Credentials > OAuth 2.0 Client ID > Authorized redirect URIs");
-    console.log("   ⚠️  Check for: trailing slash, port number, http vs https");
+    logger.log("🔐 Google OAuth Configuration:");
+    logger.log("   Callback URL:", callbackURL);
+    logger.log("   ⚠️  Make sure this EXACT URL is in Google Cloud Console > Credentials > OAuth 2.0 Client ID > Authorized redirect URIs");
+    logger.log("   ⚠️  Check for: trailing slash, port number, http vs https");
     
     passport.use(new GoogleStrategy(
         {

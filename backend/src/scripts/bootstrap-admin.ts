@@ -27,24 +27,17 @@ async function bootstrapAdmin() {
       process.exit(1);
     }
 
-    console.log("🔌 Connecting to MongoDB...");
     await mongoose.connect(mongoUrl);
-    console.log("✅ Connected to MongoDB\n");
 
     // Check if any admin exists
     const existingAdmin = await User.findOne({ role: "admin" });
     if (existingAdmin) {
-      console.log("⚠️  Admin already exists!");
-      console.log(`   Email: ${existingAdmin.kuEmail}`);
-      console.log("   Use the promote endpoint or delete existing admin first.\n");
       rl.close();
       await mongoose.disconnect();
       process.exit(0);
     }
 
     // Get admin details
-    console.log("📝 Create Admin Account");
-    console.log("   (Email must be @ku.ac.th)\n");
 
     const name = await question("Name: ");
     if (!name.trim()) {
@@ -120,10 +113,6 @@ async function bootstrapAdmin() {
 
     await admin.save();
 
-    console.log("\n✅ Admin account created successfully!");
-    console.log(`   Name: ${admin.name}`);
-    console.log(`   Email: ${admin.kuEmail}`);
-    console.log(`   Role: ${admin.role}\n`);
 
     rl.close();
     await mongoose.disconnect();

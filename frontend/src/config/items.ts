@@ -105,7 +105,6 @@ export async function listItems(
     const data: ListItemsResponse = await res.json();
 
     if (!data.success) {
-      console.warn("API returned success: false", data);
     }
 
     return data;

@@ -241,7 +241,6 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
         return;
       }
       if (!res.ok) {
-        console.warn("Failed to load threads", res.statusText);
         return;
       }
       const data = (await res.json()) as unknown;
@@ -282,7 +281,6 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
 
       preferredThreadRef.current = null;
     } catch (error) {
-      console.warn("failed to fetch threads", error);
     }
   }, [selectedId]);
 
@@ -328,7 +326,6 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
       buildAuthOptions({
         method: "POST",
       })
-    ).catch((err) => console.warn("mark_read failed", err));
   }, []);
 
   useEffect(() => {
@@ -350,7 +347,6 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
           return;
         }
         if (!res.ok) {
-          console.warn("failed to load messages", res.statusText);
           return;
         }
         const data = (await res.json()) as RawMessagesResponse | null;
@@ -382,7 +378,6 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
         markThreadReadLocally(key);
         markThreadReadOnServer(key);
       } catch (error) {
-        console.warn("failed to load messages", error);
       }
     }
 

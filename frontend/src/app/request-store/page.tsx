@@ -93,13 +93,11 @@ export default function BecomeASeller() {
       // Decode JWT to get user data (fast, no API call needed!)
       const tokenData = getUserFromToken(token);
       if (!tokenData) {
-        console.log("❌ Invalid or expired token");
         localStorage.clear();
         router.replace("/login?redirect=/request-store");
         return;
       }
 
-      console.log("✅ Token data:", tokenData);
 
       // Check if user is verified; if not, refresh from server once
       if (!tokenData.isVerified) {
@@ -122,12 +120,10 @@ export default function BecomeASeller() {
               // ignore storage errors
             }
           } else {
-            console.log("⚠️ User not verified");
             router.replace("/verify-identity");
             return;
           }
         } catch {
-          console.log("⚠️ Could not refresh verification status");
           router.replace("/verify-identity");
           return;
         }
@@ -145,7 +141,6 @@ export default function BecomeASeller() {
             phone: userData.contact || prev.phone,
           }));
         } catch {
-          console.log("Failed to parse user data from localStorage");
         }
       }
 
@@ -171,7 +166,6 @@ export default function BecomeASeller() {
         }
       } catch (error) {
         // No shop found - user can apply
-        console.log("No shop found:", error);
       }
 
       // Authentication check complete
@@ -336,7 +330,6 @@ export default function BecomeASeller() {
         formData.append("photo", form.profileImage);
       }
 
-      console.log("📦 Submitting:", {
         shopName: form.businessName.trim(),
         shopNameLength: form.businessName.trim().length,
         shopType: form.businessType,

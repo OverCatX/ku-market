@@ -4,6 +4,8 @@
  * to prevent the server from going to sleep
  */
 
+import { logger } from "./logger";
+
 const WAKE_UP_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes in milliseconds
 
 let wakeUpInterval: NodeJS.Timeout | null = null;
@@ -37,12 +39,12 @@ const wakeUp = async () => {
     
     if (response.ok) {
       const data = await response.json() as { timestamp: string };
-      console.log(`[Wake-up] Server pinged successfully at ${data.timestamp}`);
+      logger.log(`[Wake-up] Server pinged successfully at ${data.timestamp}`);
     } else {
-      console.warn(`[Wake-up] Health check returned status ${response.status}`);
+      logger.warn(`[Wake-up] Health check returned status ${response.status}`);
     }
   } catch (error) {
-    console.error(`[Wake-up] Failed to ping server at ${healthEndpoint}:`, error);
+    logger.error(`[Wake-up] Failed to ping server at ${healthEndpoint}:`, error);
   }
 };
 
@@ -58,8 +60,8 @@ export const startWakeUpService = () => {
   
   if (shouldStart) {
     const intervalMinutes = WAKE_UP_INTERVAL_MS / 1000 / 60;
-    console.log(`[Wake-up] Starting wake-up service. Pinging every ${intervalMinutes} minutes`);
-    console.log(`[Wake-up] Health endpoint: ${getHealthEndpoint()}`);
+    logger.log(`[Wake-up] Starting wake-up service. Pinging every ${intervalMinutes} minutes`);
+    logger.log(`[Wake-up] Health endpoint: ${getHealthEndpoint()}`);
     
     // Initial ping after 1 minute (give server time to fully start)
     setTimeout(wakeUp, 60 * 1000);
@@ -67,7 +69,7 @@ export const startWakeUpService = () => {
     // Schedule periodic pings
     wakeUpInterval = setInterval(wakeUp, WAKE_UP_INTERVAL_MS);
   } else {
-    console.log("[Wake-up] Service disabled (set ENABLE_WAKE_UP=true to enable)");
+    logger.log("[Wake-up] Service disabled (set ENABLE_WAKE_UP=true to enable)");
   }
 };
 
@@ -75,7 +77,7 @@ export const stopWakeUpService = () => {
   if (wakeUpInterval) {
     clearInterval(wakeUpInterval);
     wakeUpInterval = null;
-    console.log("[Wake-up] Service stopped");
+    logger.log("[Wake-up] Service stopped");
   }
 };
 

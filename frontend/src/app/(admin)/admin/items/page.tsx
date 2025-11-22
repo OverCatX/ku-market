@@ -166,12 +166,10 @@ const ItemCard = memo(function ItemCard({
   const formatDate = (dateString: string | undefined): string => {
     try {
       if (!dateString) {
-        console.warn("formatDate: No dateString provided");
         return "N/A";
       }
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
-        console.warn("formatDate: Invalid date", dateString);
         return "Invalid date";
       }
       return new Intl.DateTimeFormat("th-TH", {

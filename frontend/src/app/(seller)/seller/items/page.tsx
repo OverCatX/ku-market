@@ -234,7 +234,6 @@ export default function SellerItems() {
                     try {
                       const date = new Date(item.createdAt);
                       if (isNaN(date.getTime())) {
-                        console.warn("Invalid date:", item.createdAt);
                         return "Invalid date";
                       }
                       return new Intl.DateTimeFormat("th-TH", {

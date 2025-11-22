@@ -79,23 +79,18 @@ async function seedMeetupPresets() {
     }
 
     await mongoose.connect(mongoUri);
-    console.log("Connected to MongoDB");
 
     // Check if presets already exist
     const existingCount = await MeetupPreset.countDocuments();
     if (existingCount > 0) {
-      console.log(`Found ${existingCount} existing presets. Skipping seed.`);
-      console.log("To reseed, delete all presets first or use --force flag");
       await mongoose.connection.close();
       return;
     }
 
     // Insert default presets
     const presets = await MeetupPreset.insertMany(defaultPresets);
-    console.log(`Successfully seeded ${presets.length} meetup presets`);
 
     await mongoose.connection.close();
-    console.log("Database connection closed");
   } catch (error) {
     console.error("Error seeding meetup presets:", error);
     process.exit(1);

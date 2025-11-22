@@ -47,7 +47,6 @@ export default function ReviewForm({
         return true;
       }
     } catch (error) {
-      console.warn("Failed to refresh verification status", error);
     }
     return false;
   };
