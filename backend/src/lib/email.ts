@@ -25,6 +25,13 @@ function getResendClient(): { client: Resend; from: string } | null {
   logger.log(`  RESEND_API_KEY: ${resendApiKey ? `${resendApiKey.substring(0, 10)}...` : "NOT SET"}`);
   logger.log(`  RESEND_FROM_EMAIL: ${emailFrom || "NOT SET"}`);
   
+  // Warn if using non-resend.dev domain without verification
+  if (emailFrom && !emailFrom.includes("@resend.dev")) {
+    logger.warn(`⚠️  Using custom domain email: ${emailFrom}`);
+    logger.warn("   Make sure this domain is verified in Resend dashboard!");
+    logger.warn("   For testing, use: onboarding@resend.dev");
+  }
+  
   if (!resendApiKey) {
     logger.error("RESEND_API_KEY not configured. Email will not be sent.");
     return null;
@@ -84,11 +91,14 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
       const errorMsg = errorDetails.message || errorDetails.name || JSON.stringify(result.error);
       
       // Check for specific error types
-      if (errorMsg.toLowerCase().includes("domain") || errorMsg.toLowerCase().includes("not verified")) {
-        logger.error(`Domain verification error. Current FROM email: ${resendConfig.from}`);
-        logger.error("For testing, use: onboarding@resend.dev");
-        logger.error("For production, verify your domain in Resend dashboard first.");
-        throw new Error(`Email domain not verified. Please use 'onboarding@resend.dev' for testing or verify your domain in Resend dashboard.`);
+      if (errorMsg.toLowerCase().includes("domain") || errorMsg.toLowerCase().includes("not verified") || errorMsg.toLowerCase().includes("unauthorized")) {
+        logger.error(`❌ Domain verification error!`);
+        logger.error(`   Current FROM email: ${resendConfig.from}`);
+        logger.error(`   Attempting to send TO: ${to}`);
+        logger.error(`   ⚠️  The FROM email domain must be verified in Resend dashboard.`);
+        logger.error(`   💡 Solution: Set RESEND_FROM_EMAIL=onboarding@resend.dev in Render environment variables`);
+        logger.error(`   📖 Or verify your domain at: https://resend.com/domains`);
+        throw new Error(`Email domain not verified. Current FROM: ${resendConfig.from}. Please set RESEND_FROM_EMAIL=onboarding@resend.dev for testing or verify your domain in Resend dashboard.`);
       }
       
       throw new Error(`Resend API error: ${errorMsg}`);

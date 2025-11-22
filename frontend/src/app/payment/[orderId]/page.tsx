@@ -133,7 +133,7 @@ export default function PaymentPage({
   // Memoize loading state to prevent unnecessary re-renders
   const loadingState = useMemo(
     () => (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F6F2E5] flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-[#84B067] mx-auto mb-4" />
           <p className="text-gray-600">Loading payment form...</p>
@@ -146,20 +146,20 @@ export default function PaymentPage({
   // Memoize error state
   const errorState = useMemo(
     () => (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F6F2E5] flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-4 sm:p-8 text-center">
-          <div className="text-red-500 mb-4">
+          <div className="text-[#780606] mb-4">
             <XCircle className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#4A5130] mb-2">
             Payment Error
           </h2>
-          <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
+          <p className="text-sm sm:text-base text-[#69773D] mb-4 sm:mb-6">
             {error || "Failed to initialize payment"}
           </p>
           <Link
             href={`/order/${resolvedParams.orderId}`}
-            className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 bg-[#84B067] text-white rounded-lg hover:bg-[#6A8F52] transition-colors text-sm sm:text-base"
+            className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 bg-[#6A8F52] text-white rounded-lg hover:bg-[#84B067] transition-colors text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Order
@@ -179,7 +179,7 @@ export default function PaymentPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 sm:py-6 lg:py-8">
+    <div className="min-h-screen bg-[#F6F2E5] py-4 sm:py-6 lg:py-8">
       <div className="max-w-2xl mx-auto px-4 sm:px-6">
         <div className="mb-4 sm:mb-6">
           <Link
