@@ -136,7 +136,7 @@ export default function SellerItems() {
   }
 
   return (
-    <div style={{ backgroundColor: '#FEFCF9', minHeight: '100vh', padding: '2rem' }}>
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-4xl font-extrabold text-[#4A5130] tracking-tight">My Items</h1>
