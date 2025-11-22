@@ -157,33 +157,33 @@ export default function SellerDashboard() {
           title="Total Orders"
           value={stats.totalOrders}
           icon={ShoppingBag}
-          color="#2563eb"
-          borderColor="#2563eb"
-          titleColor="#1e40af"
+          color="#2F5A32"
+          borderColor="#2F5A32"
+          titleColor="#2F5A32"
         />
         <StatCard
           title="Pending Orders"
           value={stats.pendingOrders}
           icon={Clock}
-          color="#f59e0b"
-          borderColor="#f59e0b"
-          titleColor="#d97706"
+          color="#5C8140"
+          borderColor="#5C8140"
+          titleColor="#5C8140"
         />
         <StatCard
           title="Total Items"
           value={stats.totalItems}
           icon={Package}
-          color="#10b981"
-          borderColor="#10b981"
-          titleColor="#059669"
+          color="#92bf37"
+          borderColor="#92bf37"
+          titleColor="#92bf37"
         />
         <StatCard
           title="Total Revenue"
           value={`฿${stats.totalRevenue.toLocaleString()}`}
           icon={DollarSign}
-          color="#8b5cf6"
-          borderColor="#8b5cf6"
-          titleColor="#7c3aed"
+          color="#8fb88f"
+          borderColor="#8fb88f"
+          titleColor="#8fb88f"
         />
       </div>
 
@@ -205,19 +205,19 @@ export default function SellerDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link
             href="/seller/add-item"
-            className="flex items-center gap-4 p-5 border-2 border-[#10b981] bg-gradient-to-br from-[#10b981]/25 to-[#10b981]/12 rounded-xl hover:border-[#10b981] hover:bg-gradient-to-br hover:from-[#10b981]/35 hover:to-[#10b981]/20 transition-all group hover:shadow-xl"
+            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#2F5A32] hover:bg-gradient-to-br hover:from-[#2F5A32]/10 hover:to-[#2F5A32]/5 transition-all group hover:shadow-md"
           >
-            <div className="w-12 h-12 bg-gradient-to-br from-[#10b981] to-[#059669] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#2F5A32]/20 to-[#2F5A32]/30 rounded-xl flex items-center justify-center group-hover:from-[#2F5A32]/30 group-hover:to-[#2F5A32]/40 transition-all shadow-sm">
               <Package
                 size={22}
-                className="text-white group-hover:scale-110 transition-transform"
+                className="text-[#2F5A32] group-hover:scale-110 transition-transform"
               />
             </div>
             <div>
-              <div className="font-bold text-base text-[#059669] group-hover:text-[#047857] transition-colors">
+              <div className="font-semibold text-[#4A5130] group-hover:text-[#2F5A32] transition-colors">
                 Add New Item
               </div>
-              <div className="text-sm font-medium text-gray-600">
+              <div className="text-sm text-[#69773D] group-hover:text-gray-700">
                 List a product for sale
               </div>
             </div>
@@ -225,19 +225,19 @@ export default function SellerDashboard() {
 
           <Link
             href="/seller/orders"
-            className="flex items-center gap-4 p-5 border-2 border-[#2563eb] bg-gradient-to-br from-[#2563eb]/25 to-[#2563eb]/12 rounded-xl hover:border-[#2563eb] hover:bg-gradient-to-br hover:from-[#2563eb]/35 hover:to-[#2563eb]/20 transition-all group hover:shadow-xl"
+            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#5C8140] hover:bg-gradient-to-br hover:from-[#5C8140]/10 hover:to-[#5C8140]/5 transition-all group hover:shadow-md"
           >
-            <div className="w-12 h-12 bg-gradient-to-br from-[#2563eb] to-[#1e40af] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#5C8140]/20 to-[#5C8140]/30 rounded-xl flex items-center justify-center group-hover:from-[#5C8140]/30 group-hover:to-[#5C8140]/40 transition-all shadow-sm">
               <ShoppingBag
                 size={22}
-                className="text-white group-hover:scale-110 transition-transform"
+                className="text-[#5C8140] group-hover:scale-110 transition-transform"
               />
             </div>
             <div>
-              <div className="font-bold text-base text-[#1e40af] group-hover:text-[#1e3a8a] transition-colors">
+              <div className="font-semibold text-[#4A5130] group-hover:text-[#5C8140] transition-colors">
                 View Orders
               </div>
-              <div className="text-sm font-medium text-gray-600">
+              <div className="text-sm text-[#69773D] group-hover:text-gray-700">
                 Manage your orders
               </div>
             </div>
@@ -245,19 +245,19 @@ export default function SellerDashboard() {
 
           <Link
             href="/seller/items"
-            className="flex items-center gap-4 p-5 border-2 border-[#8b5cf6] bg-gradient-to-br from-[#8b5cf6]/25 to-[#8b5cf6]/12 rounded-xl hover:border-[#8b5cf6] hover:bg-gradient-to-br hover:from-[#8b5cf6]/35 hover:to-[#8b5cf6]/20 transition-all group hover:shadow-xl"
+            className="flex items-center gap-4 p-5 border-2 border-dashed border-gray-200 rounded-xl hover:border-[#92bf37] hover:bg-gradient-to-br hover:from-[#92bf37]/10 hover:to-[#92bf37]/5 transition-all group hover:shadow-md"
           >
-            <div className="w-12 h-12 bg-gradient-to-br from-[#8b5cf6] to-[#7c3aed] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#92bf37]/20 to-[#92bf37]/30 rounded-xl flex items-center justify-center group-hover:from-[#92bf37]/30 group-hover:to-[#92bf37]/40 transition-all shadow-sm">
               <CheckCircle
                 size={22}
-                className="text-white group-hover:scale-110 transition-transform"
+                className="text-[#92bf37] group-hover:scale-110 transition-transform"
               />
             </div>
             <div>
-              <div className="font-bold text-base text-[#7c3aed] group-hover:text-[#6d28d9] transition-colors">
+              <div className="font-semibold text-[#4A5130] group-hover:text-[#92bf37] transition-colors">
                 Manage Items
               </div>
-              <div className="text-sm font-medium text-gray-600">
+              <div className="text-sm text-[#69773D] group-hover:text-gray-700">
                 Edit your listings
               </div>
             </div>

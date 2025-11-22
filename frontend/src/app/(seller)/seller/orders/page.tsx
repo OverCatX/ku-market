@@ -282,10 +282,10 @@ export default function SellerOrders() {
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
       pending_seller_confirmation:
-        "bg-yellow-400 text-yellow-900 border-2 border-yellow-500",
-      confirmed: "bg-[#5C8140] text-white border-2 border-[#4a6b33]",
-      rejected: "bg-red-500 text-white border-2 border-red-600",
-      completed: "bg-green-500 text-white border-2 border-green-600",
+        "bg-yellow-400/10 text-yellow-900 border-2 border-yellow-500/20",
+      confirmed: "bg-[#8c522f]/10 text-[#8c522f] border-2 border-[#8c522f]/20",
+      rejected: "bg-[#780606]/10 text-[#780606] border-2 border-[#780606]/20",
+      completed: "bg-[#69773D]/10 text-[#69773D] border-2 border-[#69773D]/20",
       cancelled: "bg-gray-400 text-gray-900 border-2 border-gray-500",
     };
     return styles[status] || styles.pending_seller_confirmation;
@@ -682,8 +682,8 @@ export default function SellerOrders() {
                 )}
                 {order.buyerReceived && order.sellerDelivered && (
                   <div className="mt-2">
-                    <div className="w-full px-4 py-3 bg-green-100 border-2 border-green-400 text-green-800 rounded-lg font-bold text-center shadow-sm">
-                      <CheckCircle size={20} className="inline mr-2" />
+                    <div className="w-full px-4 py-3 bg-[#e0cd95]/10 border-2 border-[#e0cd95]/20 text-[#A0704F] rounded-lg font-bold text-center shadow-sm">
+                      <CheckCircle size={20} className="inline mr-2 text-[#A0704F]" />
                       Both parties confirmed - Order completed
                     </div>
                   </div>
