@@ -139,6 +139,7 @@ npm run bootstrap-admin
 - `MONGO_URL` - MongoDB connection string (required)
 - `JWT_SECRET` - Secret key for JWT tokens (required)
 - `PORT` - Backend server port (default: 5000)
+- `CORS_ORIGIN` - Comma-separated list of allowed origins (e.g., `https://ku-market-mu.vercel.app,http://localhost:3000`)
 - `STRIPE_SECRET_KEY` - Stripe API secret key
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
 - See `.env.example` for complete list

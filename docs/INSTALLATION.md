@@ -137,6 +137,11 @@ SMTP_PASS=your-16-character-app-password
 
 FRONTEND_URL=http://localhost:3000
 
+# CORS Configuration (comma-separated list of allowed origins)
+# For production: https://ku-market-mu.vercel.app,https://your-domain.com
+# For development: http://localhost:3000
+CORS_ORIGIN=http://localhost:3000
+
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_REDIRECT_URI=http://localhost:8080/api/auth/google/callback
