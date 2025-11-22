@@ -596,9 +596,9 @@ export default function OrderDetailPage({
   const StatusIcon = meta.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5f8f1] via-white to-[#eef4e6] py-4 sm:py-6 lg:py-10">
+    <div className="min-h-screen bg-[#F6F2E5] py-4 sm:py-6 lg:py-10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
-        <div className="mb-3 sm:mb-4">
+        <div className="mb-3 sm:mb-4 flex items-center justify-between">
           <Link
             href="/orders"
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-[#4c5c2f] hover:text-[#2f3816]"
@@ -825,7 +825,7 @@ export default function OrderDetailPage({
                   <button
                     type="button"
                     onClick={handleMakePayment}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-5 py-3 text-sm sm:text-base font-bold transition bg-[#69773D] text-white hover:bg-[#5a6530] shadow-md hover:shadow-lg"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-5 py-3 text-sm sm:text-base font-bold transition bg-[#4A5130] text-white hover:bg-[#3a4026] shadow-md hover:shadow-lg"
                   >
                     <QrCode size={14} className="sm:w-4 sm:h-4" />
                     Make Payment
