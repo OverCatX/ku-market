@@ -148,9 +148,9 @@ npm run bootstrap-admin
 
 **Frontend (.env.local):**
 
-- `NEXT_PUBLIC_API_URL` - Backend API URL (default: http://localhost:5000)
+- `NEXT_PUBLIC_API_BASE` - Backend API URL (default: http://localhost:8080)
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
-- See `.env.example` for complete list
+- See `.env.example` or `docs/INSTALLATION.md` for complete list
 
 ## Development
 
