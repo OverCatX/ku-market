@@ -186,16 +186,18 @@ export default class AuthController {
 
             // Store token and user data in httpOnly cookie temporarily
             // Frontend callback page will fetch from a special endpoint that reads the cookie
+            // In production (cross-domain), use sameSite: "none" and secure: true
+            const isProduction = process.env.NODE_ENV === "production";
             res.cookie("google_oauth_token", token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
+                secure: isProduction,
+                sameSite: isProduction ? "none" : "lax",
                 maxAge: 60000, // 1 minute
             });
             res.cookie("google_oauth_user", JSON.stringify(userData), {
                 httpOnly: false, // Frontend needs to read this
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
+                secure: isProduction,
+                sameSite: isProduction ? "none" : "lax",
                 maxAge: 60000, // 1 minute
             });
 
