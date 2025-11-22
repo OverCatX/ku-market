@@ -1,11 +1,23 @@
 import type React from "react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { ConditionalHeader } from "@/components/ConditionalHeader";
+import dynamic from "next/dynamic";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { Titan_One, Ubuntu } from "next/font/google";
 import { CartProvider } from "@/contexts/CartContext";
+
+// Lazy load ConditionalHeader to reduce initial bundle
+const ConditionalHeader = dynamic(
+  () =>
+    import("@/components/ConditionalHeader").then((mod) => ({
+      default: mod.ConditionalHeader,
+    })),
+  {
+    ssr: true,
+    loading: () => <div className="h-[68px]" />,
+  }
+);
 
 // Font - Header
 const titanOne = Titan_One({

@@ -6,12 +6,12 @@ const colors = {
 };
 
 export default function ChatHeader({
-  title,
-  sellerName,
+  partnerName,
+  subtitle,
   onBack,
 }: {
-  title: string;
-  sellerName?: string;
+  partnerName: string;
+  subtitle?: string;
   onBack: () => void;
 }) {
   return (
@@ -35,14 +35,16 @@ export default function ChatHeader({
       {/* Info block */}
       <div className="flex flex-col">
         <div className="font-semibold text-base leading-tight text-[#F6F2E5]">
-          {title}
+          {partnerName}
         </div>
-        <div
-          className="text-xs leading-tight"
-          style={{ color: colors.cream }}
-        >
-          {sellerName || "Seller"}
-        </div>
+        {subtitle && (
+          <div
+            className="text-xs leading-tight"
+            style={{ color: colors.cream }}
+          >
+            {subtitle}
+          </div>
+        )}
       </div>
     </div>
   );

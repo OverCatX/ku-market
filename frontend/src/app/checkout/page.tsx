@@ -1,7 +1,8 @@
 "use client";
 
 import { useCart } from "@/contexts/CartContext";
-import { useState, useEffect } from "react";
+import { getVerificationStatus } from "@/config/verification";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Wallet,
@@ -16,8 +17,11 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import type { UserData } from "@/config/auth";
+import { API_BASE } from "@/config/constants";
+import toast from "react-hot-toast";
+import dynamic from "next/dynamic";
 
-type PaymentMethod = "cash" | "promptpay";
+type PaymentMethod = "cash" | "promptpay" | "transfer";
 type DeliveryMethod = "pickup" | "delivery";
 
 interface ShippingInfo {
@@ -28,8 +32,24 @@ interface ShippingInfo {
   postalCode: string;
 }
 
+interface PickupDetailsState {
+  locationName: string;
+  address: string;
+  note: string;
+  preferredTime?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+}
+
+const MeetupLeafletMap = dynamic(
+  () => import("@/components/maps/MeetupLeafletMap"),
+  { ssr: false }
+);
+
 export default function CheckoutPage() {
-  const { items, getTotalPrice, clearCart } = useCart();
+  const { items, getTotalPrice, clearCart, refreshCart } = useCart();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -41,6 +61,13 @@ export default function CheckoutPage() {
     useState<DeliveryMethod>("pickup");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
 
+  // Auto-change payment method when delivery method changes
+  useEffect(() => {
+    if (deliveryMethod === "delivery" && paymentMethod === "cash") {
+      setPaymentMethod("promptpay");
+    }
+  }, [deliveryMethod, paymentMethod]);
+
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
     fullName: "",
     phone: "",
@@ -48,11 +75,100 @@ export default function CheckoutPage() {
     city: "",
     postalCode: "",
   });
+  const [pickupDetails, setPickupDetails] = useState<PickupDetailsState>({
+    locationName: "",
+    address: "",
+    note: "",
+  });
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   // Wait for client-side mount
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const CAMPUS_CENTER = useMemo(
+    () => ({
+      lat: 13.8495,
+      lng: 100.571,
+    }),
+    []
+  );
+
+  // Real-time validation
+  const isValidPhone = useMemo(() => {
+    if (!shippingInfo.phone) return null;
+    const phone = shippingInfo.phone.replace(/\D/g, "");
+    return /^0\d{9}$/.test(phone);
+  }, [shippingInfo.phone]);
+
+  const isValidAddress = useMemo(() => {
+    if (!shippingInfo.address) return null;
+    return shippingInfo.address.trim().length >= 5;
+  }, [shippingInfo.address]);
+
+  const isValidCity = useMemo(() => {
+    if (!shippingInfo.city) return null;
+    return shippingInfo.city.trim().length >= 2;
+  }, [shippingInfo.city]);
+
+  const isValidPostalCode = useMemo(() => {
+    if (!shippingInfo.postalCode) return null;
+    const postal = shippingInfo.postalCode.trim();
+    const thPostal = /^\d{5}$/;
+    const intlPostal = /^\w[\w\s-]{2,9}$/;
+    return thPostal.test(postal) || intlPostal.test(postal);
+  }, [shippingInfo.postalCode]);
+
+  const isValidLocationName = useMemo(() => {
+    if (!pickupDetails.locationName) return null;
+    return pickupDetails.locationName.trim().length > 0;
+  }, [pickupDetails.locationName]);
+
+  const [pickupPresets, setPickupPresets] = useState<
+    Array<{
+      label: string;
+      lat: number;
+      lng: number;
+      locationName: string;
+      address?: string;
+    }>
+  >([]);
+
+  // Load presets from API
+  useEffect(() => {
+    const loadPresets = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/meetup-presets`);
+        if (response.ok) {
+          const data = await response.json();
+          setPickupPresets(data.presets || []);
+        }
+      } catch (error) {
+        console.error("Failed to load meetup presets:", error);
+        // Fallback to empty array if API fails
+        setPickupPresets([]);
+      }
+    };
+    loadPresets();
+  }, []);
+
+  useEffect(() => {
+    if (deliveryMethod !== "pickup") {
+      return;
+    }
+    setPickupDetails((prev) => {
+      if (prev.coordinates && prev.locationName.trim()) {
+        return prev;
+      }
+      return {
+        ...prev,
+        coordinates: prev.coordinates ?? CAMPUS_CENTER,
+        locationName:
+          prev.locationName.trim() || "Kasetsart University front entrance",
+      };
+    });
+  }, [deliveryMethod, CAMPUS_CENTER]);
 
   // Check authentication and verification status
   useEffect(() => {
@@ -76,9 +192,40 @@ export default function CheckoutPage() {
         if (user.name) {
           setShippingInfo((prev) => ({ ...prev, fullName: user.name }));
         }
+        // Pre-fill phone number if available
+        if (user.contact) {
+          setShippingInfo((prev) => ({ ...prev, phone: user.contact }));
+        }
       } else {
-        // Not verified - show verification required page
-        setIsVerified(false);
+        // Not verified - attempt to refresh verification status from server
+        (async () => {
+          try {
+            const statusRes = await getVerificationStatus();
+            const approved =
+              statusRes.success &&
+              statusRes.verification &&
+              (statusRes.verification as { status?: string }).status ===
+                "approved";
+            if (approved) {
+              setIsVerified(true);
+              // Update localStorage user to reflect verified status so other pages update immediately
+              try {
+                const latestUserStr = localStorage.getItem("user");
+                const latestUser = latestUserStr
+                  ? JSON.parse(latestUserStr)
+                  : user;
+                const updatedUser = { ...latestUser, isVerified: true };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+              } catch {
+                // ignore storage errors
+              }
+            } else {
+              setIsVerified(false);
+            }
+          } catch {
+            setIsVerified(false);
+          }
+        })();
       }
     } catch {
       // Invalid user data
@@ -99,7 +246,58 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Show confirmation dialog first
+    // Strong client-side validation
+    const name = (shippingInfo.fullName || "").trim();
+    const rawPhone = (shippingInfo.phone || "").trim();
+    const phone = rawPhone.replace(/\D/g, ""); // keep digits only
+    const address = (shippingInfo.address || "").trim();
+    const city = (shippingInfo.city || "").trim();
+    const postal = (shippingInfo.postalCode || "").trim();
+
+    // Basic required fields
+    if (!name) {
+      toast.error("Please enter your full name");
+      return;
+    }
+
+    // Thailand mobile format: exactly 10 digits and starts with 0
+    const thPhoneStrict = /^0\d{9}$/;
+    if (!thPhoneStrict.test(phone)) {
+      toast.error(
+        "Please enter a valid 10-digit Thai phone number (starts with 0)"
+      );
+      return;
+    }
+
+    if (deliveryMethod === "delivery") {
+      if (!address || address.length < 5) {
+        toast.error("Please enter a valid address (min 5 characters)");
+        return;
+      }
+      if (!city || city.length < 2) {
+        toast.error("Please enter a valid city");
+        return;
+      }
+      // Thailand postal code (5 digits) or allow 3-10 digits for international
+      const thPostal = /^\d{5}$/;
+      const intlPostal = /^\w[\w\s-]{2,9}$/;
+      if (!(thPostal.test(postal) || intlPostal.test(postal))) {
+        toast.error("Please enter a valid postal code");
+        return;
+      }
+    }
+
+    if (deliveryMethod === "pickup") {
+      if (!pickupDetails.locationName.trim()) {
+        toast.error("Please enter a pickup location name");
+        return;
+      }
+    }
+
+    // Inform buyer and show confirmation dialog before sending to seller
+    toast("Please confirm your order details before sending to seller", {
+      icon: "🧾",
+    });
     setShowConfirmation(true);
   };
 
@@ -107,39 +305,105 @@ export default function CheckoutPage() {
     setIsProcessing(true);
 
     try {
-      // Simulate sending order to sellers
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const token = localStorage.getItem("authentication");
+      if (!token) {
+        router.push("/login?redirect=/checkout");
+        return;
+      }
 
-      // Generate order ID
-      const orderId = `ORD-${Date.now()}`;
+      // Normalize and trim before sending
+      const normalizedInfo = {
+        fullName: (shippingInfo.fullName || "").trim(),
+        phone: (shippingInfo.phone || "").trim().replace(/\D/g, ""),
+        address: (shippingInfo.address || "").trim(),
+        city: (shippingInfo.city || "").trim(),
+        postalCode: (shippingInfo.postalCode || "").trim(),
+      };
 
-      // TODO: Send order to backend API
-      // const orderData = {
-      //   items,
-      //   contactInfo: {
-      //     fullName: shippingInfo.fullName,
-      //     phone: shippingInfo.phone,
-      //   },
-      //   deliveryMethod,
-      //   shippingAddress: deliveryMethod === "delivery" ? {
-      //     address: shippingInfo.address,
-      //     city: shippingInfo.city,
-      //     postalCode: shippingInfo.postalCode,
-      //   } : null,
-      //   paymentMethod,
-      //   total: getTotalPrice(),
-      //   status: "pending_seller_confirmation",
-      // };
-      // await createOrder(orderData);
+      const payload: {
+        deliveryMethod: DeliveryMethod;
+        paymentMethod: PaymentMethod;
+        buyerContact: { fullName: string; phone: string };
+        shippingAddress?: { address: string; city: string; postalCode: string };
+        pickupDetails?: {
+          locationName: string;
+          address?: string;
+          note?: string;
+          coordinates?: { lat: number; lng: number };
+          preferredTime?: string;
+        };
+      } = {
+        deliveryMethod,
+        paymentMethod,
+        buyerContact: {
+          fullName: normalizedInfo.fullName,
+          phone: normalizedInfo.phone,
+        },
+      };
 
-      // Clear cart
+      if (deliveryMethod === "delivery") {
+        payload.shippingAddress = {
+          address: normalizedInfo.address,
+          city: normalizedInfo.city,
+          postalCode: normalizedInfo.postalCode,
+        };
+      } else {
+        payload.pickupDetails = {
+          locationName: pickupDetails.locationName.trim(),
+          address: pickupDetails.address.trim() || undefined,
+          note: pickupDetails.note.trim() || undefined,
+          coordinates: pickupDetails.coordinates,
+          preferredTime: pickupDetails.preferredTime || undefined,
+        };
+      }
+
+      const response = await fetch(`${API_BASE}/api/orders/checkout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const message =
+          errorData.error || errorData.message || "Failed to place order";
+        if (
+          String(message).toLowerCase().includes("invalid") ||
+          String(message).toLowerCase().includes("no longer available")
+        ) {
+          toast.error(
+            "Some items are no longer available. We've updated your cart."
+          );
+          try {
+            await refreshCart();
+          } catch {}
+        }
+        throw new Error(message);
+      }
+
+      const data = await response.json();
+      const orderId = data?.orders?.[0]?.id;
+
       await clearCart();
 
-      // Redirect to order confirmation page
-      router.push(`/order/${orderId}`);
+      if (orderId) {
+        toast.success("Order placed! You can track the status in Orders.");
+        router.push(`/order/${orderId}`);
+      } else {
+        toast.success("Order placed! You can track the status in Orders.");
+        router.push("/orders");
+      }
     } catch (error) {
       console.error("Order failed:", error);
-      alert("Failed to place order. Please try again.");
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Failed to place order. Please try again.";
+      toast.error(msg);
       setIsProcessing(false);
     }
   };
@@ -147,7 +411,7 @@ export default function CheckoutPage() {
   // Show loading state during SSR, initial mount, or auth check
   if (!isMounted || isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen py-8" style={{ backgroundColor: "#F6F2E5" }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-48 mb-8"></div>
@@ -169,27 +433,27 @@ export default function CheckoutPage() {
   // Show verification required page if not verified
   if (!isVerified) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen py-8" style={{ backgroundColor: "#F6F2E5" }}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-2xl">
           <div className="bg-white rounded-lg shadow-sm p-8 md:p-12 text-center">
             <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertCircle className="w-12 h-12 text-yellow-600" />
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-[#4A5130] mb-4">
               Verification Required
             </h1>
 
-            <p className="text-gray-600 mb-6 leading-relaxed">
+            <p className="text-[#4A5130]/70 mb-6 leading-relaxed">
               To place an order, you need to verify your identity first. This
               helps us maintain a safe and trusted marketplace for all users.
             </p>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-800">
+            <div className="bg-[#4A5130]/10 border border-[#4A5130]/30 rounded-lg p-4 mb-6">
+              <p className="text-sm text-[#4A5130]">
                 <strong>Why verify?</strong>
               </p>
-              <ul className="text-sm text-blue-700 mt-2 space-y-1 text-left list-disc list-inside">
+              <ul className="text-sm text-[#4A5130] mt-2 space-y-1 text-left list-disc list-inside">
                 <li>Build trust with sellers</li>
                 <li>Secure your transactions</li>
                 <li>Unlock full marketplace features</li>
@@ -199,7 +463,7 @@ export default function CheckoutPage() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={() => router.push("/verify-identity")}
-                className="px-6 py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition font-semibold flex items-center justify-center gap-2"
+                className="px-6 py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#84B067] transition font-semibold flex items-center justify-center gap-2"
               >
                 <CheckCircle2 className="w-5 h-5" />
                 Verify My Identity
@@ -207,7 +471,7 @@ export default function CheckoutPage() {
 
               <button
                 onClick={() => router.push("/marketplace")}
-                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-semibold"
+                className="px-6 py-3 border-2 border-gray-300 text-[#4A5130]/80 rounded-lg hover:bg-gray-50 transition font-semibold"
               >
                 Back to Marketplace
               </button>
@@ -224,7 +488,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-8" style={{ backgroundColor: "#F6F2E5" }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
 
@@ -246,7 +510,7 @@ export default function CheckoutPage() {
                   <label
                     className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
                       deliveryMethod === "pickup"
-                        ? "border-[#84B067] bg-green-50"
+                        ? "border-[#84B067] bg-[#69773D]/10"
                         : "border-gray-300 hover:border-[#84B067]"
                     }`}
                   >
@@ -275,7 +539,7 @@ export default function CheckoutPage() {
                   <label
                     className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
                       deliveryMethod === "delivery"
-                        ? "border-[#84B067] bg-green-50"
+                        ? "border-[#84B067] bg-[#69773D]/10"
                         : "border-gray-300 hover:border-[#84B067]"
                     }`}
                   >
@@ -301,6 +565,322 @@ export default function CheckoutPage() {
                   </label>
                 </div>
               </div>
+              {deliveryMethod === "pickup" && (
+                <section className="rounded-3xl border border-[#dfe7cf] bg-white shadow-sm">
+                  <div className="flex flex-col gap-5 p-6 lg:p-8">
+                    <header className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ecf4da]">
+                          <MapPin className="h-5 w-5 text-[#5a6b2f]" />
+                        </span>
+                        <div>
+                          <h2 className="text-lg font-semibold text-[#2f3b11]">
+                            Choose your meetup point
+                          </h2>
+                          <p className="text-sm text-[#516029]">
+                            Drop a pin inside KU Bangkhen or pick one of the
+                            preset spots.
+                          </p>
+                        </div>
+                      </div>
+                      <span className="rounded-full border border-[#dbe7cb] bg-[#f6faef] px-3 py-1 text-xs font-semibold text-[#556629]">
+                        Self pickup
+                      </span>
+                    </header>
+
+                    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_300px] xl:grid-cols-[minmax(0,1.6fr)_340px] 2xl:grid-cols-[minmax(0,1.9fr)_380px]">
+                      <div className="relative h-[380px] sm:h-[430px] xl:h-[500px] overflow-hidden rounded-3xl border border-[#dfe7cf] bg-white z-0">
+                        <div className="pointer-events-none absolute inset-x-0 top-0 z-[8] flex justify-between p-4 text-[11px] font-medium text-[#4c5c2f]">
+                          <span className="rounded-full bg-white/92 px-3 py-1 shadow">
+                            Tap inside campus to drop the pin
+                          </span>
+                          <span className="hidden rounded-full bg-white/92 px-3 py-1 shadow sm:block">
+                            Scroll to zoom · drag to explore
+                          </span>
+                        </div>
+
+                        <MeetupLeafletMap
+                          position={
+                            pickupDetails.coordinates
+                              ? [
+                                  pickupDetails.coordinates.lat,
+                                  pickupDetails.coordinates.lng,
+                                ]
+                              : null
+                          }
+                          onPositionChange={(coords) => {
+                            if (!coords) return;
+                            setPickupDetails((prev) => ({
+                              ...prev,
+                              coordinates: coords,
+                              locationName:
+                                prev.locationName.trim() ||
+                                "Custom meetup point",
+                            }));
+                            toast.success("Updated meetup location", {
+                              icon: "📍",
+                            });
+                          }}
+                        />
+
+                        <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/5" />
+
+                        <div className="pointer-events-none absolute bottom-3 left-3 flex flex-wrap gap-2">
+                          <span className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-[#3d4a1f] shadow">
+                            Kasetsart University · Bangkhen
+                          </span>
+                          {pickupDetails.locationName && (
+                            <span className="rounded-full bg-[#ecf4da]/95 px-3 py-1 text-[11px] font-semibold text-[#3d4a1f] shadow">
+                              {pickupDetails.locationName}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <aside className="space-y-4">
+                        <div className="rounded-2xl border border-[#dfe7cf] bg-[#f9fcef] p-4">
+                          <h3 className="text-sm font-semibold text-[#3d4a29]">
+                            Quick anchors
+                          </h3>
+                          <p className="mt-1 text-xs text-[#566533]">
+                            Jump to a popular campus spot instantly.
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {pickupPresets.map((preset) => (
+                              <button
+                                key={preset.label}
+                                type="button"
+                                onClick={() => {
+                                  setPickupDetails((prev) => ({
+                                    ...prev,
+                                    coordinates: {
+                                      lat: preset.lat,
+                                      lng: preset.lng,
+                                    },
+                                    locationName: preset.locationName,
+                                    address: preset.address || "",
+                                  }));
+                                  toast.success(`Pinned ${preset.label}`, {
+                                    icon: "📍",
+                                  });
+                                }}
+                                className="rounded-full border border-[#c8d9b0] bg-white px-3 py-1 text-xs font-medium text-[#3f4e24] hover:border-[#9fb97b] hover:bg-[#edf5da]"
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  coordinates: CAMPUS_CENTER,
+                                  locationName:
+                                    "Kasetsart University front entrance",
+                                  address: "",
+                                  note: "",
+                                }))
+                              }
+                              className="rounded-full border border-[#780606] bg-white px-3 py-1 text-xs font-medium text-[#780606] hover:bg-[#780606]/10"
+                            >
+                              Reset pin
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-[#dfe7cf] bg-white/95 p-4 space-y-3">
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Meetup title *
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={pickupDetails.locationName}
+                                onChange={(e) =>
+                                  setPickupDetails((prev) => ({
+                                    ...prev,
+                                    locationName: e.target.value,
+                                  }))
+                                }
+                                onFocus={() => setFocusedField("locationName")}
+                                onBlur={() => setFocusedField(null)}
+                                className={`w-full rounded-xl ${
+                                  isValidLocationName ? "pr-10" : ""
+                                } border bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#7da757] ${
+                                  focusedField === "locationName"
+                                    ? "shadow-sm"
+                                    : ""
+                                } ${
+                                  isValidLocationName === true
+                                    ? "border-[#69773D]"
+                                    : isValidLocationName === false &&
+                                      pickupDetails.locationName
+                                    ? "border-[#780606]"
+                                    : "border-[#dfe7cf]"
+                                }`}
+                                placeholder="e.g. KU Avenue Plaza entrance"
+                              />
+                              {isValidLocationName && (
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                  <svg
+                                    className="w-5 h-5 text-[#69773D] animate-fade-in"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                            {pickupDetails.locationName &&
+                              isValidLocationName === false && (
+                                <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
+                                  <svg
+                                    className="w-4 h-4 mr-1"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  Please enter a meetup location name
+                                </p>
+                              )}
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Landmark or details (optional)
+                            </label>
+                            <textarea
+                              value={pickupDetails.address}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  address: e.target.value,
+                                }))
+                              }
+                              rows={2}
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                              placeholder="Near Central Library fountain"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Note for seller (optional)
+                            </label>
+                            <textarea
+                              value={pickupDetails.note}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  note: e.target.value,
+                                }))
+                              }
+                              rows={2}
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                              placeholder="I'll wear a green jacket and wait by the fountain."
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-sm font-medium text-[#3d4a29]">
+                              Preferred meetup time (optional)
+                            </label>
+                            <input
+                              type="datetime-local"
+                              value={pickupDetails.preferredTime || ""}
+                              onChange={(e) =>
+                                setPickupDetails((prev) => ({
+                                  ...prev,
+                                  preferredTime: e.target.value,
+                                }))
+                              }
+                              min={new Date().toISOString().slice(0, 16)}
+                              className="w-full rounded-xl border border-[#dfe7cf] bg-[#f8fbef] px-3 py-2 text-sm text-[#2f3b11] focus:outline-none focus:ring-2 focus:ring-[#7da757]"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                              Select when you&apos;d like to meet up with the
+                              seller
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-[#dfe7cf] bg-white/90 p-4">
+                          <p className="text-sm font-semibold text-[#3d4a29]">
+                            Current meetup summary
+                          </p>
+                          <dl className="mt-3 space-y-2 text-sm text-[#364019]">
+                            <div className="flex items-start justify-between gap-3">
+                              <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                Title
+                              </span>
+                              <span className="font-medium text-right">
+                                {pickupDetails.locationName || "—"}
+                              </span>
+                            </div>
+                            {pickupDetails.address && (
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                  Detail
+                                </span>
+                                <span className="max-w-[180px] text-right">
+                                  {pickupDetails.address}
+                                </span>
+                              </div>
+                            )}
+                            {pickupDetails.note && (
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                  Note
+                                </span>
+                                <span className="max-w-[180px] text-right">
+                                  {pickupDetails.note}
+                                </span>
+                              </div>
+                            )}
+                            {pickupDetails.coordinates && (
+                              <div className="flex items-start justify-between gap-3 text-xs font-mono text-[#2f3b11]">
+                                <span className="uppercase tracking-wide text-[#7a8f54]">
+                                  Coords
+                                </span>
+                                <span className="text-right">
+                                  {pickupDetails.coordinates.lat.toFixed(6)},{" "}
+                                  {pickupDetails.coordinates.lng.toFixed(6)}
+                                </span>
+                              </div>
+                            )}
+                            {pickupDetails.preferredTime && (
+                              <div className="flex items-start justify-between gap-3">
+                                <span className="text-xs uppercase tracking-wide text-[#7a8f54]">
+                                  Preferred Time
+                                </span>
+                                <span className="text-right text-sm font-medium text-[#4A5130]">
+                                  {new Date(
+                                    pickupDetails.preferredTime
+                                  ).toLocaleString("th-TH", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                              </div>
+                            )}
+                          </dl>
+                        </div>
+                      </aside>
+                    </div>
+                  </div>
+                </section>
+              )}
 
               {/* Contact Information */}
               <div className="bg-white rounded-lg shadow-sm p-6">
@@ -316,38 +896,123 @@ export default function CheckoutPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Full Name *
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={shippingInfo.fullName}
-                      onChange={(e) =>
-                        setShippingInfo({
-                          ...shippingInfo,
-                          fullName: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                      placeholder="John Doe"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        value={shippingInfo.fullName}
+                        onChange={(e) =>
+                          setShippingInfo({
+                            ...shippingInfo,
+                            fullName: e.target.value,
+                          })
+                        }
+                        onFocus={() => setFocusedField("fullName")}
+                        onBlur={() => setFocusedField(null)}
+                        className={`w-full px-4 py-2 ${
+                          shippingInfo.fullName.trim() ? "pr-10" : ""
+                        } border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
+                          focusedField === "fullName" ? "shadow-sm" : ""
+                        } ${
+                          shippingInfo.fullName.trim()
+                            ? "border-[#69773D]"
+                            : "border-gray-300"
+                        }`}
+                        placeholder="John Doe"
+                      />
+                      {shippingInfo.fullName.trim() && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg
+                            className="w-5 h-5 text-[#69773D] animate-fade-in"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Phone Number *
                     </label>
-                    <input
-                      type="tel"
-                      required
-                      value={shippingInfo.phone}
-                      onChange={(e) =>
-                        setShippingInfo({
-                          ...shippingInfo,
-                          phone: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                      placeholder="081-234-5678"
-                    />
+                    <div className="relative">
+                      <input
+                        type="tel"
+                        required
+                        value={shippingInfo.phone}
+                        onChange={(e) =>
+                          setShippingInfo({
+                            ...shippingInfo,
+                            phone: e.target.value,
+                          })
+                        }
+                        onFocus={() => setFocusedField("phone")}
+                        onBlur={() => setFocusedField(null)}
+                        className={`w-full px-4 py-2 pr-10 border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
+                          focusedField === "phone" ? "shadow-sm" : ""
+                        } ${
+                          isValidPhone === true
+                            ? "border-[#69773D]"
+                            : isValidPhone === false && shippingInfo.phone
+                            ? "border-[#780606]"
+                            : "border-gray-300"
+                        }`}
+                        placeholder="081-234-5678"
+                      />
+                      {shippingInfo.phone && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          {isValidPhone ? (
+                            <svg
+                              className="w-5 h-5 text-[#69773D] animate-fade-in"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="w-5 h-5 text-[#780606] animate-fade-in"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {shippingInfo.phone && isValidPhone === false && (
+                      <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        Please enter a valid 10-digit Thai phone number (starts
+                        with 0)
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -367,19 +1032,64 @@ export default function CheckoutPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Address *
                       </label>
-                      <textarea
-                        required
-                        value={shippingInfo.address}
-                        onChange={(e) =>
-                          setShippingInfo({
-                            ...shippingInfo,
-                            address: e.target.value,
-                          })
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                        rows={3}
-                        placeholder="123 Main Street, Apt 4B"
-                      />
+                      <div className="relative">
+                        <textarea
+                          required
+                          value={shippingInfo.address}
+                          onChange={(e) =>
+                            setShippingInfo({
+                              ...shippingInfo,
+                              address: e.target.value,
+                            })
+                          }
+                          onFocus={() => setFocusedField("address")}
+                          onBlur={() => setFocusedField(null)}
+                          className={`w-full px-4 py-2 ${
+                            isValidAddress ? "pr-10" : ""
+                          } border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
+                            focusedField === "address" ? "shadow-sm" : ""
+                          } ${
+                            isValidAddress === true
+                              ? "border-[#69773D]"
+                              : isValidAddress === false && shippingInfo.address
+                              ? "border-[#780606]"
+                              : "border-gray-300"
+                          }`}
+                          rows={3}
+                          placeholder="123 Main Street, Apt 4B"
+                        />
+                        {isValidAddress && (
+                          <div className="absolute bottom-3 right-3">
+                            <svg
+                              className="w-5 h-5 text-[#69773D] animate-fade-in"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {shippingInfo.address && isValidAddress === false && (
+                        <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Address must be at least 5 characters
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -387,38 +1097,143 @@ export default function CheckoutPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           City *
                         </label>
-                        <input
-                          type="text"
-                          required
-                          value={shippingInfo.city}
-                          onChange={(e) =>
-                            setShippingInfo({
-                              ...shippingInfo,
-                              city: e.target.value,
-                            })
-                          }
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                          placeholder="Bangkok"
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            required
+                            value={shippingInfo.city}
+                            onChange={(e) =>
+                              setShippingInfo({
+                                ...shippingInfo,
+                                city: e.target.value,
+                              })
+                            }
+                            onFocus={() => setFocusedField("city")}
+                            onBlur={() => setFocusedField(null)}
+                            className={`w-full px-4 py-2 ${
+                              isValidCity ? "pr-10" : ""
+                            } border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
+                              focusedField === "city" ? "shadow-sm" : ""
+                            } ${
+                              isValidCity === true
+                                ? "border-[#69773D]"
+                                : isValidCity === false && shippingInfo.city
+                                ? "border-[#780606]"
+                                : "border-gray-300"
+                            }`}
+                            placeholder="Bangkok"
+                          />
+                          {isValidCity && (
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              <svg
+                                className="w-5 h-5 text-[#69773D] animate-fade-in"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        {shippingInfo.city && isValidCity === false && (
+                          <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
+                            <svg
+                              className="w-4 h-4 mr-1"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            City must be at least 2 characters
+                          </p>
+                        )}
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Postal Code *
                         </label>
-                        <input
-                          type="text"
-                          required
-                          value={shippingInfo.postalCode}
-                          onChange={(e) =>
-                            setShippingInfo({
-                              ...shippingInfo,
-                              postalCode: e.target.value,
-                            })
-                          }
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#84B067]"
-                          placeholder="10110"
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            required
+                            value={shippingInfo.postalCode}
+                            onChange={(e) =>
+                              setShippingInfo({
+                                ...shippingInfo,
+                                postalCode: e.target.value,
+                              })
+                            }
+                            onFocus={() => setFocusedField("postalCode")}
+                            onBlur={() => setFocusedField(null)}
+                            className={`w-full px-4 py-2 pr-10 border rounded-lg transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-[#84B067] ${
+                              focusedField === "postalCode" ? "shadow-sm" : ""
+                            } ${
+                              isValidPostalCode === true
+                                ? "border-[#69773D]"
+                                : isValidPostalCode === false &&
+                                  shippingInfo.postalCode
+                                ? "border-[#780606]"
+                                : "border-gray-300"
+                            }`}
+                            placeholder="10110"
+                          />
+                          {shippingInfo.postalCode && (
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              {isValidPostalCode ? (
+                                <svg
+                                  className="w-5 h-5 text-[#69773D] animate-fade-in"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              ) : (
+                                <svg
+                                  className="w-5 h-5 text-[#780606] animate-fade-in"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        {shippingInfo.postalCode &&
+                          isValidPostalCode === false && (
+                            <p className="text-[#780606] text-xs mt-1 flex items-center animate-fade-in">
+                              <svg
+                                className="w-4 h-4 mr-1"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                              Please enter a valid postal code (5 digits for
+                              Thailand)
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -435,38 +1250,40 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-3">
-                  {/* Cash Payment */}
-                  <label
-                    className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
-                      paymentMethod === "cash"
-                        ? "border-[#84B067] bg-green-50"
-                        : "border-gray-300 hover:border-[#84B067]"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="cash"
-                      checked={paymentMethod === "cash"}
-                      onChange={(e) =>
-                        setPaymentMethod(e.target.value as PaymentMethod)
-                      }
-                      className="w-4 h-4 text-[#84B067]"
-                    />
-                    <Package className="w-5 h-5 text-[#84B067]" />
-                    <div className="flex-1">
-                      <div className="font-medium">Cash</div>
-                      <div className="text-sm text-gray-600">
-                        Pay when you receive the item
+                  {/* Cash Payment - Only show for pickup */}
+                  {deliveryMethod === "pickup" && (
+                    <label
+                      className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
+                        paymentMethod === "cash"
+                          ? "border-[#84B067] bg-[#69773D]/10"
+                          : "border-gray-300 hover:border-[#84B067]"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        value="cash"
+                        checked={paymentMethod === "cash"}
+                        onChange={(e) =>
+                          setPaymentMethod(e.target.value as PaymentMethod)
+                        }
+                        className="w-4 h-4 text-[#84B067]"
+                      />
+                      <Package className="w-5 h-5 text-[#84B067]" />
+                      <div className="flex-1">
+                        <div className="font-medium">Cash</div>
+                        <div className="text-sm text-gray-600">
+                          Pay when you receive the item
+                        </div>
                       </div>
-                    </div>
-                  </label>
+                    </label>
+                  )}
 
                   {/* PromptPay Payment */}
                   <label
                     className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
                       paymentMethod === "promptpay"
-                        ? "border-[#84B067] bg-green-50"
+                        ? "border-[#84B067] bg-[#69773D]/10"
                         : "border-gray-300 hover:border-[#84B067]"
                     }`}
                   >
@@ -489,52 +1306,26 @@ export default function CheckoutPage() {
                     </div>
                   </label>
 
-                  {/* Show QR Code if PromptPay selected */}
+                  {/* Info message for PromptPay */}
                   {paymentMethod === "promptpay" && (
-                    <div className="mt-4 p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border-2 border-blue-200">
-                      <div className="text-center mb-4">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">
-                          Scan QR Code to Pay
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Amount:{" "}
-                          <span className="font-bold text-[#84B067]">
-                            ฿{getTotalPrice().toLocaleString("th-TH")}
-                          </span>
-                        </p>
-                      </div>
-
-                      {/* QR Code Placeholder */}
-                      <div className="flex justify-center mb-4">
-                        <div className="bg-white p-4 rounded-lg shadow-md">
-                          <div className="w-48 h-48 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center">
-                            <div className="text-center">
-                              <QrCode className="w-16 h-16 mx-auto mb-2 text-gray-400" />
-                              <p className="text-xs text-gray-500">
-                                Payment QR Code
-                              </p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                (Will be displayed after order confirmation)
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                        <div className="flex items-start gap-2">
-                          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                          <div className="text-sm text-yellow-800">
-                            <p className="font-medium mb-1">Note:</p>
-                            <ul className="list-disc list-inside space-y-1 text-xs">
-                              <li>Please transfer within 24 hours</li>
-                              <li>Keep your payment proof for verification</li>
-                              <li>
-                                Seller will confirm order after payment
-                                verification
-                              </li>
-                            </ul>
-                          </div>
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-blue-800">
+                          <p className="font-medium mb-1">
+                            Payment Information:
+                          </p>
+                          <ul className="list-disc list-inside space-y-1 text-xs">
+                            <li>
+                              QR code will be available on the Orders page after
+                              seller confirmation
+                            </li>
+                            <li>
+                              Please complete payment within 24 hours after
+                              order confirmation
+                            </li>
+                            <li>Keep your payment proof for verification</li>
+                          </ul>
                         </div>
                       </div>
                     </div>
@@ -568,7 +1359,7 @@ export default function CheckoutPage() {
                         <p className="text-sm text-gray-600">
                           Qty: {item.quantity}
                         </p>
-                        <p className="text-sm font-bold text-[#84B067]">
+                        <p className="text-sm font-bold text-[#4A5130]">
                           ฿
                           {(item.price * item.quantity).toLocaleString("th-TH")}
                         </p>
@@ -580,15 +1371,17 @@ export default function CheckoutPage() {
                 <div className="space-y-3 mb-6 border-t pt-4">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
-                    <span>฿{getTotalPrice().toLocaleString("th-TH")}</span>
+                    <span className="text-[#4A5130]">
+                      ฿{getTotalPrice().toLocaleString("th-TH")}
+                    </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
-                    <span className="text-green-600">Free</span>
+                    <span className="text-[#69773D]">Free</span>
                   </div>
                   <div className="border-t pt-3 flex justify-between text-lg font-bold text-gray-900">
                     <span>Total</span>
-                    <span className="text-[#84B067]">
+                    <span className="text-[#4A5130]">
                       ฿{getTotalPrice().toLocaleString("th-TH")}
                     </span>
                   </div>
@@ -597,23 +1390,57 @@ export default function CheckoutPage() {
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="w-full px-6 py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full px-6 py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#84B067] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? "Processing..." : "Confirm Order"}
                 </button>
 
                 {/* Order Info */}
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="mt-4 p-3 bg-[#4A5130]/10 border border-[#4A5130]/20 rounded-lg">
                   <div className="flex items-start gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-xs text-blue-800">
+                    <CheckCircle2 className="w-5 h-5 text-[#4A5130] flex-shrink-0 mt-0.5" />
+                    <div className="text-xs text-[#4A5130]">
                       <p className="font-medium mb-1">Order Details:</p>
                       <p className="mb-1">
                         <span className="font-medium">Delivery:</span>{" "}
-                        {deliveryMethod === "pickup"
-                          ? "Self Pick-up (Meetup point will be arranged)"
-                          : "Delivery to your address"}
+                        {deliveryMethod === "pickup" ? (
+                          <>
+                            Self Pick-up{" "}
+                            {pickupDetails.locationName
+                              ? `– ${pickupDetails.locationName}`
+                              : "(Set meetup point before confirming)"}
+                          </>
+                        ) : (
+                          "Delivery to your address"
+                        )}
                       </p>
+                      {deliveryMethod === "pickup" && pickupDetails.address && (
+                        <p className="mb-1">
+                          <span className="font-medium">Meetup landmark:</span>{" "}
+                          {pickupDetails.address}
+                        </p>
+                      )}
+                      {deliveryMethod === "pickup" && pickupDetails.note && (
+                        <p className="mb-1">
+                          <span className="font-medium">Your note:</span>{" "}
+                          {pickupDetails.note}
+                        </p>
+                      )}
+                      {deliveryMethod === "pickup" &&
+                        pickupDetails.preferredTime && (
+                          <p className="mb-1 text-[#4A5130]">
+                            <span className="font-medium">Preferred time:</span>{" "}
+                            {new Date(
+                              pickupDetails.preferredTime
+                            ).toLocaleString("th-TH", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        )}
                       <p>
                         <span className="font-medium">Payment:</span>{" "}
                         {paymentMethod === "cash"
@@ -631,18 +1458,18 @@ export default function CheckoutPage() {
 
       {/* Confirmation Modal */}
       {showConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               {/* Header */}
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-10 h-10 text-blue-600" />
+                <div className="w-16 h-16 bg-[#69773D]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-10 h-10 text-[#69773D]" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-2xl font-bold text-[#4A5130] mb-2">
                   Confirm Your Order
                 </h2>
-                <p className="text-gray-600 text-sm">
+                <p className="text-[#69773D] text-sm">
                   Please review the details before confirming
                 </p>
               </div>
@@ -662,7 +1489,7 @@ export default function CheckoutPage() {
                         <span className="text-gray-700 flex-1 mr-2 line-clamp-1">
                           {item.title} x{item.quantity}
                         </span>
-                        <span className="font-medium text-gray-900 whitespace-nowrap">
+                        <span className="font-medium text-[#4A5130] whitespace-nowrap">
                           ฿
                           {(item.price * item.quantity).toLocaleString("th-TH")}
                         </span>
@@ -672,7 +1499,7 @@ export default function CheckoutPage() {
                   <div className="border-t mt-3 pt-3">
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total</span>
-                      <span className="text-[#84B067]">
+                      <span className="text-[#4A5130]">
                         ฿{getTotalPrice().toLocaleString("th-TH")}
                       </span>
                     </div>
@@ -707,12 +1534,43 @@ export default function CheckoutPage() {
                       </>
                     )}
                     {deliveryMethod === "pickup" && (
-                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-                        <p className="text-xs text-blue-800">
-                          <Store className="w-4 h-4 inline mr-1" />
-                          Meetup location will be arranged with seller after
-                          confirmation
+                      <div className="mt-2 space-y-1 rounded border border-[#d6e4c3] bg-[#f8fbef] p-3 text-xs text-[#3f4e24]">
+                        <p className="font-semibold text-[#2f3b11]">
+                          <Store className="mr-1 inline h-4 w-4 text-[#84B067]" />
+                          Pickup location
                         </p>
+                        <p className="font-medium">
+                          {pickupDetails.locationName || "Not specified yet"}
+                        </p>
+                        {pickupDetails.address && (
+                          <p>{pickupDetails.address}</p>
+                        )}
+                        {pickupDetails.coordinates && (
+                          <p className="text-[11px] text-gray-500">
+                            Coordinates:{" "}
+                            {pickupDetails.coordinates.lat.toFixed(5)},{" "}
+                            {pickupDetails.coordinates.lng.toFixed(5)}
+                          </p>
+                        )}
+                        {pickupDetails.note && (
+                          <p className="text-[11px] text-gray-500">
+                            Your note: {pickupDetails.note}
+                          </p>
+                        )}
+                        {pickupDetails.preferredTime && (
+                          <p className="text-[11px] text-[#4A5130] font-medium">
+                            Preferred time:{" "}
+                            {new Date(
+                              pickupDetails.preferredTime
+                            ).toLocaleString("th-TH", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -752,7 +1610,8 @@ export default function CheckoutPage() {
                       </li>
                       {deliveryMethod === "pickup" && (
                         <li className="text-orange-700 font-medium">
-                          Meetup point will be arranged after seller confirms
+                          You can adjust the meetup point anytime until the
+                          seller confirms
                         </li>
                       )}
                       {paymentMethod === "promptpay" && (
@@ -778,7 +1637,7 @@ export default function CheckoutPage() {
                 <button
                   onClick={handleConfirmOrder}
                   disabled={isProcessing}
-                  className="flex-1 px-6 py-3 bg-[#84B067] text-white rounded-lg hover:bg-[#69773D] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 bg-[#69773D] text-white rounded-lg hover:bg-[#84B067] transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isProcessing ? (
                     <>

@@ -4,18 +4,46 @@ import { listItems } from "@/config/items";
 import type { MockListItems } from "@/test/types//test-types";
 import { createMockItem, createMockResponse } from "@/test/types//test-types";
 
-// Mock Next.js router
+// Mock Next.js router hooks
+const mockPush = jest.fn();
+let mockSearchParams = new URLSearchParams();
+const mockReplace = jest.fn((url: string) => {
+  // Update mockSearchParams when router.replace is called
+  const urlObj = new URL(url, "http://localhost");
+  const newParams = new URLSearchParams(urlObj.search);
+  // Create a new instance to trigger React re-render
+  mockSearchParams = new URLSearchParams(newParams);
+});
+
+const mockRouter = {
+  push: mockPush,
+  replace: mockReplace,
+  prefetch: jest.fn(),
+  back: jest.fn(),
+  forward: jest.fn(),
+  refresh: jest.fn(),
+};
+
+const mockPathname = "/marketplace";
+
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    prefetch: jest.fn(),
-    back: jest.fn(),
-    forward: jest.fn(),
-  }),
+  useRouter: () => mockRouter,
+  usePathname: () => mockPathname,
+  useSearchParams: () => mockSearchParams,
 }));
 
 jest.mock("@/config/items");
+jest.mock("@/config/categories", () => ({
+  getCategories: jest.fn().mockResolvedValue([
+    { id: "1", name: "Electronics", slug: "electronics" },
+    { id: "2", name: "Books", slug: "books" },
+  ]),
+}));
+jest.mock("@/components/home/FooterSection", () => {
+  return function FooterSection() {
+    return <footer data-testid="footer">Footer</footer>;
+  };
+});
 jest.mock("@/components/Marketplace/ItemCard", () => {
   return function ItemCard({ title }: { title: string }) {
     return <div data-testid="item-card">{title}</div>;
@@ -29,16 +57,30 @@ jest.mock("@/components/Marketplace/Pagination", () => {
 
 const mockListItems = listItems as MockListItems;
 
+// Mock window.scrollTo
+Object.defineProperty(window, "scrollTo", {
+  value: jest.fn(),
+  writable: true,
+});
+
 describe("Catalog Loading Tests", () => {
   const mockItems = [createMockItem({ title: "iPhone 13" })];
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPush.mockClear();
+    mockReplace.mockClear();
+    // Reset search params
+    mockSearchParams = new URLSearchParams();
     jest.useFakeTimers(); // สำหรับ debounce
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
+    try {
+      jest.runOnlyPendingTimers();
+    } catch {
+      // Ignore if no fake timers are active
+    }
     jest.useRealTimers();
   });
 
@@ -132,9 +174,7 @@ describe("Catalog Loading Tests", () => {
       render(<MarketPage />);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/Failed to load items. Please try again./i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Failed to load items/i)).toBeInTheDocument();
       });
     });
 

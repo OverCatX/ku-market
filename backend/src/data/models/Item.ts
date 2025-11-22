@@ -7,6 +7,8 @@ export interface IItem extends Document{
     category: string,
     price: number,
     status : "available" | "reserved" | "sold",
+    approvalStatus: "pending" | "approved" | "rejected",
+    rejectionReason?: string,
     photo: string[],
     createAt: Date,
     updateAt: Date
@@ -25,10 +27,30 @@ const itemSchema: Schema<IItem> = new Schema(
             default: "available",
             index : true
         },
+        approvalStatus: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending",
+            index: true,
+        },
+        rejectionReason: {
+            type: String,
+            maxlength: 500,
+        },
         photo: {type: [String], default: []},
     },
     { timestamps: true}
 );
 
+// Text search index for full-text search
 itemSchema.index({ title: "text", description: "text" });
+
+// Compound indexes for better query performance
+itemSchema.index({ approvalStatus: 1, status: 1, updateAt: -1 }); // For newest updated filter
+itemSchema.index({ approvalStatus: 1, status: 1, createAt: -1 }); // For newest created
+itemSchema.index({ approvalStatus: 1, category: 1, status: 1 }); // For category filter
+itemSchema.index({ approvalStatus: 1, status: 1, price: 1 }); // For price sorting
+itemSchema.index({ updateAt: -1 }); // For updateAt sorting performance
+itemSchema.index({ createAt: -1 }); // For createAt sorting performance
+
 export default mongoose.model<IItem>("Item", itemSchema);

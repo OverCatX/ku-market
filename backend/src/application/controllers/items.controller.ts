@@ -2,12 +2,8 @@ import {Request, Response } from "express";
 import { uploadToCloudinary } from "../../lib/cloudinary";
 import Item, { IItem } from "../../data/models/Item"
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
-
-interface AuthenticatedRequest extends Request {
-    user?: {
-        id: string;
-    };
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
+import { logActivity } from "../../lib/activityLogger";
 
 export default class ItemController {
     userUpload = async(req: Request, res: Response) => {
@@ -37,7 +33,7 @@ export default class ItemController {
             
             for (let i = 0; i < files.length; i++) {
                 try {
-                    console.log(`Uploading image ${i + 1}/${files.length}...`);
+                    // Uploading image (progress not logged in production)
                     const imageUrl = await uploadToCloudinary(files[i].buffer);
                     imageUrls.push(imageUrl);
                 } catch (uploadError) {
@@ -56,10 +52,27 @@ export default class ItemController {
                 category: req.body.category,
                 price: Number(req.body.price),
                 status: req.body.status || "available",
+                approvalStatus: "pending", // New items need admin approval
                 photo: imageUrls,
             };
     
             const item = await Item.create(newItem);
+
+            // Log item creation
+            await logActivity({
+                req,
+                activityType: "item_created",
+                entityType: "item",
+                entityId: String(item._id),
+                description: `Seller created item: "${item.title}" - Price: ${item.price} THB`,
+                metadata: {
+                    itemId: String(item._id),
+                    itemTitle: item.title,
+                    itemPrice: item.price,
+                    itemCategory: item.category,
+                    photoCount: imageUrls.length,
+                },
+            });
     
             return res.status(201).json({ 
                 success: true, 
@@ -162,8 +175,28 @@ export default class ItemController {
             if (!existingItem) {
                 return res.status(404).json({ error: "Item not found" });
             }
+
+            const userId = (req as AuthenticatedRequest).user?.id;
+            const itemTitle = existingItem.title;
+            const itemPrice = existingItem.price;
     
             await Item.findByIdAndDelete(id);
+
+            // Log item deletion
+            if (userId) {
+                await logActivity({
+                    req,
+                    activityType: "item_deleted",
+                    entityType: "item",
+                    entityId: id,
+                    description: `Seller deleted item: "${itemTitle}" - Price: ${itemPrice} THB`,
+                    metadata: {
+                        itemId: id,
+                        itemTitle: itemTitle,
+                        itemPrice: itemPrice,
+                    },
+                });
+            }
     
             return res.status(200).json({ 
                 success: true, 
@@ -184,6 +217,9 @@ export default class ItemController {
             const skip = (page - 1) * limit;
             
             const filters: FilterQuery<IItem> = {};
+            
+            // Only show approved items in marketplace
+            filters.approvalStatus = "approved";
             
             if (req.query.status && ["available", "reserved", "sold"].includes(req.query.status as string)) {
                 filters.status = req.query.status;
@@ -210,13 +246,30 @@ export default class ItemController {
                 filters.owner = new mongoose.Types.ObjectId(req.query.owner as string);
             }
             
-            // Search in title and description
-            if (req.query.search) {
-                filters.$text = { $search: req.query.search as string };
+            // Enhanced search: comprehensive regex-based search that finds everything
+            const searchQuery = req.query.search as string;
+            
+            if (searchQuery && searchQuery.trim()) {
+                const searchTerm = searchQuery.trim();
+                // Escape special regex characters for safe regex search
+                const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const searchRegex = new RegExp(escapedSearch, 'i');
+                
+                // Use regex search for comprehensive partial matching
+                // This finds results even with:
+                // - Partial words (e.g., "iph" finds "iPhone")
+                // - Anywhere in text (not just word boundaries)
+                // - Case-insensitive matching
+                // - Multiple fields (title, description, category)
+                filters.$or = [
+                    { title: searchRegex },
+                    { description: searchRegex },
+                    { category: searchRegex }
+                ];
             }
             
-            // Sorting
-            let sortOption: Record<string, 1 | -1 | { $meta: "textScore" }> = { createAt: -1 } as const;
+            // Sorting with optimized defaults
+            let sortOption: Record<string, 1 | -1 | { $meta: "textScore" }> = { updateAt: -1 } as const; // Default to newest updated
             
             if (req.query.sortBy) {
                 const sortBy = req.query.sortBy as string;
@@ -233,16 +286,21 @@ export default class ItemController {
                         sortOption = { createAt: sortOrder };
                         break;
                     case 'updateAt':
+                        // Optimized: use compound index for better performance
                         sortOption = { updateAt: sortOrder };
                         break;
                     case 'relevance':
-                        if (req.query.search) {
-                            sortOption = { score: { $meta: "textScore" } };
-                        }
+                        // For relevance, use updateAt as primary sort (newest first)
+                        // Regex search already finds relevant items, so we sort by recency
+                        sortOption = { updateAt: -1 };
                         break;
+                    default:
+                        // Default to newest updated if invalid sortBy
+                        sortOption = { updateAt: -1 };
                 }
             }
             
+            // Build pipeline with optimized stages
             const pipeline: PipelineStage[] = [
                 { $match: filters },
                 { $sort: sortOption },
@@ -255,7 +313,7 @@ export default class ItemController {
                         foreignField: "_id",
                         as: "ownerInfo",
                         pipeline: [
-                            { $project: { name: 1, email: 1 } }
+                            { $project: { name: 1, kuEmail: 1, profilePicture: 1 } }
                         ]
                     }
                 },
@@ -318,7 +376,7 @@ export default class ItemController {
             }
     
             // Find the item and populate owner details
-            const item = await Item.findById(id).populate('owner', 'name email');
+            const item = await Item.findById(id).populate('owner', 'name kuEmail profilePicture');
             
             if (!item) {
                 return res.status(404).json({ 

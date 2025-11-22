@@ -13,11 +13,14 @@ router.get("/stats", sellerController.getStats);
 
 // Orders management
 router.get("/orders", sellerController.getOrders);
-router.post("/orders/:orderId/confirm", sellerController.confirmOrder);
-router.post("/orders/:orderId/reject", sellerController.rejectOrder);
+router.get("/orders/:orderId", sellerController.getOrderDetail);
+router.patch("/orders/:orderId/confirm", sellerController.confirmOrder);
+router.patch("/orders/:orderId/reject", sellerController.rejectOrder);
+router.post("/orders/:orderId/delivered", sellerController.markDelivered);
 
 // Items management
 router.get("/items", sellerController.getItems);
+router.patch("/items/:itemId/status", sellerController.updateItemStatus);
 
 export default router;
 

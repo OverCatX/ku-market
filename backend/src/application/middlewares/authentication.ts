@@ -1,12 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-interface JwtPayload { id: string }
+interface JwtPayload {
+  id: string;
+}
 
 export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
   };
+  userId?: string;
 }
 
 export const authenticate = async (
@@ -18,8 +21,15 @@ export const authenticate = async (
     if (!token) return res.status(401).json({ error: "Unauthorized" });
   
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET || "secret") as JwtPayload;
-      (req as AuthenticatedRequest).user = { id: payload.id };
+      const payload = jwt.verify(
+        token,
+        process.env.JWT_SECRET || "secret"
+      ) as JwtPayload;
+
+      const authReq = req as AuthenticatedRequest;
+      authReq.user = { id: payload.id };
+      authReq.userId = payload.id;
+
       next();
     } catch {
       res.status(401).json({ error: "Invalid token" });

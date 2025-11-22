@@ -1,42 +1,67 @@
 "use client";
+import { useState } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import PrivacyPolicyModal from "@/components/modals/PrivacyPolicyModal";
+import TermsOfServiceModal from "@/components/modals/TermsOfServiceModal";
 
 export default function FooterSection() {
-  return (
-    <footer className="bg-white border-t border-gray-200 py-8 px-6 md:px-20">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
-        className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
-      >
-        {/* Left: Brand info */}
-        <div className="flex flex-col space-y-2">
-          <h3 className="font-header text-xl text-[#69773D]">KU Market</h3>
-          <p className="text-gray-600 text-sm">
-            A smarter way to buy, sell, and connect on campus.
-          </p>
-        </div>
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
 
-        {/* Right: Links and copyright */}
-        <div className="flex flex-col md:items-end space-y-2">
-          <div className="flex space-x-6 text-sm text-gray-500">
-            <a href="#" className="hover:text-[#69773D] transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#" className="hover:text-[#69773D] transition-colors">
-              Terms of Service
-            </a>
-            <a href="#" className="hover:text-[#69773D] transition-colors">
-              Contact Us
-            </a>
+  return (
+    <>
+      <footer className="bg-[#F6F2E5] border-t border-gray-200 py-8 px-6 md:px-20">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+        >
+          {/* Left: Brand info */}
+          <div className="flex flex-col space-y-2">
+            <h3 className="font-header text-xl text-[#69773D]">KU Market</h3>
+            <p className="text-gray-600 text-sm">
+              A smarter way to buy, sell, and connect on campus.
+            </p>
           </div>
-          <p className="text-gray-400 text-xs">
-            © {new Date().getFullYear()} KU Market. All rights reserved.
-          </p>
-        </div>
-      </motion.div>
-    </footer>
+
+          {/* Right: Links and copyright */}
+          <div className="flex flex-col md:items-end space-y-2">
+            <div className="flex space-x-6 text-sm text-gray-500">
+              <button
+                onClick={() => setIsPrivacyOpen(true)}
+                className="hover:text-[#69773D] transition-colors cursor-pointer"
+              >
+                Privacy Policy
+              </button>
+              <button
+                onClick={() => setIsTermsOpen(true)}
+                className="hover:text-[#69773D] transition-colors cursor-pointer"
+              >
+                Terms of Service
+              </button>
+              <Link href="/report" className="hover:text-[#69773D] transition-colors">
+                Contact Us
+              </Link>
+            </div>
+            <p className="text-gray-400 text-xs">
+              © {new Date().getFullYear()} KU Market. All rights reserved.
+            </p>
+          </div>
+        </motion.div>
+      </footer>
+
+      {/* Modals */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
+      <TermsOfServiceModal
+        isOpen={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
+      />
+    </>
   );
 }

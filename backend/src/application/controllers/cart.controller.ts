@@ -2,12 +2,7 @@ import { Request, Response } from "express";
 import Cart from "../../data/models/Cart";
 import Item from "../../data/models/Item";
 import mongoose from "mongoose";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
-}
+import { AuthenticatedRequest } from "../middlewares/authentication";
 
 interface PopulatedCartItem {
   itemId: {
@@ -54,15 +49,21 @@ export default class CartController {
       }
 
       const populatedItems = cart.items as unknown as PopulatedCartItem[];
-      const items: FormattedCartItem[] = populatedItems.map((item) => ({
-        id: item.itemId._id.toString(),
-        title: item.itemId.title,
-        price: item.itemId.price,
-        image: item.itemId.photo?.[0] || "",
-        quantity: item.quantity,
-        sellerId: item.itemId.owner?._id?.toString() || "",
-        sellerName: item.itemId.owner?.name || "Unknown",
-      }));
+      // Filter out any cart entries whose item has been deleted or is missing
+      const safeItems = populatedItems.filter((ci) => !!ci.itemId);
+      const items: FormattedCartItem[] = safeItems.map((item) => {
+        const ownerId = item.itemId.owner?._id ? item.itemId.owner._id.toString() : "";
+        const ownerName = item.itemId.owner?.name || "Unknown";
+        return {
+          id: item.itemId._id.toString(),
+          title: item.itemId.title,
+          price: item.itemId.price,
+          image: item.itemId.photo?.[0] || "",
+          quantity: item.quantity,
+          sellerId: ownerId,
+          sellerName: ownerName,
+        };
+      });
 
       return res.json({
         success: true,
@@ -89,6 +90,14 @@ export default class CartController {
       if (!item) {
         return res.status(404).json({ success: false, error: "Item not found" });
       }
+      // Prevent sellers from adding their own items to the cart
+      if (item.owner && item.owner.toString() === String(userId)) {
+        return res
+          .status(400)
+          .json({ success: false, error: "You cannot purchase your own item" });
+      }
+
+      const MAX_QUANTITY_PER_ITEM = 10;
 
       let cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
 
@@ -100,6 +109,13 @@ export default class CartController {
       } else {
         const existingIndex = cart.items.findIndex(i => i.itemId.toString() === itemId);
         if (existingIndex > -1) {
+          // Check if adding one more would exceed max quantity
+          if (cart.items[existingIndex].quantity >= MAX_QUANTITY_PER_ITEM) {
+            return res.status(400).json({ 
+              success: false, 
+              error: `Maximum quantity per item is ${MAX_QUANTITY_PER_ITEM}. You already have ${cart.items[existingIndex].quantity} in your cart.` 
+            });
+          }
           cart.items[existingIndex].quantity += 1;
         } else {
           cart.items.push({ itemId: new mongoose.Types.ObjectId(itemId), quantity: 1, addedAt: new Date() });
@@ -123,6 +139,8 @@ export default class CartController {
       }
       const { itemId, quantity } = req.body;
 
+      const MAX_QUANTITY_PER_ITEM = 10;
+
       const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(userId) });
       if (!cart) {
         return res.status(404).json({ success: false, error: "Cart not found" });
@@ -131,6 +149,14 @@ export default class CartController {
       if (quantity === 0) {
         cart.items = cart.items.filter(i => i.itemId.toString() !== itemId);
       } else {
+        // Validate maximum quantity
+        if (quantity > MAX_QUANTITY_PER_ITEM) {
+          return res.status(400).json({ 
+            success: false, 
+            error: `Maximum quantity per item is ${MAX_QUANTITY_PER_ITEM}.` 
+          });
+        }
+
         const index = cart.items.findIndex(i => i.itemId.toString() === itemId);
         if (index > -1) {
           cart.items[index].quantity = quantity;
