@@ -50,9 +50,32 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
     const transporter = getEmailTransporter();
     
     if (!transporter) {
-      logger.warn("Email transporter not available. Email will not be sent.");
-      logger.log("Email that would be sent:", { to, subject });
-      return;
+      const errorMsg = "SMTP credentials not configured. Please check SMTP_USER and SMTP_PASS environment variables.";
+      logger.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    // Verify SMTP connection before sending
+    try {
+      await transporter.verify();
+      logger.log("SMTP connection verified successfully");
+    } catch (verifyError) {
+      logger.error("SMTP connection verification failed:", verifyError);
+      // Reset transporter on verification failure
+      if (emailTransporter) {
+        emailTransporter.close();
+        emailTransporter = null;
+      }
+      
+      // Provide more specific error messages
+      const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
+      if (errorMessage.includes("Invalid login") || errorMessage.includes("authentication")) {
+        throw new Error("SMTP authentication failed. Please check your SMTP_USER and SMTP_PASS credentials.");
+      } else if (errorMessage.includes("timeout") || errorMessage.includes("ETIMEDOUT")) {
+        throw new Error("SMTP connection timeout. Please check your network connection and SMTP settings.");
+      } else {
+        throw new Error(`SMTP connection failed: ${errorMessage}`);
+      }
     }
 
     // Send email with timeout
@@ -70,13 +93,21 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
 
     logger.log("Email sent successfully:", info.messageId);
   } catch (error) {
-    logger.error("Error sending email:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error("Error sending email:", errorMessage);
+    
     // Reset transporter on error to force recreation on next attempt
     if (emailTransporter) {
-      emailTransporter.close();
+      try {
+        emailTransporter.close();
+      } catch {
+        // Ignore close errors
+      }
       emailTransporter = null;
     }
-    throw error;
+    
+    // Re-throw with more context
+    throw new Error(errorMessage);
   }
 }
 
