@@ -134,23 +134,92 @@ npm run bootstrap-admin
 
 ## Environment Variables
 
-**Backend (.env):**
+### Backend (.env)
 
-- `MONGO_URL` - MongoDB connection string (required)
-- `JWT_SECRET` - Secret key for JWT tokens (required)
-- `PORT` - Backend server port (default: 5000)
-- `CORS_ORIGIN` - Comma-separated list of allowed origins (e.g., `https://ku-market-mu.vercel.app,http://localhost:3000`)
-- `RESEND_API_KEY` - Resend API key for email sending (required)
-- `RESEND_FROM_EMAIL` - Email address to send from (use `onboarding@resend.dev` for testing)
-- `STRIPE_SECRET_KEY` - Stripe API secret key
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
-- See `.env.example` or `docs/INSTALLATION.md` for complete list
+**MONGO_URL** - MongoDB connection string (required). Source: MongoDB Atlas or local MongoDB instance.
 
-**Frontend (.env.local):**
+**JWT_SECRET** - Secret key for JWT tokens (required). Source: Generate with `openssl rand -base64 32`.
 
-- `NEXT_PUBLIC_API_BASE` - Backend API URL (default: http://localhost:8080)
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
-- See `.env.example` or `docs/INSTALLATION.md` for complete list
+**PORT** - Backend server port. Default: `8080`.
+
+**CORS_ORIGIN** - Comma-separated list of allowed origins. Source: e.g., `https://ku-market-mu.vercel.app,http://localhost:3000`.
+
+**RESEND_API_KEY** - Resend API key for email sending (required). Source: [Resend Dashboard](https://resend.com/api-keys) → Create API Key.
+
+**RESEND_FROM_EMAIL** - Email address to send from. Source: Use `onboarding@resend.dev` for testing, or verified domain email for production.
+
+**STRIPE_SECRET_KEY** - Stripe API secret key. Source: [Stripe Dashboard](https://dashboard.stripe.com/apikeys) → API Keys.
+
+**CLOUDINARY_CLOUD_NAME** - Cloudinary cloud name. Source: [Cloudinary Console](https://cloudinary.com/console).
+
+**CLOUDINARY_API_KEY** - Cloudinary API key. Source: [Cloudinary Console](https://cloudinary.com/console).
+
+**CLOUDINARY_API_SECRET** - Cloudinary API secret. Source: [Cloudinary Console](https://cloudinary.com/console).
+
+**GOOGLE_CLIENT_ID** - OAuth Client ID for Google Sign-In (backend). Source: [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → Credentials → OAuth 2.0 Client ID.
+
+**GOOGLE_CLIENT_SECRET** - OAuth Client Secret paired with the above Client ID. Source: [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → OAuth 2.0 Client.
+
+**GOOGLE_REDIRECT_URI** - OAuth redirect URI. Source: `http://localhost:8080/api/auth/google/callback` (dev) or your production backend URL.
+
+**FRONTEND_URL** - Frontend application URL. Source: `http://localhost:3000` (dev) or your production frontend URL.
+
+**SESSION_SECRET** - Secret for Express sessions. Source: Generate with `openssl rand -base64 32`.
+
+### Frontend (.env.local)
+
+**NEXT_PUBLIC_API_BASE** - Backend API URL. Source: `http://localhost:8080` (dev) or your production backend URL.
+
+**NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY** - Stripe publishable key. Source: [Stripe Dashboard](https://dashboard.stripe.com/apikeys) → API Keys.
+
+See `.env.example` or `docs/INSTALLATION.md` for complete list with examples.
+
+## Google OAuth Setup
+
+To enable Google Sign-In, configure OAuth 2.0 credentials in Google Cloud Console.
+
+### Step 1: Create OAuth 2.0 Client ID
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Navigate to **APIs & Services** → **Credentials**
+3. Click **Create Credentials** → **OAuth 2.0 Client ID**
+4. If prompted, configure the OAuth consent screen first:
+   - User Type: **External**
+   - App name: **KU Market**
+   - Authorized domains: your domain (or leave empty for localhost)
+
+### Step 2: Configure OAuth Client
+
+1. **Application type:** Select **Web application**
+2. **Name:** Enter a name (e.g., "KU Market Web Client")
+3. **Authorized JavaScript origins:** (Optional - for browser requests)
+   - Leave empty or add your frontend URLs
+4. **Authorized redirect URIs:** (Required - for web server requests)
+   - `http://localhost:8080/api/auth/google/callback` (development)
+   - `http://localhost:8080/api/auth/google` (development)
+   - `https://ku-market.onrender.com/api/auth/google/callback` (production backend)
+   - `https://ku-market.onrender.com/api/auth/google` (production backend)
+   - `https://ku-market-mu.vercel.app/api/auth/google/callback` (production frontend)
+   - `https://ku-market-mu.vercel.app/api/auth/google` (production frontend)
+
+![Google OAuth Configuration](docs/images/google-oauth-config.png)
+
+_Example: Google Cloud Console OAuth 2.0 Client ID configuration showing Authorized redirect URIs_
+
+### Step 3: Copy Credentials
+
+After creating the OAuth client:
+
+1. Copy the **Client ID** → Use as `GOOGLE_CLIENT_ID` in backend `.env`
+2. Copy the **Client Secret** → Use as `GOOGLE_CLIENT_SECRET` in backend `.env`
+3. Set `GOOGLE_REDIRECT_URI` to match your backend callback URL (e.g., `http://localhost:8080/api/auth/google/callback`)
+
+**Important Notes:**
+
+- Only `@ku.th` email addresses are accepted for Google login
+- Changes may take 5 minutes to a few hours to take effect
+- Make sure redirect URIs match exactly (including protocol, port, and path)
+- Add both `/api/auth/google` and `/api/auth/google/callback` URIs for both development and production
 
 ## Development
 
