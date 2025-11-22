@@ -596,9 +596,9 @@ export default function OrderDetailPage({
   const StatusIcon = meta.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f5f8f1] via-white to-[#eef4e6] py-4 sm:py-6 lg:py-10">
+    <div className="min-h-screen bg-[#F6F2E5] py-4 sm:py-6 lg:py-10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-4xl">
-        <div className="mb-3 sm:mb-4">
+        <div className="mb-3 sm:mb-4 flex items-center justify-between">
           <Link
             href="/orders"
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-[#4c5c2f] hover:text-[#2f3816]"
@@ -825,7 +825,7 @@ export default function OrderDetailPage({
                   <button
                     type="button"
                     onClick={handleMakePayment}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-5 py-3 text-sm sm:text-base font-bold transition bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-5 py-3 text-sm sm:text-base font-bold transition bg-[#4A5130] text-white hover:bg-[#3a4026] shadow-md hover:shadow-lg"
                   >
                     <QrCode size={14} className="sm:w-4 sm:h-4" />
                     Make Payment
@@ -855,7 +855,7 @@ export default function OrderDetailPage({
                     {(order.paymentMethod === "promptpay" ||
                       order.paymentMethod === "transfer") &&
                       !paymentComplete && (
-                        <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-yellow-100 border-2 border-yellow-400 px-4 sm:px-5 py-2.5 text-sm sm:text-base font-bold text-yellow-900 shadow-sm">
+                        <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-yellow-50 border-2 border-yellow-300 px-4 sm:px-5 py-2.5 text-sm sm:text-base font-bold text-yellow-900 shadow-sm">
                           <AlertCircle
                             size={14}
                             className="sm:w-4 sm:h-4 flex-shrink-0"
@@ -937,7 +937,7 @@ export default function OrderDetailPage({
               {order.deliveryMethod === "delivery" &&
                 order.sellerDelivered &&
                 !order.buyerReceived && (
-                  <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-blue-100 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-blue-700">
+                  <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-[#69773D]/10 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-[#69773D]">
                     <CheckCircle
                       size={14}
                       className="sm:w-4 sm:h-4 flex-shrink-0"
@@ -949,10 +949,10 @@ export default function OrderDetailPage({
                   </div>
                 )}
               {order.buyerReceived && order.sellerDelivered && (
-                <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-green-200 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-green-800">
+                <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-[#A0704F]/10 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-[#A0704F]">
                   <CheckCircle
                     size={14}
-                    className="sm:w-4 sm:h-4 flex-shrink-0"
+                    className="sm:w-4 sm:h-4 flex-shrink-0 text-[#A0704F]"
                   />
                   <span className="hidden sm:inline">
                     Both parties confirmed - Order completed
