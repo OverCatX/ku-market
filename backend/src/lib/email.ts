@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { logger } from "./logger";
 
 interface SendEmailOptions {
@@ -7,81 +7,68 @@ interface SendEmailOptions {
   html: string;
 }
 
-// Reusable transporter instance (singleton pattern)
-let emailTransporter: nodemailer.Transporter | null = null;
+// Resend client instance (singleton pattern)
+let resendClient: Resend | null = null;
+let fromEmail: string | null = null;
 
-function getEmailTransporter(): nodemailer.Transporter | null {
-  // Return existing transporter if already created
-  if (emailTransporter) {
-    return emailTransporter;
+function getResendClient(): { client: Resend; from: string } | null {
+  // Return existing client if already created
+  if (resendClient && fromEmail) {
+    return { client: resendClient, from: fromEmail };
   }
 
-  // Verify transporter configuration
-  const smtpEmail = process.env.SMTP_EMAIL?.trim() || process.env.SMTP_USER?.trim();
-  const smtpPassword = process.env.SMTP_PASSWORD?.trim() || process.env.SMTP_PASS?.trim();
+  // Verify Resend API key
+  const resendApiKey = process.env.RESEND_API_KEY?.trim();
+  const emailFrom = process.env.RESEND_FROM_EMAIL?.trim();
   
-  if (!smtpEmail || !smtpPassword) {
-    logger.warn("SMTP credentials not configured. Email will not be sent.");
+  logger.log("Resend configuration check:");
+  logger.log(`  RESEND_API_KEY: ${resendApiKey ? `${resendApiKey.substring(0, 10)}...` : "NOT SET"}`);
+  logger.log(`  RESEND_FROM_EMAIL: ${emailFrom || "NOT SET"}`);
+  
+  if (!resendApiKey) {
+    logger.error("RESEND_API_KEY not configured. Email will not be sent.");
+    return null;
+  }
+
+  if (!emailFrom) {
+    logger.error("RESEND_FROM_EMAIL not configured. Email will not be sent.");
     return null;
   }
   
-  // Create transporter with Gmail defaults and timeout settings
-  emailTransporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: smtpEmail,
-      pass: smtpPassword,
-    },
-    connectionTimeout: 10000, // 10 seconds connection timeout
-    socketTimeout: 10000, // 10 seconds socket timeout
-    greetingTimeout: 10000, // 10 seconds greeting timeout
-    pool: true, // Use connection pooling
-    maxConnections: 5, // Maximum number of connections in pool
-    maxMessages: 100, // Maximum messages per connection
-  });
+  // Create Resend client
+  resendClient = new Resend(resendApiKey);
+  fromEmail = emailFrom;
 
-  return emailTransporter;
+  logger.log("Resend client initialized successfully");
+  return { client: resendClient, from: fromEmail };
 }
 
 export async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<void> {
   try {
-    const transporter = getEmailTransporter();
+    const resendConfig = getResendClient();
     
-    if (!transporter) {
-      const errorMsg = "SMTP credentials not configured. Please check SMTP_USER and SMTP_PASS environment variables.";
+    if (!resendConfig) {
+      const errorMsg = "Resend API not configured. Please check RESEND_API_KEY and RESEND_FROM_EMAIL environment variables.";
       logger.error(errorMsg);
       throw new Error(errorMsg);
     }
 
-    // Verify SMTP connection before sending
-    try {
-      await transporter.verify();
-      logger.log("SMTP connection verified successfully");
-    } catch (verifyError) {
-      logger.error("SMTP connection verification failed:", verifyError);
-      // Reset transporter on verification failure
-      if (emailTransporter) {
-        emailTransporter.close();
-        emailTransporter = null;
-      }
-      
-      // Provide more specific error messages
-      const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
-      if (errorMessage.includes("Invalid login") || errorMessage.includes("authentication")) {
-        throw new Error("SMTP authentication failed. Please check your SMTP_USER and SMTP_PASS credentials.");
-      } else if (errorMessage.includes("timeout") || errorMessage.includes("ETIMEDOUT")) {
-        throw new Error("SMTP connection timeout. Please check your network connection and SMTP settings.");
-      } else {
-        throw new Error(`SMTP connection failed: ${errorMessage}`);
-      }
+    // Send email using Resend API
+    // Format: "Name <email@domain.com>" or just "email@domain.com"
+    let fromField: string;
+    if (resendConfig.from.includes("@resend.dev")) {
+      // For Resend test domain, use simple format
+      fromField = resendConfig.from;
+    } else {
+      // For custom domains, use formatted name
+      fromField = `KU Market <${resendConfig.from}>`;
     }
-
-    // Send email with timeout
-    const info = await Promise.race([
-      transporter.sendMail({
-        from: `"KU Market" <${process.env.SMTP_EMAIL?.trim() || process.env.SMTP_USER?.trim()}>`,
+    
+    logger.log(`Attempting to send email to: ${to} from: ${fromField}`);
+    
+    const result = await Promise.race([
+      resendConfig.client.emails.send({
+        from: fromField,
         to,
         subject,
         html,
@@ -91,20 +78,31 @@ export async function sendEmail({ to, subject, html }: SendEmailOptions): Promis
       ),
     ]);
 
-    logger.log("Email sent successfully:", info.messageId);
+    if (result.error) {
+      logger.error("Resend API error:", JSON.stringify(result.error, null, 2));
+      const errorDetails = result.error as { message?: string; name?: string; [key: string]: unknown };
+      const errorMsg = errorDetails.message || errorDetails.name || JSON.stringify(result.error);
+      
+      // Check for specific error types
+      if (errorMsg.toLowerCase().includes("domain") || errorMsg.toLowerCase().includes("not verified")) {
+        logger.error(`Domain verification error. Current FROM email: ${resendConfig.from}`);
+        logger.error("For testing, use: onboarding@resend.dev");
+        logger.error("For production, verify your domain in Resend dashboard first.");
+        throw new Error(`Email domain not verified. Please use 'onboarding@resend.dev' for testing or verify your domain in Resend dashboard.`);
+      }
+      
+      throw new Error(`Resend API error: ${errorMsg}`);
+    }
+
+    logger.log("Email sent successfully via Resend. Email ID:", result.data?.id);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error("Error sending email:", errorMessage);
+    logger.error("Error sending email - Full error:", error);
+    logger.error("Error sending email - Message:", errorMessage);
     
-    // Reset transporter on error to force recreation on next attempt
-    if (emailTransporter) {
-      try {
-        emailTransporter.close();
-      } catch {
-        // Ignore close errors
-      }
-      emailTransporter = null;
-    }
+    // Reset client on error to force recreation on next attempt
+    resendClient = null;
+    fromEmail = null;
     
     // Re-throw with more context
     throw new Error(errorMessage);
@@ -207,4 +205,3 @@ export async function sendPasswordResetOtp(
     html,
   });
 }
-

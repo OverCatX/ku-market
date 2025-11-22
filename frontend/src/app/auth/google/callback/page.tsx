@@ -1,19 +1,21 @@
 "use client";
 
 import { useEffect } from "react";
-import { API_BASE } from "@/config/constants";
 
 export default function GoogleCallbackPage() {
   useEffect(() => {
     // This page receives the OAuth callback from backend
-    // Backend redirects here, then we fetch JSON from backend callback endpoint
+    // Backend redirects here with token and user data in URL query parameters
     
     // Check if we're in a popup window
     if (window.opener) {
-      // Check for error in URL params
+      // Read OAuth data from URL query parameters
       const urlParams = new URLSearchParams(window.location.search);
       const error = urlParams.get("error");
+      const token = urlParams.get("token");
+      const userParam = urlParams.get("user");
       
+      // Check for error first
       if (error) {
         // Send error to parent window
         window.opener?.postMessage(
@@ -26,67 +28,43 @@ export default function GoogleCallbackPage() {
         window.close();
         return;
       }
-      
-      // Fetch OAuth data from backend (stored in cookie after redirect)
-      fetch(`${API_BASE}/api/auth/google/callback/data`, {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-        },
-        credentials: "include", // Important: include cookies
-      })
-        .then(async (res) => {
-          // Check content-type before parsing
-          const contentType = res.headers.get("content-type");
-          if (!contentType || !contentType.includes("application/json")) {
-            const text = await res.text();
-            console.error("Expected JSON but got:", text.substring(0, 100));
-            throw new Error("Server returned non-JSON response");
-          }
+
+      if (token && userParam) {
+        try {
+          const user = JSON.parse(decodeURIComponent(userParam));
           
-          if (!res.ok) {
-            return res.json().then((data) => {
-              throw new Error(data.error || "Authentication failed");
-            });
-          }
-          return res.json();
-        })
-        .then((data) => {
-          if (data.token && data.user) {
-            // Send success to parent window
-            window.opener?.postMessage(
-              {
-                type: "GOOGLE_OAUTH_SUCCESS",
-                token: data.token,
-                user: data.user,
-              },
-              window.location.origin
-            );
-            window.close();
-          } else if (data.error) {
-            // Send error to parent window
-            window.opener?.postMessage(
-              {
-                type: "GOOGLE_OAUTH_ERROR",
-                error: data.error,
-              },
-              window.location.origin
-            );
-            window.close();
-          }
-        })
-        .catch((err) => {
-          console.error("Error fetching OAuth response:", err);
-          const errorMessage = err instanceof Error ? err.message : "Authentication failed. Please try again.";
+          // Send success to parent window
           window.opener?.postMessage(
             {
-              type: "GOOGLE_OAUTH_ERROR",
-              error: errorMessage,
+              type: "GOOGLE_OAUTH_SUCCESS",
+              token: decodeURIComponent(token),
+              user: user,
             },
             window.location.origin
           );
           window.close();
-        });
+        } catch (parseError) {
+          console.error("Error parsing user data:", parseError);
+          window.opener?.postMessage(
+            {
+              type: "GOOGLE_OAUTH_ERROR",
+              error: "Failed to parse authentication data. Please try again.",
+            },
+            window.location.origin
+          );
+          window.close();
+        }
+      } else {
+        // Missing token or user data
+        window.opener?.postMessage(
+          {
+            type: "GOOGLE_OAUTH_ERROR",
+            error: "Authentication data not found. Please try again.",
+          },
+          window.location.origin
+        );
+        window.close();
+      }
     } else {
       // Not in popup, redirect to login
       window.location.href = "/login";

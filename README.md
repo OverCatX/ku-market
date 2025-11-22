@@ -140,15 +140,17 @@ npm run bootstrap-admin
 - `JWT_SECRET` - Secret key for JWT tokens (required)
 - `PORT` - Backend server port (default: 5000)
 - `CORS_ORIGIN` - Comma-separated list of allowed origins (e.g., `https://ku-market-mu.vercel.app,http://localhost:3000`)
+- `RESEND_API_KEY` - Resend API key for email sending (required)
+- `RESEND_FROM_EMAIL` - Email address to send from (use `onboarding@resend.dev` for testing)
 - `STRIPE_SECRET_KEY` - Stripe API secret key
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
-- See `.env.example` for complete list
+- See `.env.example` or `docs/INSTALLATION.md` for complete list
 
 **Frontend (.env.local):**
 
-- `NEXT_PUBLIC_API_URL` - Backend API URL (default: http://localhost:5000)
+- `NEXT_PUBLIC_API_BASE` - Backend API URL (default: http://localhost:8080)
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
-- See `.env.example` for complete list
+- See `.env.example` or `docs/INSTALLATION.md` for complete list
 
 ## Development
 
