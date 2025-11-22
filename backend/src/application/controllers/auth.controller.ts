@@ -185,26 +185,11 @@ export default class AuthController {
                 },
             });
 
-            // Store token and user data in httpOnly cookie temporarily
-            // Frontend callback page will fetch from a special endpoint that reads the cookie
-            // In production (cross-domain), use sameSite: "none" and secure: true
-            const isProduction = process.env.NODE_ENV === "production";
-            res.cookie("google_oauth_token", token, {
-                httpOnly: true,
-                secure: isProduction,
-                sameSite: isProduction ? "none" : "lax",
-                maxAge: 60000, // 1 minute
-            });
-            res.cookie("google_oauth_user", JSON.stringify(userData), {
-                httpOnly: false, // Frontend needs to read this
-                secure: isProduction,
-                sameSite: isProduction ? "none" : "lax",
-                maxAge: 60000, // 1 minute
-            });
-
-            // Redirect to frontend callback page
+            // Redirect to frontend callback page with token and user data in URL query parameters
             const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-            return res.redirect(`${frontendUrl}/auth/google/callback`);
+            return res.redirect(
+                `${frontendUrl}/auth/google/callback?token=${encodeURIComponent(token)}&user=${encodeURIComponent(JSON.stringify(userData))}`
+            );
 
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Server error";
@@ -260,31 +245,6 @@ export default class AuthController {
         }
     };
 
-    getGoogleOAuthData = async (req: Request, res: Response): Promise<Response> => {
-        try {
-            const cookies = (req as { cookies?: { google_oauth_token?: string; google_oauth_user?: string } }).cookies;
-            const token = cookies?.google_oauth_token;
-            const userDataStr = cookies?.google_oauth_user;
-
-            if (!token || !userDataStr) {
-                return res.status(404).json({ error: "OAuth data not found. Please try logging in again." });
-            }
-
-            const userData = JSON.parse(userDataStr);
-
-            // Clear cookies after reading
-            res.clearCookie("google_oauth_token");
-            res.clearCookie("google_oauth_user");
-
-            return res.status(200).json({
-                token,
-                user: userData,
-            });
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "Server error";
-            return res.status(500).json({ error: message });
-        }
-    }
 
     forgotPassword = async (req: Request, res: Response): Promise<Response> => {
         const { email } = req.body;

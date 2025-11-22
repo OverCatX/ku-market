@@ -57,7 +57,4 @@ router.get("/google/callback",
   authController.googleOAuth
 );
 
-// Endpoint to get OAuth data from cookie (called by frontend callback page)
-router.get("/google/callback/data", authController.getGoogleOAuthData);
-
 export default router;
