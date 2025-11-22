@@ -318,7 +318,7 @@ export default function SellerOrders() {
   return (
     <div
       style={{
-        backgroundColor: "#FEFCF9",
+        backgroundColor: "#F6F2E5",
         minHeight: "100vh",
         padding: "2rem",
       }}
@@ -657,7 +657,7 @@ export default function SellerOrders() {
                       order.paymentMethod === "transfer") &&
                     order.paymentStatus !== "paid" &&
                     order.paymentStatus !== "payment_submitted" ? (
-                      <div className="w-full px-4 py-3 bg-yellow-100 border-2 border-yellow-400 text-yellow-900 rounded-lg font-bold text-center shadow-sm">
+                      <div className="w-full px-4 py-3 bg-yellow-50 border-2 border-yellow-300 text-yellow-900 rounded-lg font-bold text-center shadow-sm">
                         <Clock size={20} className="inline mr-2" />
                         Waiting for buyer payment
                       </div>
