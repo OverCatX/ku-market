@@ -7,7 +7,7 @@ Complete setup instructions for KU Market platform.
 - **Node.js** 20+ ([Download](https://nodejs.org/))
 - **MongoDB** (Local or Atlas)
 - **Cloudinary Account** ([Sign up](https://cloudinary.com))
-- **Gmail Account** (for SMTP email)
+- **Resend Account** (for email sending) - [Sign up](https://resend.com)
 - **Docker** (optional, for Docker setup)
 
 ---
@@ -129,11 +129,12 @@ CLOUDINARY_API_SECRET=your_api_secret_here
 STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
 # Get credentials from: https://dashboard.stripe.com/apikeys
 
-# SMTP Configuration (for email sending - forgot password, etc.)
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-16-character-app-password
-# Gmail: Enable 2-Step Verification, then generate App Password
-# App Password: https://myaccount.google.com/apppasswords
+# Email Configuration (using Resend API)
+RESEND_API_KEY=re_your_resend_api_key_here
+RESEND_FROM_EMAIL=onboarding@resend.dev
+# Get API key from: https://resend.com/api-keys
+# For testing: use onboarding@resend.dev (no domain verification needed)
+# For production: verify your domain in Resend dashboard
 
 FRONTEND_URL=http://localhost:3000
 
@@ -192,13 +193,20 @@ MONGO_URL=mongodb://localhost:27017/ku_market
 2. Go to Dashboard
 3. Copy: Cloud Name, API Key, API Secret
 
-### 3. SMTP (Gmail)
+### 3. Resend (Email Service)
 
-1. **Enable 2-Step Verification** on Google Account
-2. **Generate App Password:**
-   - Go to [App Passwords](https://myaccount.google.com/apppasswords)
-   - Select "Mail" → "Other" → Enter "KU Market"
-   - Copy 16-character password → Use as `SMTP_PASS`
+1. **Sign up** at [Resend](https://resend.com)
+2. **Get API Key**:
+   - Go to [API Keys](https://resend.com/api-keys)
+   - Create a new API key
+   - Copy the key → Use as `RESEND_API_KEY`
+3. **For Development/Testing**:
+   - Use `onboarding@resend.dev` as `RESEND_FROM_EMAIL` (no verification needed)
+4. **For Production**:
+   - Go to [Domains](https://resend.com/domains)
+   - Add and verify your domain
+   - Use verified email as `RESEND_FROM_EMAIL` (e.g., `noreply@yourdomain.com`)
+5. **Free Tier**: 3,000 emails/month
 
 ### 4. JWT Secret
 
@@ -264,11 +272,12 @@ MONGO_URL=mongodb://127.0.0.1:27017/ku_market
 mongosh
 ```
 
-### SMTP Email Not Sending
+### Email Not Sending
 
-- Verify 2-Step Verification enabled
-- Check App Password is correct (16 chars, no spaces)
-- Ensure `SMTP_USER` is full email address
+- Verify `RESEND_API_KEY` is correct (starts with `re_`)
+- Check `RESEND_FROM_EMAIL` is set (use `onboarding@resend.dev` for testing)
+- For production, ensure domain is verified in Resend dashboard
+- Check Resend dashboard for delivery status and errors
 
 ### Module Not Found
 

@@ -326,10 +326,10 @@ export default class AuthController {
                 
                 // Provide more specific error message to user
                 let userFriendlyMessage = "Failed to send OTP email. Please try again later.";
-                if (errorMessage.includes("SMTP credentials not configured")) {
+                if (errorMessage.includes("not configured") || errorMessage.includes("RESEND_API_KEY")) {
                     userFriendlyMessage = "Email service is not configured. Please contact support.";
-                } else if (errorMessage.includes("authentication failed")) {
-                    userFriendlyMessage = "Email service authentication failed. Please contact support.";
+                } else if (errorMessage.includes("domain not verified") || errorMessage.includes("not verified")) {
+                    userFriendlyMessage = "Email domain not verified. Please contact support.";
                 } else if (errorMessage.includes("timeout")) {
                     userFriendlyMessage = "Email service is temporarily unavailable. Please try again in a moment.";
                 }
