@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   Store,
+  Grid,
 } from "lucide-react";
 import Link from "next/link";
 import type { UserData } from "@/config/auth";
@@ -181,6 +182,23 @@ export default function SellerLayout({ children }: SellerLayoutProps) {
               </Link>
             );
           })}
+          
+          {/* Back to Marketplace Button */}
+          <div className="mt-4 pt-4 border-t border-[#69773D]/30">
+            <Link
+              href="/marketplace"
+              onClick={handleNavClick}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-[#F6F2E5]/90 hover:bg-white/10 hover:text-[#F6F2E5] hover:scale-[1.01] border border-white/10 hover:border-white/20 ${
+                !sidebarOpen && !isMobile ? "justify-center" : ""
+              }`}
+              title={!sidebarOpen && !isMobile ? "Back to Marketplace" : undefined}
+            >
+              <Grid size={20} className="flex-shrink-0 text-[#F6F2E5]/90" />
+              {(sidebarOpen || isMobile) && (
+                <span className="truncate font-medium">Back to Marketplace</span>
+              )}
+            </Link>
+          </div>
         </nav>
 
         {/* Footer */}
