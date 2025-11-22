@@ -650,30 +650,28 @@ export default function SellerOrders() {
                     </button>
                   </div>
                 )}
-                {order.status === "confirmed" &&
-                  order.deliveryMethod === "pickup" &&
-                  !order.sellerDelivered && (
-                    <div className="mt-4">
-                      {/* Check if payment is required and completed */}
-                      {(order.paymentMethod === "promptpay" ||
-                        order.paymentMethod === "transfer") &&
-                      order.paymentStatus !== "paid" &&
-                      order.paymentStatus !== "payment_submitted" ? (
-                        <div className="w-full px-4 py-3 bg-yellow-100 border-2 border-yellow-400 text-yellow-900 rounded-lg font-bold text-center shadow-sm">
-                          <Clock size={20} className="inline mr-2" />
-                          Waiting for buyer payment
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleMarkDelivered(order.id)}
-                          className="w-full px-5 py-3 bg-[#5C8140] text-white rounded-lg hover:bg-[#4a6b33] transition-all font-bold shadow-md hover:shadow-lg"
-                        >
-                          <CheckCircle size={20} className="inline mr-2" />
-                          Mark as delivered
-                        </button>
-                      )}
-                    </div>
-                  )}
+                {order.status === "confirmed" && !order.sellerDelivered && (
+                  <div className="mt-4">
+                    {/* Check if payment is required and completed */}
+                    {(order.paymentMethod === "promptpay" ||
+                      order.paymentMethod === "transfer") &&
+                    order.paymentStatus !== "paid" &&
+                    order.paymentStatus !== "payment_submitted" ? (
+                      <div className="w-full px-4 py-3 bg-yellow-100 border-2 border-yellow-400 text-yellow-900 rounded-lg font-bold text-center shadow-sm">
+                        <Clock size={20} className="inline mr-2" />
+                        Waiting for buyer payment
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleMarkDelivered(order.id)}
+                        className="w-full px-5 py-3 bg-[#5C8140] text-white rounded-lg hover:bg-[#4a6b33] transition-all font-bold shadow-md hover:shadow-lg"
+                      >
+                        <CheckCircle size={20} className="inline mr-2" />
+                        Mark as Delivered
+                      </button>
+                    )}
+                  </div>
+                )}
                 {order.sellerDelivered && (
                   <div className="mt-4">
                     <div className="w-full px-4 py-3 bg-[#5C8140]/20 border-2 border-[#5C8140]/40 text-[#5C8140] rounded-lg font-bold text-center shadow-sm">

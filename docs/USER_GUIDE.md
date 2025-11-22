@@ -122,8 +122,10 @@ For pickup orders, you'll meet the seller at a designated **meetup point**. The 
 
 #### Delivery Orders
 
-1. After payment, wait for the seller to **ship your order**. You'll receive updates on the shipping status.
-2. The order will be marked as **completed** automatically after the delivery is confirmed. No additional action is required from you.
+1. After the seller **confirms** your order, **complete payment**. For PromptPay orders, click "Make Payment" and follow the payment process. For Transfer orders, submit your payment notification.
+2. Wait for the seller to **ship your order**. The seller will mark the order as delivered after shipping.
+3. Once you receive the package, click the **"I received the product"** button on your order details page to confirm receipt.
+4. The order will be marked as **completed** automatically after you confirm receipt.
 
 ### 7. Write Reviews
 
@@ -237,12 +239,14 @@ After approval:
    - After buyer confirms receipt, click "Mark as delivered"
    - Order completes when both parties confirm
 5. For **Delivery** orders:
+   - Wait for the buyer to complete payment. For PromptPay/Transfer orders, the "Mark as Delivered" button will be disabled until payment is confirmed
    - Click "Print Delivery Slip" button next to the confirmed order
    - On the delivery slip page, ensure your sender address is complete (address, city, postal code)
    - Add your sender address if it's missing (required for shipping labels)
    - Click "Print" button to print the delivery slip
    - Attach the printed slip to your package and ship it to the buyer's address
-   - Order completes automatically after delivery confirmation
+   - After shipping, click "Mark as Delivered" button to confirm that you have shipped the order
+   - Wait for the buyer to confirm receipt. The order will be marked as completed after both parties have confirmed
 6. View order details and contact buyer
 
 ---

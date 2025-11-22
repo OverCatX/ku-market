@@ -909,18 +909,45 @@ export default function OrderDetailPage({
                   <span className="sm:hidden">Received</span>
                 </div>
               )}
-              {order.sellerDelivered && !order.buyerReceived && (
-                <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-blue-100 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-blue-700">
-                  <CheckCircle
-                    size={14}
-                    className="sm:w-4 sm:h-4 flex-shrink-0"
-                  />
-                  <span className="hidden sm:inline">
-                    Seller has confirmed delivery - Please confirm receipt
-                  </span>
-                  <span className="sm:hidden">Please confirm receipt</span>
-                </div>
-              )}
+              {/* For delivery orders: Show button to mark as received after seller has delivered */}
+              {order.deliveryMethod === "delivery" &&
+                normalizedStatus === "confirmed" &&
+                order.sellerDelivered &&
+                !order.buyerReceived && (
+                  <button
+                    type="button"
+                    onClick={handleMarkReceived}
+                    disabled={markingReceived}
+                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-5 py-3 text-sm sm:text-base font-bold transition shadow-md hover:shadow-lg ${
+                      markingReceived
+                        ? "bg-gray-100 text-gray-400 border-2 border-gray-300 cursor-not-allowed"
+                        : "bg-[#e0cd95] text-[#8c522f] hover:bg-[#d4c085] border-2 border-[#8c522f]/30"
+                    }`}
+                  >
+                    <CheckCircle size={14} className="sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">
+                      {markingReceived ? "Saving..." : "I received the product"}
+                    </span>
+                    <span className="sm:hidden">
+                      {markingReceived ? "Saving..." : "Received"}
+                    </span>
+                  </button>
+                )}
+              {/* Status message for delivery orders when seller delivered but buyer hasn't received yet */}
+              {order.deliveryMethod === "delivery" &&
+                order.sellerDelivered &&
+                !order.buyerReceived && (
+                  <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-blue-100 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-blue-700">
+                    <CheckCircle
+                      size={14}
+                      className="sm:w-4 sm:h-4 flex-shrink-0"
+                    />
+                    <span className="hidden sm:inline">
+                      Seller has confirmed delivery - Please confirm receipt
+                    </span>
+                    <span className="sm:hidden">Please confirm receipt</span>
+                  </div>
+                )}
               {order.buyerReceived && order.sellerDelivered && (
                 <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-green-200 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-green-800">
                   <CheckCircle

@@ -326,6 +326,7 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
       buildAuthOptions({
         method: "POST",
       })
+    );
   }, []);
 
   useEffect(() => {

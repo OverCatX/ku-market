@@ -189,6 +189,20 @@ function DeliverProductsDescription() {
                 2.
               </span>
               <span>
+                Wait for the buyer to{" "}
+                <span className="font-semibold text-amber-800">
+                  complete payment
+                </span>
+                . For PromptPay/Transfer orders, the &quot;Mark as
+                Delivered&quot; button will be disabled until payment is
+                confirmed.
+              </span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
+                3.
+              </span>
+              <span>
                 Click the{" "}
                 <span className="font-semibold text-amber-800 bg-amber-100/50 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
                   <Printer size={14} />
@@ -199,7 +213,7 @@ function DeliverProductsDescription() {
             </li>
             <li className="flex items-start gap-2.5">
               <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
-                3.
+                4.
               </span>
               <span>
                 On the delivery slip page, ensure your{" "}
@@ -211,7 +225,7 @@ function DeliverProductsDescription() {
             </li>
             <li className="flex items-start gap-2.5">
               <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
-                4.
+                5.
               </span>
               <span>
                 Click the{" "}
@@ -223,7 +237,7 @@ function DeliverProductsDescription() {
             </li>
             <li className="flex items-start gap-2.5">
               <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
-                5.
+                6.
               </span>
               <span>
                 Attach the printed slip to your package and ship it to the
@@ -232,14 +246,30 @@ function DeliverProductsDescription() {
             </li>
             <li className="flex items-start gap-2.5">
               <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
-                6.
+                7.
               </span>
               <span>
-                The order will be marked as{" "}
+                After shipping, click the{" "}
+                <span className="font-semibold text-amber-800 bg-amber-100/50 px-1.5 py-0.5 rounded">
+                  &quot;Mark as Delivered&quot;
+                </span>{" "}
+                button to confirm that you have shipped the order.
+              </span>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
+                8.
+              </span>
+              <span>
+                Wait for the buyer to{" "}
+                <span className="font-semibold text-amber-800">
+                  confirm receipt
+                </span>
+                . The order will be marked as{" "}
                 <span className="font-semibold text-amber-800 bg-amber-100/50 px-1.5 py-0.5 rounded">
                   completed
                 </span>{" "}
-                automatically after delivery confirmation.
+                after both parties have confirmed.
               </span>
             </li>
           </ol>
@@ -567,11 +597,13 @@ function TrackOrdersDescription() {
               1.
             </span>
             <span>
-              After payment, wait for the seller to{" "}
+              After the seller confirms your order,{" "}
               <span className="font-semibold text-amber-800">
-                ship your order
+                complete payment
               </span>
-              . You&apos;ll receive updates on the shipping status.
+              . For PromptPay orders, click &quot;Make Payment&quot; and follow
+              the payment process. For Transfer orders, submit your payment
+              notification.
             </span>
           </li>
           <li className="flex items-start gap-2.5">
@@ -579,12 +611,35 @@ function TrackOrdersDescription() {
               2.
             </span>
             <span>
+              Wait for the seller to{" "}
+              <span className="font-semibold text-amber-800">
+                ship your order
+              </span>
+              . The seller will mark the order as delivered after shipping.
+            </span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
+              3.
+            </span>
+            <span>
+              Once you receive the package, click the{" "}
+              <span className="font-semibold text-amber-800 bg-amber-100/50 px-1.5 py-0.5 rounded">
+                &quot;I received the product&quot;
+              </span>{" "}
+              button on your order details page to confirm receipt.
+            </span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="text-amber-700 font-bold mt-0.5 flex-shrink-0">
+              4.
+            </span>
+            <span>
               The order will be marked as{" "}
               <span className="font-semibold text-amber-800 bg-amber-100/50 px-1.5 py-0.5 rounded">
                 completed
               </span>{" "}
-              automatically after the delivery is confirmed. No additional
-              action is required from you.
+              automatically after you confirm receipt.
             </span>
           </li>
         </ol>
@@ -645,7 +700,10 @@ export default function GuidePage() {
   };
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#F6F2E5' }}>
+    <div
+      className="min-h-screen py-8 px-4 sm:px-6 lg:px-8"
+      style={{ backgroundColor: "#F6F2E5" }}
+    >
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <motion.div

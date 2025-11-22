@@ -330,14 +330,6 @@ export default function BecomeASeller() {
         formData.append("photo", form.profileImage);
       }
 
-        shopName: form.businessName.trim(),
-        shopNameLength: form.businessName.trim().length,
-        shopType: form.businessType,
-        category: form.productCategory,
-        descriptionLength: form.businessDescription.trim().length,
-        hasPhoto: !!form.profileImage,
-      });
-
       const response = await fetch(`${API_BASE}/api/shop/request`, {
         method: "POST",
         headers: {

@@ -629,10 +629,11 @@ export default class OrderController {
         });
       }
 
-      if (order.deliveryMethod !== "pickup") {
+      // For delivery orders, buyer can only mark as received after seller has marked as delivered
+      if (order.deliveryMethod === "delivery" && !order.sellerDelivered) {
         return res.status(400).json({
           success: false,
-          error: "This feature is only available for pickup orders",
+          error: "Cannot mark as received. Seller has not marked this order as delivered yet.",
         });
       }
 
@@ -646,20 +647,22 @@ export default class OrderController {
       order.buyerReceived = true;
       order.buyerReceivedAt = new Date();
 
-      // Log buyer received (at pickup point)
-      const pickupLocation = order.pickupDetails?.locationName || order.pickupDetails?.address || "Pickup point";
+      // Log buyer received
+      const locationInfo = order.deliveryMethod === "pickup" 
+        ? (order.pickupDetails?.locationName || order.pickupDetails?.address || "Pickup point")
+        : (order.shippingAddress ? `${order.shippingAddress.address}, ${order.shippingAddress.city}` : "Delivery address");
       await logActivity({
         req,
         activityType: "buyer_received",
         entityType: "order",
         entityId: String(order._id),
-        description: `Buyer confirmed receiving order ${order._id} at pickup point: ${pickupLocation}`,
+        description: `Buyer confirmed receiving order ${order._id}${order.deliveryMethod === "pickup" ? ` at pickup point: ${locationInfo}` : ` at delivery address: ${locationInfo}`}`,
         metadata: {
           orderId: String(order._id),
           orderTotal: order.totalPrice,
           deliveryMethod: order.deliveryMethod,
-          pickupLocation: pickupLocation,
-          receivedAtPickupPoint: true,
+          location: locationInfo,
+          receivedAtPickupPoint: order.deliveryMethod === "pickup",
         },
       });
 

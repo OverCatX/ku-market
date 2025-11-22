@@ -595,12 +595,6 @@ export default class SellerController {
         });
       }
 
-      if (order.deliveryMethod !== "pickup") {
-        return res.status(400).json({
-          error: "This feature is only available for pickup orders",
-        });
-      }
-
       if (order.sellerDelivered) {
         return res.status(400).json({
           error: "You have already confirmed delivering this order",
