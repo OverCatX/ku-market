@@ -684,8 +684,12 @@ export default function OrderDetailPage({
               </div>
               <div className="mt-4 pt-4 border-t-2 border-[#5C8140]/20 bg-[#F6F2E5]/50 p-3 rounded-lg">
                 <div className="flex justify-between items-center">
-                  <span className="text-base sm:text-lg font-extrabold text-[#4A5130]">Total amount</span>
-                  <span className="text-xl sm:text-2xl font-extrabold text-[#5C8140]">฿{order.totalPrice.toLocaleString()}</span>
+                  <span className="text-base sm:text-lg font-extrabold text-[#4A5130]">
+                    Total amount
+                  </span>
+                  <span className="text-xl sm:text-2xl font-extrabold text-[#5C8140]">
+                    ฿{order.totalPrice.toLocaleString()}
+                  </span>
                 </div>
               </div>
             </section>
@@ -698,11 +702,15 @@ export default function OrderDetailPage({
                 <div className="mt-2 space-y-2.5 text-sm text-gray-700">
                   <div className="flex items-center gap-2">
                     <Truck size={18} className="text-[#5C8140]" />
-                    <span className="font-bold capitalize text-[#4A5130]">{order.deliveryMethod}</span>
+                    <span className="font-bold capitalize text-[#4A5130]">
+                      {order.deliveryMethod}
+                    </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Package size={18} className="text-[#5C8140]" />
-                    <span className="font-bold text-[#4A5130]">{formatPaymentMethod(order.paymentMethod)}</span>
+                    <span className="font-bold text-[#4A5130]">
+                      {formatPaymentMethod(order.paymentMethod)}
+                    </span>
                     {paymentStatusBadge(
                       normalizePaymentStatus(order.paymentStatus) ?? undefined
                     )}
@@ -713,7 +721,9 @@ export default function OrderDetailPage({
                         <p className="font-extrabold text-base text-[#4A5130]">
                           Shipping Address
                         </p>
-                        <p className="font-semibold text-gray-800">{order.shippingAddress.address}</p>
+                        <p className="font-semibold text-gray-800">
+                          {order.shippingAddress.address}
+                        </p>
                         <p className="font-semibold text-gray-700">
                           {order.shippingAddress.city}{" "}
                           {order.shippingAddress.postalCode}
@@ -730,7 +740,9 @@ export default function OrderDetailPage({
                         {order.pickupDetails.locationName}
                       </p>
                       {order.pickupDetails.address && (
-                        <p className="font-semibold text-gray-700">{order.pickupDetails.address}</p>
+                        <p className="font-semibold text-gray-700">
+                          {order.pickupDetails.address}
+                        </p>
                       )}
                       {order.pickupDetails.coordinates && (
                         <p className="text-xs font-medium text-gray-600 font-mono">
@@ -741,7 +753,10 @@ export default function OrderDetailPage({
                       )}
                       {order.pickupDetails.note && (
                         <p className="text-xs font-semibold text-gray-700 bg-gray-50 p-2 rounded border border-gray-200">
-                          <span className="font-bold text-[#4A5130]">Note:</span> {order.pickupDetails.note}
+                          <span className="font-bold text-[#4A5130]">
+                            Note:
+                          </span>{" "}
+                          {order.pickupDetails.note}
                         </p>
                       )}
                       {order.pickupDetails.preferredTime && (
@@ -774,7 +789,9 @@ export default function OrderDetailPage({
                     {order.seller?.name || "Unknown"}
                   </p>
                   {order.seller?.contact && (
-                    <p className="font-semibold text-gray-700 break-words mt-1">{order.seller.contact}</p>
+                    <p className="font-semibold text-gray-700 break-words mt-1">
+                      {order.seller.contact}
+                    </p>
                   )}
                 </div>
                 <div className="mt-3 sm:mt-4">
