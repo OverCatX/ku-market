@@ -192,6 +192,10 @@ export default function CheckoutPage() {
         if (user.name) {
           setShippingInfo((prev) => ({ ...prev, fullName: user.name }));
         }
+        // Pre-fill phone number if available
+        if (user.contact) {
+          setShippingInfo((prev) => ({ ...prev, phone: user.contact }));
+        }
       } else {
         // Not verified - attempt to refresh verification status from server
         (async () => {
@@ -1304,50 +1308,24 @@ export default function CheckoutPage() {
 
                   {/* Info message for PromptPay */}
                   {paymentMethod === "promptpay" && (
-                    <div className="mt-4 p-6 bg-[#4A5130]/10 rounded-lg border-2 border-[#4A5130]/20">
-                      <div className="text-center mb-4">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">
-                          Scan QR Code to Pay
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Amount:{" "}
-                          <span className="font-bold text-[#4A5130]">
-                            ฿{getTotalPrice().toLocaleString("th-TH")}
-                          </span>
-                        </p>
-                      </div>
-
-                      {/* QR Code Placeholder */}
-                      <div className="flex justify-center mb-4">
-                        <div className="bg-white p-4 rounded-lg shadow-md">
-                          <div className="w-48 h-48 bg-[#69773D]/10 border-2 border-[#69773D]/20 rounded-lg flex items-center justify-center">
-                            <div className="text-center">
-                              <QrCode className="w-16 h-16 mx-auto mb-2 text-gray-400" />
-                              <p className="text-xs text-gray-500">
-                                Payment QR Code
-                              </p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                (Will be displayed after order confirmation)
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                        <div className="flex items-start gap-2">
-                          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                          <div className="text-sm text-yellow-800">
-                            <p className="font-medium mb-1">Note:</p>
-                            <ul className="list-disc list-inside space-y-1 text-xs">
-                              <li>Please transfer within 24 hours</li>
-                              <li>Keep your payment proof for verification</li>
-                              <li>
-                                Seller will confirm order after payment
-                                verification
-                              </li>
-                            </ul>
-                          </div>
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-blue-800">
+                          <p className="font-medium mb-1">
+                            Payment Information:
+                          </p>
+                          <ul className="list-disc list-inside space-y-1 text-xs">
+                            <li>
+                              QR code will be available on the Orders page after
+                              seller confirmation
+                            </li>
+                            <li>
+                              Please complete payment within 24 hours after
+                              order confirmation
+                            </li>
+                            <li>Keep your payment proof for verification</li>
+                          </ul>
                         </div>
                       </div>
                     </div>

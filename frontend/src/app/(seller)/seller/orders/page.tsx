@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Printer,
   MapPin,
+  ExternalLink,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -280,11 +281,12 @@ export default function SellerOrders() {
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      pending_seller_confirmation: "bg-yellow-100 text-yellow-800",
-      confirmed: "bg-[#724a24]/10 text-[#724a24]",
-      rejected: "bg-[#780606]/10 text-[#780606] border border-[#780606]/20",
-      completed: "bg-[#69773D]/10 text-[#69773D]",
-      cancelled: "bg-gray-100 text-gray-800",
+      pending_seller_confirmation:
+        "bg-yellow-400 text-yellow-900 border-2 border-yellow-500",
+      confirmed: "bg-[#5C8140] text-white border-2 border-[#4a6b33]",
+      rejected: "bg-red-500 text-white border-2 border-red-600",
+      completed: "bg-green-500 text-white border-2 border-green-600",
+      cancelled: "bg-gray-400 text-gray-900 border-2 border-gray-500",
     };
     return styles[status] || styles.pending_seller_confirmation;
   };
@@ -316,7 +318,7 @@ export default function SellerOrders() {
   return (
     <div
       style={{
-        backgroundColor: "#F6F2E5",
+        backgroundColor: "#FEFCF9",
         minHeight: "100vh",
         padding: "2rem",
       }}
@@ -324,13 +326,17 @@ export default function SellerOrders() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-[#4A5130]">Orders</h1>
-          <p className="text-[#69773D] mt-1">Manage your customer orders</p>
+          <h1 className="text-4xl font-extrabold text-[#4A5130] tracking-tight">
+            Orders
+          </h1>
+          <p className="text-[#69773D] mt-2 font-medium text-base">
+            Manage your customer orders
+          </p>
         </div>
         <button
           onClick={loadOrders}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-white text-[#4A5130] rounded-lg hover:bg-gray-50 hover:text-[#4A5130] disabled:opacity-50 transition-colors border border-gray-200"
         >
           <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
           Refresh
@@ -351,10 +357,10 @@ export default function SellerOrders() {
               setFilter(f.value);
               setCurrentPage(1); // Will trigger useEffect to reload
             }}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-5 py-2.5 rounded-lg font-semibold transition-all shadow-sm ${
               filter === f.value
-                ? "bg-[#69773D] text-[#F6F2E5]"
-                : "bg-white text-[#69773D] hover:bg-[#69773D] hover:text-[#F6F2E5]"
+                ? "bg-[#5C8140] text-white shadow-md"
+                : "bg-white text-[#4A5130] hover:bg-[#5C8140] hover:text-white border border-gray-200"
             }`}
           >
             {f.label}
@@ -387,10 +393,10 @@ export default function SellerOrders() {
               <div key={order.id} className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-[#4A5130]">
+                    <h3 className="text-xl font-extrabold text-[#4A5130] mb-1">
                       Order #{order.id.slice(-8)}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm font-medium text-gray-700">
                       {order.createdAt
                         ? (() => {
                             try {
@@ -413,7 +419,7 @@ export default function SellerOrders() {
                     </p>
                   </div>
                   <span
-                    className={`inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadge(
+                    className={`inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-bold rounded-full shadow-sm ${getStatusBadge(
                       order.status
                     )}`}
                   >
@@ -427,34 +433,52 @@ export default function SellerOrders() {
                 </div>
 
                 {/* Buyer Info */}
-                <div className="mb-4 p-4 bg-[#F6F2E5]/30 rounded-lg">
-                  <h4 className="font-semibold text-[#4A5130] mb-2">
+                <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-bold text-lg text-[#4A5130] mb-3">
                     Buyer Information
                   </h4>
-                  <div className="text-sm text-gray-700 space-y-1">
+                  <div className="text-sm space-y-2.5">
                     <p>
-                      <span className="font-medium">Name:</span>{" "}
-                      {order.buyerContact.fullName}
+                      <span className="font-extrabold text-base text-[#4A5130]">
+                        Name:
+                      </span>{" "}
+                      <span className="font-medium text-gray-600">
+                        {order.buyerContact.fullName}
+                      </span>
                     </p>
                     <p>
-                      <span className="font-medium">Email:</span>{" "}
-                      {order.buyer.email}
+                      <span className="font-extrabold text-base text-[#4A5130]">
+                        Email:
+                      </span>{" "}
+                      <span className="font-medium text-gray-600">
+                        {order.buyer.email}
+                      </span>
                     </p>
                     <p>
-                      <span className="font-medium">Phone:</span>{" "}
-                      {order.buyerContact.phone}
+                      <span className="font-extrabold text-base text-[#4A5130]">
+                        Phone:
+                      </span>{" "}
+                      <span className="font-medium text-gray-600">
+                        {order.buyerContact.phone}
+                      </span>
                     </p>
                     <p>
-                      <span className="font-medium">Delivery:</span>{" "}
-                      {order.deliveryMethod === "pickup"
-                        ? "Self Pick-up"
-                        : "Delivery"}
+                      <span className="font-extrabold text-base text-[#4A5130]">
+                        Delivery:
+                      </span>{" "}
+                      <span className="font-medium text-gray-600">
+                        {order.deliveryMethod === "pickup"
+                          ? "Self Pick-up"
+                          : "Delivery"}
+                      </span>
                     </p>
                     {order.deliveryMethod === "delivery" &&
                       order.shippingAddress && (
-                        <div className="mt-2 pt-2 border-t border-gray-200">
-                          <p className="font-medium">Shipping Address:</p>
-                          <p className="text-gray-600">
+                        <div className="mt-2 pt-2 border-t-2 border-gray-300">
+                          <p className="font-extrabold text-base text-[#4A5130] mb-1">
+                            Shipping Address:
+                          </p>
+                          <p className="font-medium text-gray-600">
                             {order.shippingAddress.address},{" "}
                             {order.shippingAddress.city}{" "}
                             {order.shippingAddress.postalCode}
@@ -464,60 +488,90 @@ export default function SellerOrders() {
                     {order.deliveryMethod === "pickup" &&
                       order.pickupDetails && (
                         <div className="mt-2 pt-2 border-t border-gray-200">
-                          <p className="font-medium flex items-center gap-1 text-[#69773D]">
-                            <MapPin size={14} className="text-[#69773D]" />
+                          <p className="font-bold text-base flex items-center gap-1.5 text-[#4A5130] mb-2">
+                            <MapPin size={16} className="text-[#5C8140]" />
                             Meetup Point
                           </p>
-                          <div className="mt-1 space-y-1 text-[#69773D]">
-                            <p className="font-semibold text-[#4A5130]">
+                          <div className="mt-1 space-y-2">
+                            <p className="font-bold text-[#4A5130] text-base">
                               {order.pickupDetails.locationName}
                             </p>
                             {order.pickupDetails.address && (
-                              <p className="text-sm text-[#69773D]">
+                              <p className="text-sm font-semibold text-gray-700">
                                 {order.pickupDetails.address}
                               </p>
                             )}
                             {order.pickupDetails.preferredTime && (
-                              <p className="text-sm text-[#69773D]">
-                                <Clock size={12} className="inline mr-1" />
+                              <p className="text-sm font-semibold text-gray-700">
+                                <Clock size={14} className="inline mr-1.5" />
                                 Preferred time:{" "}
-                                {new Date(
-                                  order.pickupDetails.preferredTime
-                                ).toLocaleString("th-TH", {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
+                                <span className="text-[#5C8140]">
+                                  {new Date(
+                                    order.pickupDetails.preferredTime
+                                  ).toLocaleString("th-TH", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
                               </p>
                             )}
                             {order.pickupDetails.coordinates && (
-                              <p className="text-xs text-[#69773D]">
-                                📍{" "}
-                                {order.pickupDetails.coordinates.lat.toFixed(5)}
-                                ,{" "}
-                                {order.pickupDetails.coordinates.lng.toFixed(5)}
-                              </p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-xs text-gray-600 font-mono">
+                                  📍{" "}
+                                  {order.pickupDetails.coordinates.lat.toFixed(
+                                    5
+                                  )}
+                                  ,{" "}
+                                  {order.pickupDetails.coordinates.lng.toFixed(
+                                    5
+                                  )}
+                                </p>
+                                <a
+                                  href={`https://www.google.com/maps?q=${order.pickupDetails.coordinates.lat},${order.pickupDetails.coordinates.lng}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-white bg-[#5C8140] hover:bg-[#4a6b33] rounded-md transition shadow-sm hover:shadow"
+                                >
+                                  <ExternalLink size={14} />
+                                  Open in Google Maps
+                                </a>
+                              </div>
                             )}
                             {order.pickupDetails.note && (
-                              <p className="text-sm text-[#69773D] italic">
-                                Note: {order.pickupDetails.note}
+                              <p className="text-sm font-medium text-gray-700 italic bg-gray-50 p-2 rounded border border-gray-200">
+                                <span className="font-bold text-[#4A5130]">
+                                  Note:
+                                </span>{" "}
+                                {order.pickupDetails.note}
                               </p>
                             )}
                           </div>
                         </div>
                       )}
                     <p>
-                      <span className="font-medium text-[#4A5130]">
+                      <span className="font-extrabold text-base text-[#4A5130]">
                         Payment:
                       </span>{" "}
-                      {order.paymentMethod === "cash" ? "Cash" : "Transfer"}
+                      <span className="font-medium text-gray-600">
+                        {order.paymentMethod === "cash"
+                          ? "Cash"
+                          : order.paymentMethod === "promptpay"
+                          ? "PromptPay"
+                          : "Bank Transfer"}
+                      </span>
                     </p>
                     {order.rejectionReason && (
-                      <p className="text-[#780606] mt-2">
-                        <span className="font-medium">Rejection Reason:</span>{" "}
-                        {order.rejectionReason}
+                      <p className="text-red-700 mt-2">
+                        <span className="font-extrabold text-base">
+                          Rejection Reason:
+                        </span>{" "}
+                        <span className="font-medium">
+                          {order.rejectionReason}
+                        </span>
                       </p>
                     )}
                   </div>
@@ -541,14 +595,14 @@ export default function SellerOrders() {
                         </div>
                       )}
                       <div className="flex-1">
-                        <p className="font-medium text-[#4A5130]">
+                        <p className="font-bold text-base text-[#4A5130]">
                           {item.title}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm font-semibold text-gray-700">
                           Qty: {item.quantity} × ฿{item.price.toLocaleString()}
                         </p>
                       </div>
-                      <p className="font-bold text-[#69773D]">
+                      <p className="font-extrabold text-lg text-[#5C8140]">
                         ฿{(item.price * item.quantity).toLocaleString()}
                       </p>
                     </div>
@@ -557,11 +611,11 @@ export default function SellerOrders() {
 
                 {/* Total & Label */}
                 <div className="flex flex-col gap-3 pt-4 border-t">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-[#4A5130]">
+                  <div className="flex justify-between items-center bg-[#F6F2E5]/50 p-3 rounded-lg border-2 border-[#5C8140]/20">
+                    <span className="text-xl font-extrabold text-[#4A5130]">
                       Total
                     </span>
-                    <span className="text-lg font-bold text-[#69773D]">
+                    <span className="text-2xl font-extrabold text-[#5C8140]">
                       ฿{order.totalPrice.toLocaleString()}
                     </span>
                   </div>
@@ -582,16 +636,16 @@ export default function SellerOrders() {
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => handleConfirmOrder(order.id)}
-                      className="flex-1 px-4 py-2 bg-[#69773D] text-white rounded-lg hover:bg-[#5a6530] transition-colors font-medium"
+                      className="flex-1 px-5 py-3 bg-[#5C8140] text-white rounded-lg hover:bg-[#4a6b33] transition-all font-bold shadow-md hover:shadow-lg"
                     >
-                      <CheckCircle size={18} className="inline mr-2" />
+                      <CheckCircle size={20} className="inline mr-2" />
                       Confirm Order
                     </button>
                     <button
                       onClick={() => handleRejectOrder(order.id)}
-                      className="flex-1 px-4 py-2 bg-[#780606] text-white rounded-lg hover:bg-[#5c0505] transition-colors font-medium"
+                      className="flex-1 px-5 py-3 bg-[#780606] text-white rounded-lg hover:bg-[#5c0505] transition-all font-bold shadow-md hover:shadow-lg"
                     >
-                      <XCircle size={18} className="inline mr-2" />
+                      <XCircle size={20} className="inline mr-2" />
                       Reject Order
                     </button>
                   </div>
@@ -605,16 +659,16 @@ export default function SellerOrders() {
                         order.paymentMethod === "transfer") &&
                       order.paymentStatus !== "paid" &&
                       order.paymentStatus !== "payment_submitted" ? (
-                        <div className="w-full px-4 py-2 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg font-medium text-center">
-                          <Clock size={18} className="inline mr-2" />
+                        <div className="w-full px-4 py-3 bg-yellow-100 border-2 border-yellow-400 text-yellow-900 rounded-lg font-bold text-center shadow-sm">
+                          <Clock size={20} className="inline mr-2" />
                           Waiting for buyer payment
                         </div>
                       ) : (
                         <button
                           onClick={() => handleMarkDelivered(order.id)}
-                          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                          className="w-full px-5 py-3 bg-[#5C8140] text-white rounded-lg hover:bg-[#4a6b33] transition-all font-bold shadow-md hover:shadow-lg"
                         >
-                          <CheckCircle size={18} className="inline mr-2" />
+                          <CheckCircle size={20} className="inline mr-2" />
                           Mark as delivered
                         </button>
                       )}
@@ -622,16 +676,16 @@ export default function SellerOrders() {
                   )}
                 {order.sellerDelivered && (
                   <div className="mt-4">
-                    <div className="w-full px-4 py-2 bg-[#69773D]/10 text-[#69773D] rounded-lg font-medium text-center">
-                      <CheckCircle size={18} className="inline mr-2" />
+                    <div className="w-full px-4 py-3 bg-[#5C8140]/20 border-2 border-[#5C8140]/40 text-[#5C8140] rounded-lg font-bold text-center shadow-sm">
+                      <CheckCircle size={20} className="inline mr-2" />
                       You have confirmed delivery
                     </div>
                   </div>
                 )}
                 {order.buyerReceived && order.sellerDelivered && (
                   <div className="mt-2">
-                    <div className="w-full px-4 py-2 bg-[#5C8140]/30 text-[#5C8140] rounded-lg font-medium text-center">
-                      <CheckCircle size={18} className="inline mr-2" />
+                    <div className="w-full px-4 py-3 bg-green-100 border-2 border-green-400 text-green-800 rounded-lg font-bold text-center shadow-sm">
+                      <CheckCircle size={20} className="inline mr-2" />
                       Both parties confirmed - Order completed
                     </div>
                   </div>

@@ -127,7 +127,7 @@ function PickupLocationSection({
 
   return (
     <div className="mt-4 space-y-3">
-      <div className="p-3 bg-[#F6F2E5]/30 rounded-lg border border-gray-200">
+      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex items-start gap-2">
           <MapPin size={16} className="mt-0.5 text-[#4A5130] flex-shrink-0" />
           <div className="text-sm flex-1">
@@ -149,9 +149,9 @@ function PickupLocationSection({
                   href={`https://www.google.com/maps?q=${pickupDetails.coordinates.lat},${pickupDetails.coordinates.lng}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-medium text-[#69773D] hover:text-[#5a6530] hover:underline transition"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-white bg-[#5C8140] hover:bg-[#4a6b33] rounded-md transition shadow-sm hover:shadow"
                 >
-                  <ExternalLink size={12} />
+                  <ExternalLink size={14} />
                   Open in Google Maps
                 </a>
               </div>
@@ -534,9 +534,9 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="min-h-screen py-10" style={{ backgroundColor: "#F6F2E5" }}>
+    <div className="min-h-screen py-10" style={{ backgroundColor: "#FAF9F6" }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
-        <section className="rounded-3xl bg-white/90 border border-[#e4ecd7] shadow-xl shadow-[#c8d3ba]/30 p-6 sm:p-8 mb-8">
+        <section className="rounded-3xl bg-white border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-[#4A5130]">My Orders</h1>
@@ -766,7 +766,7 @@ export default function OrdersPage() {
                               <span className="text-gray-300 hidden sm:inline">
                                 •
                               </span>
-                              <span className="break-words">
+                              <span className="break-words font-semibold text-[#4A5130]">
                                 {formatPaymentMethod(order.paymentMethod)}
                               </span>
                               <span className="text-gray-300 hidden sm:inline">

@@ -621,10 +621,10 @@ export default function OrderDetailPage({
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               <div className="min-w-0 flex-1">
-                <span className="text-xs uppercase tracking-wide text-gray-500">
+                <span className="text-xs uppercase tracking-wider font-bold text-gray-600">
                   Order ID
                 </span>
-                <h1 className="text-xl sm:text-2xl font-bold text-[#3d4a29] break-words">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#4A5130] break-words mt-1">
                   {order.id}
                 </h1>
               </div>
@@ -648,7 +648,7 @@ export default function OrderDetailPage({
             </div>
 
             <section className="rounded-xl sm:rounded-2xl border border-[#e4ecd7] bg-white p-4 sm:p-6">
-              <h2 className="mb-3 sm:mb-4 text-base sm:text-lg font-semibold text-[#3d4a29]">
+              <h2 className="mb-3 sm:mb-4 text-lg sm:text-xl font-extrabold text-[#4A5130]">
                 Items in this order
               </h2>
               <div className="space-y-4">
@@ -668,95 +668,97 @@ export default function OrderDetailPage({
                         />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
+                        <div className="text-sm sm:text-base font-bold text-[#4A5130] truncate">
                           {item.title}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {item.quantity} × {item.price.toLocaleString()} THB
+                        <div className="text-xs sm:text-sm font-semibold text-gray-600">
+                          {item.quantity} × ฿{item.price.toLocaleString()}
                         </div>
                       </div>
                     </div>
-                    <div className="text-xs sm:text-sm font-semibold text-gray-900 flex-shrink-0">
-                      {(item.price * item.quantity).toLocaleString()} THB
+                    <div className="text-base sm:text-lg font-extrabold text-[#5C8140] flex-shrink-0">
+                      ฿{(item.price * item.quantity).toLocaleString()}
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 flex flex-col gap-1 text-sm text-gray-600">
-                <div className="flex justify-between font-semibold text-[#4A5130]">
-                  <span>Total amount</span>
-                  <span>{order.totalPrice.toLocaleString()} THB</span>
+              <div className="mt-4 pt-4 border-t-2 border-[#5C8140]/20 bg-[#F6F2E5]/50 p-3 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-base sm:text-lg font-extrabold text-[#4A5130]">Total amount</span>
+                  <span className="text-xl sm:text-2xl font-extrabold text-[#5C8140]">฿{order.totalPrice.toLocaleString()}</span>
                 </div>
               </div>
             </section>
 
             <section className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl sm:rounded-2xl border border-[#e4ecd7] bg-white p-3 sm:p-4">
-                <h3 className="text-xs sm:text-sm font-semibold text-[#3d4a29] mb-2 sm:mb-0">
-                  Delivery & payment
+                <h3 className="text-sm sm:text-base font-extrabold text-[#4A5130] mb-3 sm:mb-3">
+                  Delivery & Payment
                 </h3>
-                <div className="mt-2 space-y-2 text-xs sm:text-sm text-gray-600">
+                <div className="mt-2 space-y-2.5 text-sm text-gray-700">
                   <div className="flex items-center gap-2">
-                    <Truck size={16} className="text-[#69773D]" />
-                    <span className="capitalize">{order.deliveryMethod}</span>
+                    <Truck size={18} className="text-[#5C8140]" />
+                    <span className="font-bold capitalize text-[#4A5130]">{order.deliveryMethod}</span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Package size={16} className="text-[#69773D]" />
-                    <span>{formatPaymentMethod(order.paymentMethod)}</span>
+                    <Package size={18} className="text-[#5C8140]" />
+                    <span className="font-bold text-[#4A5130]">{formatPaymentMethod(order.paymentMethod)}</span>
                     {paymentStatusBadge(
                       normalizePaymentStatus(order.paymentStatus) ?? undefined
                     )}
                   </div>
                   {order.deliveryMethod === "delivery" &&
                     order.shippingAddress && (
-                      <div className="mt-2 space-y-1 rounded border border-[#d6e4c3] bg-[#f8fbef] p-3 text-xs text-[#3f4e24]">
-                        <p className="font-semibold text-[#2f3b11]">
-                          Shipping address
+                      <div className="mt-2 space-y-1 rounded-lg border-2 border-[#5C8140]/30 bg-[#f8fbef] p-3 text-sm">
+                        <p className="font-extrabold text-base text-[#4A5130]">
+                          Shipping Address
                         </p>
-                        <p>{order.shippingAddress.address}</p>
-                        <p>
+                        <p className="font-semibold text-gray-800">{order.shippingAddress.address}</p>
+                        <p className="font-semibold text-gray-700">
                           {order.shippingAddress.city}{" "}
                           {order.shippingAddress.postalCode}
                         </p>
                       </div>
                     )}
                   {order.deliveryMethod === "pickup" && order.pickupDetails && (
-                    <div className="mt-2 space-y-1 rounded border border-[#d6e4c3] bg-[#f8fbef] p-3 text-xs text-[#3f4e24]">
-                      <p className="font-semibold text-[#2f3b11]">
-                        Meetup point
+                    <div className="mt-2 space-y-2 rounded-lg border-2 border-[#5C8140]/30 bg-[#f8fbef] p-3 text-sm">
+                      <p className="font-extrabold text-base text-[#4A5130] flex items-center gap-1.5">
+                        <MapPin size={16} className="text-[#5C8140]" />
+                        Meetup Point
                       </p>
-                      <p className="flex items-center gap-1 font-medium text-[#2f3b11]">
-                        <MapPin size={12} className="text-[#84B067]" />
+                      <p className="font-bold text-[#4A5130] text-base">
                         {order.pickupDetails.locationName}
                       </p>
                       {order.pickupDetails.address && (
-                        <p>{order.pickupDetails.address}</p>
+                        <p className="font-semibold text-gray-700">{order.pickupDetails.address}</p>
                       )}
                       {order.pickupDetails.coordinates && (
-                        <p className="text-[11px] text-gray-500">
-                          Coordinates:{" "}
+                        <p className="text-xs font-medium text-gray-600 font-mono">
+                          📍 Coordinates:{" "}
                           {order.pickupDetails.coordinates.lat.toFixed(5)},{" "}
                           {order.pickupDetails.coordinates.lng.toFixed(5)}
                         </p>
                       )}
                       {order.pickupDetails.note && (
-                        <p className="text-[11px] text-gray-500">
-                          Buyer note: {order.pickupDetails.note}
+                        <p className="text-xs font-semibold text-gray-700 bg-gray-50 p-2 rounded border border-gray-200">
+                          <span className="font-bold text-[#4A5130]">Note:</span> {order.pickupDetails.note}
                         </p>
                       )}
                       {order.pickupDetails.preferredTime && (
-                        <p className="text-[11px] text-[#69773D] font-medium flex items-center gap-1">
-                          <Clock size={10} />
+                        <p className="text-sm text-[#5C8140] font-bold flex items-center gap-1.5">
+                          <Clock size={14} />
                           Preferred time:{" "}
-                          {new Date(
-                            order.pickupDetails.preferredTime
-                          ).toLocaleString("th-TH", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          <span className="text-[#4A5130]">
+                            {new Date(
+                              order.pickupDetails.preferredTime
+                            ).toLocaleString("th-TH", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
                         </p>
                       )}
                     </div>
@@ -764,15 +766,15 @@ export default function OrderDetailPage({
                 </div>
               </div>
               <div className="rounded-xl sm:rounded-2xl border border-[#e4ecd7] bg-white p-3 sm:p-4">
-                <h3 className="text-xs sm:text-sm font-semibold text-[#3d4a29] mb-2 sm:mb-0">
-                  Seller contact
+                <h3 className="text-sm sm:text-base font-extrabold text-[#4A5130] mb-3 sm:mb-3">
+                  Seller Contact
                 </h3>
-                <div className="mt-2 text-xs sm:text-sm text-gray-600">
-                  <p className="font-semibold text-gray-900 break-words">
+                <div className="mt-2 text-sm text-gray-700">
+                  <p className="font-extrabold text-lg text-[#4A5130] break-words">
                     {order.seller?.name || "Unknown"}
                   </p>
                   {order.seller?.contact && (
-                    <p className="break-words">{order.seller.contact}</p>
+                    <p className="font-semibold text-gray-700 break-words mt-1">{order.seller.contact}</p>
                   )}
                 </div>
                 <div className="mt-3 sm:mt-4">
@@ -780,10 +782,10 @@ export default function OrderDetailPage({
                     type="button"
                     onClick={handleContactSeller}
                     disabled={contactingSeller}
-                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs sm:text-sm font-semibold transition ${
+                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg border-2 px-4 py-2.5 text-sm sm:text-base font-bold transition shadow-md hover:shadow-lg ${
                       contactingSeller
-                        ? "border-[#d6e4c3] bg-[#f3f8ed] text-gray-400 cursor-not-allowed"
-                        : "bg-[#69773D]/80 text-[#F6F2E5] hover:bg-[#69773D]/90 border-[#69773D]"
+                        ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-[#5C8140] text-white hover:bg-[#4a6b33] border-[#5C8140]"
                     }`}
                   >
                     <MessageCircle size={14} className="sm:w-4 sm:h-4" />
@@ -806,7 +808,7 @@ export default function OrderDetailPage({
                   <button
                     type="button"
                     onClick={handleMakePayment}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition bg-blue-600 text-white hover:bg-blue-700"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-5 py-3 text-sm sm:text-base font-bold transition bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg"
                   >
                     <QrCode size={14} className="sm:w-4 sm:h-4" />
                     Make Payment
@@ -819,7 +821,7 @@ export default function OrderDetailPage({
                   <button
                     type="button"
                     onClick={handleMakePayment}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition bg-[#4c5c2f] text-white hover:bg-[#3a4b23]"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-5 py-3 text-sm sm:text-base font-bold transition bg-[#5C8140] text-white hover:bg-[#4a6b33] shadow-md hover:shadow-lg"
                   >
                     <CreditCard size={14} className="sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">
@@ -836,7 +838,7 @@ export default function OrderDetailPage({
                     {(order.paymentMethod === "promptpay" ||
                       order.paymentMethod === "transfer") &&
                       !paymentComplete && (
-                        <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-yellow-100 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-yellow-800">
+                        <div className="w-full sm:w-auto inline-flex items-center gap-2 rounded-lg sm:rounded-xl bg-yellow-100 border-2 border-yellow-400 px-4 sm:px-5 py-2.5 text-sm sm:text-base font-bold text-yellow-900 shadow-sm">
                           <AlertCircle
                             size={14}
                             className="sm:w-4 sm:h-4 flex-shrink-0"
@@ -859,10 +861,10 @@ export default function OrderDetailPage({
                         type="button"
                         onClick={handleMarkReceived}
                         disabled={markingReceived}
-                        className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition ${
+                        className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg sm:rounded-xl px-5 py-3 text-sm sm:text-base font-bold transition shadow-md hover:shadow-lg ${
                           markingReceived
-                            ? "bg-[#f3f8ed] text-gray-400 border border-[#d6e4c3] cursor-not-allowed"
-                            : "bg-[#e0cd95] text-[#8c522f] hover:bg-[#d4c085]"
+                            ? "bg-gray-100 text-gray-400 border-2 border-gray-300 cursor-not-allowed"
+                            : "bg-[#e0cd95] text-[#8c522f] hover:bg-[#d4c085] border-2 border-[#8c522f]/30"
                         }`}
                       >
                         <CheckCircle size={14} className="sm:w-4 sm:h-4" />

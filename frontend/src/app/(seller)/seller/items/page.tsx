@@ -136,24 +136,24 @@ export default function SellerItems() {
   }
 
   return (
-    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
+    <div style={{ backgroundColor: '#FEFCF9', minHeight: '100vh', padding: '2rem' }}>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-[#4A5130]">My Items</h1>
-          <p className="text-[#69773D] mt-1">Manage your listed products</p>
+          <h1 className="text-4xl font-extrabold text-[#4A5130] tracking-tight">My Items</h1>
+          <p className="text-[#69773D] mt-2 font-medium text-base">Manage your listed products</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={loadItems}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-[#F6F2E5] text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-white text-[#4A5130] rounded-lg hover:bg-gray-50 hover:text-[#4A5130] disabled:opacity-50 transition-colors border border-gray-200 font-semibold"
           >
             <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
             Refresh
           </button>
           <Link
             href="/seller/add-item"
-            className="px-4 py-2 bg-[#69773D] text-[#F6F2E5] rounded-lg hover:bg-[#5a6530] transition-colors font-medium"
+            className="px-5 py-2.5 bg-[#5C8140] text-white rounded-lg hover:bg-[#4a6b33] transition-all font-bold shadow-md hover:shadow-lg"
           >
             + Add Item
           </Link>
@@ -198,16 +198,16 @@ export default function SellerItems() {
               </div>
               <div className="p-4">
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-[#4A5130] flex-1 text-sm md:text-base">
+                  <h3 className="font-extrabold text-[#4A5130] flex-1 text-base md:text-lg">
                     {item.title}
                   </h3>
                   <span
-                    className={`text-xs px-2 py-1 rounded-full ml-2 flex items-center gap-1 whitespace-nowrap ${
+                    className={`text-xs px-3 py-1.5 rounded-full ml-2 flex items-center gap-1.5 whitespace-nowrap font-bold shadow-sm ${
                       item.approvalStatus === "approved"
-                        ? "bg-[#69773D]/10 text-[#69773D] border border-[#69773D]/30"
+                        ? "bg-[#5C8140]/20 text-[#5C8140] border-2 border-[#5C8140]/40"
                         : item.approvalStatus === "pending"
-                        ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
-                        : "bg-[#780606] text-[#780606] border border-[#780606]"
+                        ? "bg-yellow-100 text-yellow-900 border-2 border-yellow-400"
+                        : "bg-red-100 text-red-900 border-2 border-red-400"
                     }`}
                     title={
                       item.approvalStatus === "pending"
