@@ -126,7 +126,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       localStorageSyncRef.current = setTimeout(() => {
         try {
           localStorage.setItem("cart", JSON.stringify(items));
-        } catch (error) {
+        } catch {
           // Failed to save cart to localStorage
         }
       }, 300); // 300ms debounce

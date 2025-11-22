@@ -280,7 +280,7 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
       }
 
       preferredThreadRef.current = null;
-    } catch (error) {
+    } catch {
     }
   }, [selectedId]);
 
@@ -378,7 +378,7 @@ function ChatPageContent({ initialThreadId }: { initialThreadId?: string }) {
 
         markThreadReadLocally(key);
         markThreadReadOnServer(key);
-      } catch (error) {
+      } catch {
       }
     }
 

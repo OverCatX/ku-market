@@ -7,7 +7,7 @@ const parseStoredUser = (): Record<string, unknown> | null => {
     const raw = localStorage.getItem(USER_STORAGE_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as Record<string, unknown>;
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -63,7 +63,7 @@ export function updateStoredUser(partial: Record<string, unknown>): void {
     const current = parseStoredUser() ?? {};
     const merged = { ...current, ...partial };
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(merged));
-  } catch (error) {
+  } catch {
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(partial));
     } catch {

@@ -58,8 +58,7 @@ export async function getCart(): Promise<CartResponse> {
 
       const contentType = res.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
-        const json = await res.json().catch(() => ({}));
-        const errorMessage = json.error || json.message || `Server error: ${res.status}`;
+        await res.json().catch(() => ({}));
         
         // For other errors, log but return empty cart gracefully
         return { success: true, items: [], totalItems: 0, totalPrice: 0 };

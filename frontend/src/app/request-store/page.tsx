@@ -164,7 +164,7 @@ export default function BecomeASeller() {
             rejectionReason: shop.shopRejectionReason,
           });
         }
-      } catch (error) {
+      } catch {
         // No shop found - user can apply
       }
 

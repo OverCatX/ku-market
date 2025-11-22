@@ -88,7 +88,7 @@ async function seedMeetupPresets() {
     }
 
     // Insert default presets
-    const presets = await MeetupPreset.insertMany(defaultPresets);
+    await MeetupPreset.insertMany(defaultPresets);
 
     await mongoose.connection.close();
   } catch (error) {

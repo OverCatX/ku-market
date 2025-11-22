@@ -100,7 +100,7 @@ export default function ProfilePage() {
               });
             }
           }
-        } catch (err) {
+        } catch {
           // No shop or error - ignore
         }
       } catch {

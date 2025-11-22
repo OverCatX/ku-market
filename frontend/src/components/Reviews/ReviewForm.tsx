@@ -46,8 +46,7 @@ export default function ReviewForm({
         setIsVerified(true);
         return true;
       }
-    } catch (error) {
-    }
+    } catch {}
     return false;
   };
 
