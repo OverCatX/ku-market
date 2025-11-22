@@ -1,6 +1,7 @@
 import {Request, Response } from "express";
 import { uploadToCloudinary } from "../../lib/cloudinary";
 import Item, { IItem } from "../../data/models/Item"
+import Category from "../../data/models/Category";
 import mongoose, { FilterQuery, PipelineStage } from "mongoose";
 import { AuthenticatedRequest } from "../middlewares/authentication";
 import { logActivity } from "../../lib/activityLogger";
@@ -226,7 +227,28 @@ export default class ItemController {
             }
             
             if (req.query.category) {
-                filters.category = new RegExp(req.query.category as string, 'i'); 
+                const categoryQuery = req.query.category as string;
+                
+                // Try to find category by slug first, then use name
+                // This handles both slug and name matching
+                const category = await Category.findOne({
+                    $or: [
+                        { slug: categoryQuery },
+                        { name: new RegExp(categoryQuery, 'i') }
+                    ],
+                    isActive: true
+                }).lean();
+                
+                if (category) {
+                    // Match by category name (items store category as name)
+                    // Escape special regex characters in category name
+                    const escapedName = category.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    filters.category = new RegExp(escapedName, 'i');
+                } else {
+                    // Fallback: try to match directly (for backward compatibility)
+                    const escapedQuery = categoryQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    filters.category = new RegExp(escapedQuery, 'i');
+                }
             }
             
             // Price range filter
