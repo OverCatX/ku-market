@@ -123,7 +123,7 @@ export default function AddItemPage() {
   };
 
   return (
-    <div style={{ backgroundColor: '#FEFCF9', minHeight: '100vh', padding: '2rem' }}>
+    <div style={{ backgroundColor: '#F6F2E5', minHeight: '100vh', padding: '2rem' }}>
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-[#4A5130]">Add New Item</h1>

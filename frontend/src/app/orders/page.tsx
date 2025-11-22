@@ -127,7 +127,7 @@ function PickupLocationSection({
 
   return (
     <div className="mt-4 space-y-3">
-      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="p-3 bg-[#F6F2E5]/30 rounded-lg border border-gray-200">
         <div className="flex items-start gap-2">
           <MapPin size={16} className="mt-0.5 text-[#4A5130] flex-shrink-0" />
           <div className="text-sm flex-1">
@@ -534,7 +534,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="min-h-screen py-10" style={{ backgroundColor: "#FAF9F6" }}>
+    <div className="min-h-screen py-10" style={{ backgroundColor: "#F6F2E5" }}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-16 max-w-6xl">
         <section className="rounded-3xl bg-white border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -556,13 +556,10 @@ export default function OrdersPage() {
               <button
                 onClick={loadOrders}
                 disabled={loading}
-                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-white border border-gray-300 text-gray-700 text-xs sm:text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-transparent text-[#4A5130] rounded-lg hover:bg-[#69773D]/10 hover:text-[#4A5130] disabled:opacity-50 transition-colors"
               >
-                <RefreshCw
-                  size={14}
-                  className={`sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`}
-                />
-                <span className="hidden sm:inline">Refresh</span>
+                <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+                Refresh
               </button>
               <Link
                 href="/marketplace"
