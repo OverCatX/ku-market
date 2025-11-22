@@ -113,32 +113,37 @@ Follow prompts to create admin account (must use `@ku.ac.th` email).
 Copy from root `.env.example` (Backend section) or `backend/.env.example` and fill in:
 
 ```env
-# Server
-PORT=8080
-NODE_ENV=development
+MONGO_URL=mongodb://localhost:27017/ku_market
+# For MongoDB Atlas: mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
 
-# Database
-MONGO_URI=mongodb://localhost:27017/ku-market
-
-# JWT (generate: openssl rand -base64 32)
 JWT_SECRET=your-super-secret-jwt-key-change-this
+# Generate secure secret: openssl rand -base64 32
 
-# Cloudinary (get from https://cloudinary.com/console)
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
+PORT=8080
 
-# SMTP Email (Gmail App Password)
-SMTP_EMAIL=your-email@gmail.com
-SMTP_PASSWORD=your-16-character-app-password
+CLOUDINARY_CLOUD_NAME=your_cloud_name_here
+CLOUDINARY_API_KEY=your_api_key_here
+CLOUDINARY_API_SECRET=your_api_secret_here
+# Get credentials from: https://cloudinary.com/console
 
-# Google OAuth (Optional - for Google login)
-GOOGLE_CLIENT_ID=your-google-client-id
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+# Get credentials from: https://dashboard.stripe.com/apikeys
+
+# SMTP Configuration (for email sending - forgot password, etc.)
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-16-character-app-password
+# Gmail: Enable 2-Step Verification, then generate App Password
+# App Password: https://myaccount.google.com/apppasswords
+
+FRONTEND_URL=http://localhost:3000
+
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_REDIRECT_URI=http://localhost:8080/api/auth/google/callback
+# Get credentials from: https://console.cloud.google.com/apis/credentials
 
-# Frontend URL
-FRONTEND_URL=http://localhost:3000
+SESSION_SECRET=your-session-secret-here
+# Generate secure secret: openssl rand -base64 32
 ```
 
 ### Frontend (.env.local)
@@ -146,7 +151,11 @@ FRONTEND_URL=http://localhost:3000
 Copy from root `.env.example` (Frontend section) or `frontend/.env.example`:
 
 ```env
+# NEXT_PUBLIC_API_BASE=https://ku-market.onrender.com
 NEXT_PUBLIC_API_BASE=http://localhost:8080
+
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+# Get credentials from: https://dashboard.stripe.com/apikeys
 ```
 
 ---
@@ -158,7 +167,7 @@ NEXT_PUBLIC_API_BASE=http://localhost:8080
 **Local:**
 
 ```env
-MONGO_URI=mongodb://localhost:27017/ku-market
+MONGO_URL=mongodb://localhost:27017/ku_market
 ```
 
 **Atlas (Cloud):**
@@ -169,7 +178,7 @@ MONGO_URI=mongodb://localhost:27017/ku-market
 4. Whitelist IP: `0.0.0.0/0` (for development)
 5. Get connection string:
    ```
-   mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>
+   mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
    ```
 
 ### 2. Cloudinary
@@ -184,7 +193,7 @@ MONGO_URI=mongodb://localhost:27017/ku-market
 2. **Generate App Password:**
    - Go to [App Passwords](https://myaccount.google.com/apppasswords)
    - Select "Mail" → "Other" → Enter "KU Market"
-   - Copy 16-character password → Use as `SMTP_PASSWORD`
+   - Copy 16-character password → Use as `SMTP_PASS`
 
 ### 4. JWT Secret
 
@@ -244,7 +253,7 @@ npx kill-port 3000
 
 ```env
 # Try IPv4
-MONGO_URI=mongodb://127.0.0.1:27017/ku-market
+MONGO_URL=mongodb://127.0.0.1:27017/ku_market
 
 # Check MongoDB is running
 mongosh

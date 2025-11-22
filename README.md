@@ -31,6 +31,7 @@ cd ku-market
 cp .env.example backend/.env
 cp .env.example frontend/.env.local
 # Edit backend/.env and frontend/.env.local with your credentials
+# See .env.example for all required environment variables
 
 docker-compose up -d
 docker exec -it ku-market-backend npm run bootstrap-admin
@@ -46,10 +47,12 @@ cd ku-market
 
 # Backend
 cd backend && cp ../.env.example .env
+# Edit .env with your credentials (see .env.example)
 npm install && npm run dev
 
 # Frontend (new terminal)
 cd frontend && cp ../.env.example .env.local
+# Edit .env.local with your credentials (see .env.example)
 npm install && npm run dev
 ```
 
@@ -61,6 +64,8 @@ npm install && npm run dev
 - [User Guide](docs/USER_GUIDE.md) - How to use the platform
 - [API Documentation](docs/API.md) - API reference
 - [Code Guidelines](docs/CODE_GUIDELINES.md) - Performance optimization techniques and coding standards
+- [Frontend Project Structure](frontend/PROJECT_STRUCTURE.md) - Frontend architecture and structure
+- [Backend Project Structure](backend/PROJECT_STRUCTURE.md) - Backend architecture and structure
 - [Project Wiki](https://github.com/OverCatX/ku-market/wiki) - Project overview
 
 **Interactive Guide:** Visit `/guide` in the application for a visual, step-by-step guide with role-specific instructions (Buyer, Seller, Admin) and detailed order tracking workflows.

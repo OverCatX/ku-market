@@ -16,7 +16,10 @@ Open http://localhost:3000
 Create `.env.local`:
 
 ```env
+# NEXT_PUBLIC_API_BASE=https://ku-market.onrender.com
 NEXT_PUBLIC_API_BASE=http://localhost:8080
+
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
 ```
 
 ## Scripts
