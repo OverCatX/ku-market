@@ -24,12 +24,12 @@ CLOUDINARY_API_KEY=your_api_key_here
 CLOUDINARY_API_SECRET=your_api_secret_here
 STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
 
-# Email Configuration (using Resend API)
-RESEND_API_KEY=re_your_resend_api_key_here
-RESEND_FROM_EMAIL=onboarding@resend.dev
-# Get API key from: https://resend.com/api-keys
-# For testing: use onboarding@resend.dev (no domain verification needed)
-# For production: verify your domain in Resend dashboard
+# Email Configuration (SMTP - Gmail)
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-16-character-app-password
+# Gmail: Enable 2-Step Verification, then generate App Password
+# App Password: https://myaccount.google.com/apppasswords
+
 FRONTEND_URL=http://localhost:3000
 
 # CORS Configuration (comma-separated list of allowed origins)
@@ -43,20 +43,24 @@ GOOGLE_REDIRECT_URI=http://localhost:8080/api/auth/google/callback
 SESSION_SECRET=your-session-secret-here
 ```
 
-### Email Setup (Resend)
+### Email Setup (SMTP)
 
-1. **Sign up** at [Resend](https://resend.com)
-2. **Get API Key**:
-   - Go to [API Keys](https://resend.com/api-keys)
-   - Create a new API key
-   - Copy the key → Use as `RESEND_API_KEY`
-3. **For Development/Testing**:
-   - Use `onboarding@resend.dev` as `RESEND_FROM_EMAIL` (no verification needed)
-4. **For Production**:
-   - Go to [Domains](https://resend.com/domains)
-   - Add and verify your domain
-   - Use verified email as `RESEND_FROM_EMAIL` (e.g., `noreply@yourdomain.com`)
-5. **Free Tier**: 3,000 emails/month
+**For Gmail:**
+
+1. **Enable 2-Step Verification**:
+   - Go to [Google Account Security](https://myaccount.google.com/security)
+   - Enable 2-Step Verification
+
+2. **Generate App Password**:
+   - Go to [App Passwords](https://myaccount.google.com/apppasswords)
+   - Select "Mail" and your device
+   - Copy the 16-character password → Use as `SMTP_PASS`
+
+3. **Configure Environment Variables**:
+   ```env
+   SMTP_USER=your-email@gmail.com
+   SMTP_PASS=your-16-character-app-password
+   ```
 
 ⚠️ **Security:** Never commit `.env` files! Generate secure secret: `openssl rand -base64 32`
 
