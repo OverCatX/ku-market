@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+import nodemailer, { Transporter, SendMailOptions } from "nodemailer";
 import { logger } from "./logger";
 
 interface SendEmailOptions {
@@ -7,118 +7,208 @@ interface SendEmailOptions {
   html: string;
 }
 
-// Resend client instance (singleton pattern)
-let resendClient: Resend | null = null;
-let fromEmail: string | null = null;
+// Singleton transporter instance for connection pooling and resource efficiency
+let emailTransporter: Transporter | null = null;
 
-function getResendClient(): { client: Resend; from: string } | null {
-  // Return existing client if already created
-  if (resendClient && fromEmail) {
-    return { client: resendClient, from: fromEmail };
+/**
+ * Get or create SMTP transporter with connection pooling
+ * Uses singleton pattern to reuse connections and reduce resource usage
+ * Defaults to Gmail SMTP settings
+ */
+function getEmailTransporter(): Transporter | null {
+  // Return existing transporter if already created
+  if (emailTransporter) {
+    return emailTransporter;
   }
 
-  // Verify Resend API key
-  const resendApiKey = process.env.RESEND_API_KEY?.trim();
-  const emailFrom = process.env.RESEND_FROM_EMAIL?.trim();
-  
-  logger.log("Resend configuration check:");
-  logger.log(`  RESEND_API_KEY: ${resendApiKey ? `${resendApiKey.substring(0, 10)}...` : "NOT SET"}`);
-  logger.log(`  RESEND_FROM_EMAIL: ${emailFrom || "NOT SET"}`);
-  
-  // Warn if using non-resend.dev domain without verification
-  if (emailFrom && !emailFrom.includes("@resend.dev")) {
-    logger.warn(`⚠️  Using custom domain email: ${emailFrom}`);
-    logger.warn("   Make sure this domain is verified in Resend dashboard!");
-    logger.warn("   For testing, use: onboarding@resend.dev");
-  }
-  
-  if (!resendApiKey) {
-    logger.error("RESEND_API_KEY not configured. Email will not be sent.");
+  // Get SMTP configuration from environment
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const smtpPass = process.env.SMTP_PASS?.trim();
+
+  // Validate required configuration
+  if (!smtpUser || !smtpPass) {
+    logger.error("SMTP configuration incomplete. Required: SMTP_USER, SMTP_PASS");
     return null;
   }
 
-  if (!emailFrom) {
-    logger.error("RESEND_FROM_EMAIL not configured. Email will not be sent.");
+  try {
+    // Create transporter with Gmail defaults and connection pooling for better resource management
+    emailTransporter = nodemailer.createTransport({
+      service: "gmail", // Use Gmail service (automatically sets host, port, secure)
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+      // Connection pooling settings to reduce resource usage
+      pool: true, // Use connection pooling
+      maxConnections: 5, // Maximum number of connections in pool
+      maxMessages: 100, // Maximum messages per connection before closing
+      // Timeout settings to prevent hanging connections
+      connectionTimeout: 10000, // 10 seconds
+      socketTimeout: 10000, // 10 seconds
+      greetingTimeout: 5000, // 5 seconds
+    } as nodemailer.TransportOptions);
+
+    logger.log("SMTP transporter initialized successfully (Gmail)");
+    return emailTransporter;
+  } catch (error) {
+    logger.error("Failed to create SMTP transporter:", error);
     return null;
   }
-  
-  // Create Resend client
-  resendClient = new Resend(resendApiKey);
-  fromEmail = emailFrom;
-
-  logger.log("Resend client initialized successfully");
-  return { client: resendClient, from: fromEmail };
 }
 
-export async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<void> {
+/**
+ * Verify SMTP connection (called once on startup)
+ */
+export async function verifyEmailConnection(): Promise<boolean> {
+  const transporter = getEmailTransporter();
+  if (!transporter) {
+    return false;
+  }
+
   try {
-    const resendConfig = getResendClient();
-    
-    if (!resendConfig) {
-      const errorMsg = "Resend API not configured. Please check RESEND_API_KEY and RESEND_FROM_EMAIL environment variables.";
-      logger.error(errorMsg);
-      throw new Error(errorMsg);
-    }
+    await transporter.verify();
+    logger.log("SMTP connection verified successfully");
+    return true;
+  } catch (error) {
+    logger.error("SMTP connection verification failed:", error);
+    return false;
+  }
+}
 
-    // Send email using Resend API
-    // Format: "Name <email@domain.com>" or just "email@domain.com"
-    let fromField: string;
-    if (resendConfig.from.includes("@resend.dev")) {
-      // For Resend test domain, use simple format
-      fromField = resendConfig.from;
-    } else {
-      // For custom domains, use formatted name
-      fromField = `KU Market <${resendConfig.from}>`;
-    }
-    
-    logger.log(`Attempting to send email to: ${to} from: ${fromField}`);
-    
-    const result = await Promise.race([
-      resendConfig.client.emails.send({
-        from: fromField,
-        to,
-        subject,
-        html,
-      }),
-      new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error("Email sending timeout after 15 seconds")), 15000)
-      ),
-    ]);
+/**
+ * Send email using SMTP
+ * Optimized with connection pooling and proper error handling
+ */
+export async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<void> {
+  const transporter = getEmailTransporter();
+  
+  if (!transporter) {
+    const errorMsg = "SMTP not configured. Please check SMTP_USER and SMTP_PASS environment variables.";
+    logger.error(errorMsg);
+    throw new Error(errorMsg);
+  }
 
-    if (result.error) {
-      logger.error("Resend API error:", JSON.stringify(result.error, null, 2));
-      const errorDetails = result.error as { message?: string; name?: string; [key: string]: unknown };
-      const errorMsg = errorDetails.message || errorDetails.name || JSON.stringify(result.error);
-      
-      // Check for specific error types
-      if (errorMsg.toLowerCase().includes("domain") || errorMsg.toLowerCase().includes("not verified") || errorMsg.toLowerCase().includes("unauthorized")) {
-        logger.error(`❌ Domain verification error!`);
-        logger.error(`   Current FROM email: ${resendConfig.from}`);
-        logger.error(`   Attempting to send TO: ${to}`);
-        logger.error(`   ⚠️  The FROM email domain must be verified in Resend dashboard.`);
-        logger.error(`   💡 Solution: Set RESEND_FROM_EMAIL=onboarding@resend.dev in Render environment variables`);
-        logger.error(`   📖 Or verify your domain at: https://resend.com/domains`);
-        throw new Error(`Email domain not verified. Current FROM: ${resendConfig.from}. Please set RESEND_FROM_EMAIL=onboarding@resend.dev for testing or verify your domain in Resend dashboard.`);
-      }
-      
-      throw new Error(`Resend API error: ${errorMsg}`);
-    }
+  const smtpUser = process.env.SMTP_USER?.trim();
+  if (!smtpUser) {
+    throw new Error("SMTP_USER not configured");
+  }
 
-    logger.log("Email sent successfully via Resend. Email ID:", result.data?.id);
+  const fromField = `KU Market <${smtpUser}>`;
+
+  const mailOptions: SendMailOptions = {
+    from: fromField,
+    to,
+    subject,
+    html,
+    // Optimize email size
+    encoding: "utf-8",
+    // Priority settings
+    priority: "normal",
+  };
+
+  try {
+    logger.log(`📧 Attempting to send email:`);
+    logger.log(`   TO: ${to}`);
+    logger.log(`   FROM: ${fromField}`);
+
+    // Send email with timeout to prevent hanging
+    const sendPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error("Email sending timeout after 15 seconds")), 15000)
+    );
+
+    const info = await Promise.race([sendPromise, timeoutPromise]);
+
+    logger.log("Email sent successfully. Message ID:", info.messageId);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error("Error sending email - Full error:", error);
-    logger.error("Error sending email - Message:", errorMessage);
     
-    // Reset client on error to force recreation on next attempt
-    resendClient = null;
-    fromEmail = null;
-    
-    // Re-throw with more context
-    throw new Error(errorMessage);
+    // Provide specific error messages based on error type
+    if (errorMessage.includes("timeout")) {
+      logger.error("Email sending timeout - SMTP server may be slow or unreachable");
+      throw new Error("Email sending timeout. Please try again later.");
+    } else if (errorMessage.includes("authentication") || errorMessage.includes("Invalid login")) {
+      logger.error("SMTP authentication failed - check SMTP_USER and SMTP_PASS");
+      throw new Error("SMTP authentication failed. Please check your email credentials.");
+    } else if (errorMessage.includes("ECONNREFUSED") || errorMessage.includes("ENOTFOUND")) {
+      logger.error("SMTP connection failed - check network connection");
+      throw new Error("Failed to connect to SMTP server. Please check your network connection.");
+    } else {
+      logger.error("Error sending email:", error);
+      throw new Error(`Failed to send email: ${errorMessage}`);
+    }
   }
 }
 
+/**
+ * Close email transporter connections (call on app shutdown)
+ * Helps free up resources properly
+ */
+export async function closeEmailTransporter(): Promise<void> {
+  if (emailTransporter) {
+    try {
+      emailTransporter.close();
+      emailTransporter = null;
+      logger.log("Email transporter closed successfully");
+    } catch (error) {
+      logger.error("Error closing email transporter:", error);
+    }
+  }
+}
+
+/**
+ * Send password reset email with OTP
+ */
+export async function sendPasswordResetOtp(
+  email: string,
+  otp: string,
+  userName?: string
+): Promise<void> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Password Reset OTP - KU Market</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background-color: #69773D; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="color: #f5f5dc; margin: 0;">KU Market</h1>
+      </div>
+      <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #ddd;">
+        <h2 style="color: #69773D; margin-top: 0;">Password Reset OTP</h2>
+        ${userName ? `<p>Hello ${userName},</p>` : "<p>Hello,</p>"}
+        <p>We received a request to reset your password for your KU Market account.</p>
+        <p>Your OTP (One-Time Password) is:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <div style="display: inline-block; background-color: #69773D; color: #f5f5dc; padding: 20px 40px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 8px;">
+            ${otp}
+          </div>
+        </div>
+        <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 14px;">
+          <strong>Important:</strong> This OTP will expire in 60 seconds. If you didn't request a password reset, please ignore this email.
+        </p>
+        <p style="color: #666; font-size: 14px; margin-top: 20px;">
+          Best regards,<br>
+          KU Market Team
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject: "Password Reset OTP - KU Market",
+    html,
+  });
+}
+
+/**
+ * Send password reset email with token link
+ */
 export async function sendPasswordResetEmail(
   email: string,
   resetToken: string,
@@ -166,52 +256,6 @@ export async function sendPasswordResetEmail(
   await sendEmail({
     to: email,
     subject: "Reset Your Password - KU Market",
-    html,
-  });
-}
-
-export async function sendPasswordResetOtp(
-  email: string,
-  otp: string,
-  userName?: string
-): Promise<void> {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Password Reset OTP - KU Market</title>
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background-color: #69773D; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h1 style="color: #f5f5dc; margin: 0;">KU Market</h1>
-      </div>
-      <div style="background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #ddd;">
-        <h2 style="color: #69773D; margin-top: 0;">Password Reset OTP</h2>
-        ${userName ? `<p>Hello ${userName},</p>` : "<p>Hello,</p>"}
-        <p>We received a request to reset your password for your KU Market account.</p>
-        <p>Your OTP (One-Time Password) is:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <div style="display: inline-block; background-color: #69773D; color: #f5f5dc; padding: 20px 40px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 8px;">
-            ${otp}
-          </div>
-        </div>
-        <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 14px;">
-          <strong>Important:</strong> This OTP will expire in 60 seconds. If you didn't request a password reset, please ignore this email.
-        </p>
-        <p style="color: #666; font-size: 14px; margin-top: 20px;">
-          Best regards,<br>
-          KU Market Team
-        </p>
-      </div>
-    </body>
-    </html>
-  `;
-
-  await sendEmail({
-    to: email,
-    subject: "Password Reset OTP - KU Market",
     html,
   });
 }

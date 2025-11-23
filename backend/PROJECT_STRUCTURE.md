@@ -133,24 +133,28 @@ Request → Route → Middleware → Controller → Service/Model → Response
 ## Key Features
 
 ### Controllers
+
 - Handle business logic
 - Interact with models
 - Return JSON responses
 - Handle errors appropriately
 
 ### Middlewares
+
 - **Authentication**: JWT token verification
 - **Authorization**: Role-based access control (admin, seller)
 - **Validation**: Request body/query validation using Joi
 - **Rate Limiting**: Prevent abuse (reviews, API calls)
 
 ### Models
+
 - Mongoose schemas with TypeScript interfaces
 - Validation at schema level
 - Indexes for performance
 - Virtual fields and methods
 
 ### Routes
+
 - RESTful API design
 - Organized by feature/domain
 - Versioned if needed (`/api/...`)
@@ -167,8 +171,8 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name_here
 CLOUDINARY_API_KEY=your_api_key_here
 CLOUDINARY_API_SECRET=your_api_secret_here
 STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
-RESEND_API_KEY=re_your_resend_api_key_here
-RESEND_FROM_EMAIL=onboarding@resend.dev
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-16-character-app-password
 FRONTEND_URL=http://localhost:3000
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
@@ -195,4 +199,3 @@ SESSION_SECRET=your-session-secret-here
 - Production build: `npm run build`
 - Output: `dist/` directory
 - Run: `node dist/server.js`
-

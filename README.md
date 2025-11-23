@@ -10,6 +10,7 @@ An online marketplace platform for Kasetsart University students to buy and sell
 ## ✨ Features
 
 - **Authentication** - Email validation (@ku.th users, @ku.ac.th admins), Google OAuth login, OTP password reset, identity verification
+  - ⚠️ **Note**: Forgot password feature (OTP email) may not work on Render.com due to SMTP port blocking. It works on localhost and other deployments that allow SMTP connections.
 - **Marketplace** - Browse, search, filter items. Create branded shops with custom categories
 - **Payments** - Cash, PromptPay QR, Bank Transfer with instant QR generation and comprehensive payment logging
 - **Delivery** - Pickup at meetup points or home delivery with interactive maps
@@ -19,6 +20,11 @@ An online marketplace platform for Kasetsart University students to buy and sell
 - **Admin Panel** - Dashboard, verification management, shop moderation, meetup preset manager, comprehensive activity logging
 - **Activity Logging** - Complete audit trail of all user, seller, and admin actions with IP tracking and timestamps for security and non-repudiation
 - **Security & Compliance** - Rate limiting, identity verification, payment transaction logging, and comprehensive activity monitoring
+
+## 📊 Diagrams
+
+- **[Use Case Diagram](docs/images/Use-Case-Diagram.png)** - System use cases and user interactions
+- **[Database Schema Diagram](docs/images/Database-Diagram.png)** - Complete database structure and relationships
 
 ## Prerequisites
 
@@ -144,9 +150,9 @@ npm run bootstrap-admin
 
 **CORS_ORIGIN** - Comma-separated list of allowed origins. Source: e.g., `https://ku-market-mu.vercel.app,http://localhost:3000`.
 
-**RESEND_API_KEY** - Resend API key for email sending (required). Source: [Resend Dashboard](https://resend.com/api-keys) → Create API Key.
+**SMTP_USER** - Gmail email address. Source: Your Gmail address (e.g., `your-email@gmail.com`).
 
-**RESEND_FROM_EMAIL** - Email address to send from. Source: Use `onboarding@resend.dev` for testing, or verified domain email for production.
+**SMTP_PASS** - Gmail App Password. Source: Generate from [Google Account App Passwords](https://myaccount.google.com/apppasswords) (requires 2-Step Verification enabled).
 
 **STRIPE_SECRET_KEY** - Stripe API secret key. Source: [Stripe Dashboard](https://dashboard.stripe.com/apikeys) → API Keys.
 
@@ -173,6 +179,20 @@ npm run bootstrap-admin
 **NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY** - Stripe publishable key. Source: [Stripe Dashboard](https://dashboard.stripe.com/apikeys) → API Keys.
 
 See `.env.example` or `docs/INSTALLATION.md` for complete list with examples.
+
+## ⚠️ Known Limitations
+
+### Forgot Password Feature (SMTP)
+
+The forgot password feature (OTP email) **may not work on Render.com** due to SMTP port blocking. This feature requires SMTP connections (ports 587/465) which Render blocks for security reasons.
+
+**Workarounds:**
+
+- ✅ Works on **localhost** development
+- ✅ Works on deployments that allow SMTP connections (e.g., Railway, Heroku, AWS EC2, VPS)
+- ❌ **Does not work on Render.com** (SMTP ports blocked)
+
+**Alternative:** Users can still use Google OAuth login as an alternative authentication method.
 
 ## Google OAuth Setup
 
@@ -266,7 +286,7 @@ cd backend && npm run lint
 - Google OAuth: Only `@ku.th` emails are accepted for Google login
 - Identity verification required before checkout
 - Admin account: Run `npm run bootstrap-admin` in backend directory
-- Password reset: OTP via email (60 seconds expiry)
+- Password reset: OTP via email (60 seconds expiry) - ⚠️ **Not available on Render.com** due to SMTP port blocking
 
 ## 📄 License
 
