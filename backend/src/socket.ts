@@ -130,31 +130,8 @@ export const initializeSocket = (httpServer: HttpServer) => {
 
         await thread.save();
 
-        // Create notification for the recipient (if they're not the sender)
-        const recipientId = isBuyer ? thread.seller.toString() : thread.buyer.toString();
-        
-        // Get sender name for notification
-        const populatedSender = message.sender as unknown as PopulatedUser;
-        const senderName = populatedSender.name || "Someone";
-        
-        // Truncate message text for notification (max 100 chars)
-        const notificationText = text.trim().length > 100 
-          ? text.trim().substring(0, 100) + "..." 
-          : text.trim();
-        
-        // Create notification for recipient (fire-and-forget, don't block)
-        createNotification(
-          recipientId,
-          "message",
-          `New message from ${senderName}`,
-          notificationText,
-          `/chats?threadId=${threadId}`
-        ).catch((err) => {
-          console.error("Failed to create message notification:", err);
-          // Non-critical, continue execution
-        });
-
         // Prepare base message data (without sender_is_me - will be different for each user)
+        const populatedSender = message.sender as unknown as PopulatedUser;
         const senderId = populatedSender._id.toString();
         const buyerId = thread.buyer.toString();
         const sellerId = thread.seller.toString();
@@ -185,6 +162,36 @@ export const initializeSocket = (httpServer: HttpServer) => {
           io.to(`user:${sellerId}`).emit("new_message", {
             ...baseMessageData,
             sender_is_me: sellerId === senderId,
+          });
+        }
+
+        // Create notification for the recipient (if they're not the sender and not viewing the chat)
+        const recipientId = isBuyer ? thread.seller.toString() : thread.buyer.toString();
+        
+        // Check if recipient is currently viewing this thread (joined the thread room)
+        const threadRoom = io.sockets.adapter.rooms.get(`thread:${threadId}`);
+        const recipientSocketId = activeUsers.get(recipientId);
+        const isRecipientViewingThread = recipientSocketId && threadRoom?.has(recipientSocketId);
+        
+        // Only create notification if recipient is not viewing the thread
+        if (!isRecipientViewingThread) {
+          const senderName = populatedSender.name || "Someone";
+          
+          // Truncate message text for notification (max 100 chars)
+          const notificationText = text.trim().length > 100 
+            ? text.trim().substring(0, 100) + "..." 
+            : text.trim();
+          
+          // Create notification for recipient (fire-and-forget, don't block)
+          createNotification(
+            recipientId,
+            "message",
+            `New message from ${senderName}`,
+            notificationText,
+            `/chats?threadId=${threadId}`
+          ).catch((err) => {
+            console.error("Failed to create message notification:", err);
+            // Non-critical, continue execution
           });
         }
 
