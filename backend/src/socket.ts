@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import ChatThread from "./data/models/ChatThread";
 import ChatMessage from "./data/models/ChatMessage";
+import { createNotification } from "./lib/notifications";
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
