@@ -90,7 +90,6 @@ export function showSuccess(message: string, options?: Parameters<typeof toast.s
   const toastId = toast.success(message, {
     ...options,
     duration: options?.duration || 2000,
-    closeButton: true,
   });
   
   if (toastId) {
@@ -134,7 +133,6 @@ export function showError(message: string, options?: Parameters<typeof toast.err
   const toastId = toast.error(message, {
     ...options,
     duration: options?.duration || 2000,
-    closeButton: true,
   });
   
   if (toastId) {
@@ -185,7 +183,6 @@ export function showToast(message: string, options?: Parameters<typeof toast>[1]
   const toastId = toast(message, {
     ...options,
     duration: options?.duration || 2000,
-    closeButton: true,
   });
   
   if (toastId) {

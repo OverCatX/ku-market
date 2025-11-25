@@ -61,12 +61,8 @@ export default function RootLayout({
               right: '16px',
             }}
             containerClassName="toast-container"
-            limit={3}
-            reverseOrder={false}
-            gutter={8}
             toastOptions={{
               duration: 2000,
-              closeButton: true,
               // Ensure auto-dismiss works
               ariaProps: {
                 role: 'status',
@@ -108,7 +104,6 @@ export default function RootLayout({
                 },
               },
               loading: {
-                icon: false,
                 style: {
                   background: 'linear-gradient(135deg, #F6F2E5 0%, #ffffff 100%)',
                   border: '1px solid rgba(105, 119, 61, 0.25)',
