@@ -18,7 +18,7 @@ import {
 import Image from "next/image";
 import type { UserData } from "@/config/auth";
 import { API_BASE } from "@/config/constants";
-import toast from "react-hot-toast";
+import { showError, showSuccess, showToast } from "@/utils/toast";
 import dynamic from "next/dynamic";
 
 type PaymentMethod = "cash" | "promptpay" | "transfer";
@@ -256,14 +256,14 @@ export default function CheckoutPage() {
 
     // Basic required fields
     if (!name) {
-      toast.error("Please enter your full name");
+      showError("Please enter your full name");
       return;
     }
 
     // Thailand mobile format: exactly 10 digits and starts with 0
     const thPhoneStrict = /^0\d{9}$/;
     if (!thPhoneStrict.test(phone)) {
-      toast.error(
+      showError(
         "Please enter a valid 10-digit Thai phone number (starts with 0)"
       );
       return;
@@ -271,33 +271,31 @@ export default function CheckoutPage() {
 
     if (deliveryMethod === "delivery") {
       if (!address || address.length < 5) {
-        toast.error("Please enter a valid address (min 5 characters)");
+        showError("Please enter a valid address (min 5 characters)");
         return;
       }
       if (!city || city.length < 2) {
-        toast.error("Please enter a valid city");
+        showError("Please enter a valid city");
         return;
       }
       // Thailand postal code (5 digits) or allow 3-10 digits for international
       const thPostal = /^\d{5}$/;
       const intlPostal = /^\w[\w\s-]{2,9}$/;
       if (!(thPostal.test(postal) || intlPostal.test(postal))) {
-        toast.error("Please enter a valid postal code");
+        showError("Please enter a valid postal code");
         return;
       }
     }
 
     if (deliveryMethod === "pickup") {
       if (!pickupDetails.locationName.trim()) {
-        toast.error("Please enter a pickup location name");
+        showError("Please enter a pickup location name");
         return;
       }
     }
 
     // Inform buyer and show confirmation dialog before sending to seller
-    toast("Please confirm your order details before sending to seller", {
-      icon: "🧾",
-    });
+    showToast("Please confirm your order details before sending to seller");
     setShowConfirmation(true);
   };
 
@@ -375,7 +373,7 @@ export default function CheckoutPage() {
           String(message).toLowerCase().includes("invalid") ||
           String(message).toLowerCase().includes("no longer available")
         ) {
-          toast.error(
+          showError(
             "Some items are no longer available. We've updated your cart."
           );
           try {
@@ -391,10 +389,10 @@ export default function CheckoutPage() {
       await clearCart();
 
       if (orderId) {
-        toast.success("Order placed! You can track the status in Orders.");
+        showSuccess("Order placed! You can track the status in Orders.");
         router.push(`/order/${orderId}`);
       } else {
-        toast.success("Order placed! You can track the status in Orders.");
+        showSuccess("Order placed! You can track the status in Orders.");
         router.push("/orders");
       }
     } catch (error) {
@@ -403,7 +401,7 @@ export default function CheckoutPage() {
         error instanceof Error
           ? error.message
           : "Failed to place order. Please try again.";
-      toast.error(msg);
+      showError(msg);
       setIsProcessing(false);
     }
   };
@@ -617,9 +615,7 @@ export default function CheckoutPage() {
                                 prev.locationName.trim() ||
                                 "Custom meetup point",
                             }));
-                            toast.success("Updated meetup location", {
-                              icon: "📍",
-                            });
+                            showSuccess("Updated meetup location");
                           }}
                         />
 
@@ -660,9 +656,7 @@ export default function CheckoutPage() {
                                     locationName: preset.locationName,
                                     address: preset.address || "",
                                   }));
-                                  toast.success(`Pinned ${preset.label}`, {
-                                    icon: "📍",
-                                  });
+                                  showSuccess(`Pinned ${preset.label}`);
                                 }}
                                 className="rounded-full border border-[#c8d9b0] bg-white px-3 py-1 text-xs font-medium text-[#3f4e24] hover:border-[#9fb97b] hover:bg-[#edf5da]"
                               >

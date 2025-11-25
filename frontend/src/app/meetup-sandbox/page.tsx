@@ -94,7 +94,7 @@ export default function MeetupSandboxPage() {
               }
               onPositionChange={(value) => {
                 setSelectedPoint(value);
-                toast.success("Meetup point updated", { icon: "📍" });
+                toast.success("Meetup point updated");
               }}
             />
           </div>
@@ -114,9 +114,7 @@ export default function MeetupSandboxPage() {
                     type="button"
                     onClick={() => {
                       setSelectedPoint({ lat: preset.lat, lng: preset.lng });
-                      toast.success(`Pinned ${preset.label}`, {
-                        icon: "📍",
-                      });
+                      toast.success(`Pinned ${preset.label}`);
                     }}
                     className="rounded-full border border-[#cddab6] px-3 py-1 text-xs font-medium text-[#3f4e24] hover:bg-[#f0f6e5] transition"
                   >

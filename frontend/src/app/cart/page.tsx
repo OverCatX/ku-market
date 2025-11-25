@@ -12,7 +12,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import Image from "next/image";
-import toast from "react-hot-toast";
+import { showError, showSuccess } from "@/utils/toast";
 
 export default function CartPage() {
   const {
@@ -35,7 +35,7 @@ export default function CartPage() {
     
     // Validate before making API call
     if (quantity > MAX_QUANTITY_PER_ITEM) {
-      toast.error(`Maximum quantity per item is ${MAX_QUANTITY_PER_ITEM}.`);
+      showError(`Maximum quantity per item is ${MAX_QUANTITY_PER_ITEM}.`);
       return;
     }
 
@@ -44,7 +44,7 @@ export default function CartPage() {
       await updateQuantity(itemId, quantity);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to update quantity";
-      toast.error(errorMessage);
+      showError(errorMessage);
       // Refresh to get correct state
       await refreshCart();
     } finally {
@@ -56,9 +56,9 @@ export default function CartPage() {
     try {
       setActionLoading(itemId);
       await removeFromCart(itemId);
-      toast.success("Item removed from cart");
+      showSuccess("Item removed from cart");
     } catch {
-      toast.error("Failed to remove item");
+      showError("Failed to remove item");
       await refreshCart();
     } finally {
       setActionLoading(null);
