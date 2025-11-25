@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import { Titan_One, Ubuntu } from "next/font/google";
 import { CartProvider } from "@/contexts/CartContext";
 import { ToastSwipeInit } from "@/components/ToastSwipeInit";
+import { ToastCloseFix } from "@/components/ToastCloseFix";
 
 // Lazy load ConditionalHeader to reduce initial bundle
 const ConditionalHeader = dynamic(
@@ -52,18 +53,25 @@ export default function RootLayout({
           <ConditionalHeader />
           <Suspense fallback={null}>{children}</Suspense>
           <ToastSwipeInit />
+          <ToastCloseFix />
           <Toaster
             position="top-right"
             containerStyle={{
-              top: '80px',
+              top: '20px',
               right: '16px',
             }}
             containerClassName="toast-container"
-            limit={2}
+            limit={3}
             reverseOrder={false}
+            gutter={8}
             toastOptions={{
-              duration: 4000,
+              duration: 2000,
               closeButton: true,
+              // Ensure auto-dismiss works
+              ariaProps: {
+                role: 'status',
+                'aria-live': 'polite',
+              },
               style: {
                 background: '#F6F2E5',
                 color: '#4A5130',
@@ -75,6 +83,7 @@ export default function RootLayout({
                 border: '1px solid rgba(105, 119, 61, 0.15)',
                 maxWidth: '420px',
                 fontFamily: 'var(--font-ubuntu), sans-serif',
+                willChange: 'transform, opacity',
               },
               success: {
                 iconTheme: {
@@ -99,10 +108,7 @@ export default function RootLayout({
                 },
               },
               loading: {
-                iconTheme: {
-                  primary: '#69773D',
-                  secondary: '#F6F2E5',
-                },
+                icon: false,
                 style: {
                   background: 'linear-gradient(135deg, #F6F2E5 0%, #ffffff 100%)',
                   border: '1px solid rgba(105, 119, 61, 0.25)',
