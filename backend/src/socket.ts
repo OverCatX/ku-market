@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import ChatThread from "./data/models/ChatThread";
 import ChatMessage from "./data/models/ChatMessage";
+import { createNotification } from "./lib/notifications";
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -129,8 +130,31 @@ export const initializeSocket = (httpServer: HttpServer) => {
 
         await thread.save();
 
-        // Prepare message response
+        // Create notification for the recipient (if they're not the sender)
+        const recipientId = isBuyer ? thread.seller.toString() : thread.buyer.toString();
+        
+        // Get sender name for notification
         const populatedSender = message.sender as unknown as PopulatedUser;
+        const senderName = populatedSender.name || "Someone";
+        
+        // Truncate message text for notification (max 100 chars)
+        const notificationText = text.trim().length > 100 
+          ? text.trim().substring(0, 100) + "..." 
+          : text.trim();
+        
+        // Create notification for recipient (fire-and-forget, don't block)
+        createNotification(
+          recipientId,
+          "message",
+          `New message from ${senderName}`,
+          notificationText,
+          `/chats?threadId=${threadId}`
+        ).catch((err) => {
+          console.error("Failed to create message notification:", err);
+          // Non-critical, continue execution
+        });
+
+        // Prepare message response
         const messageData = {
           id: (message._id as mongoose.Types.ObjectId).toString(),
           threadId: threadId,
