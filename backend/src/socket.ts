@@ -129,17 +129,20 @@ export const initializeSocket = (httpServer: HttpServer) => {
 
         await thread.save();
 
-        // Prepare message response
+        // Prepare base message data (without sender_is_me - will be different for each user)
         const populatedSender = message.sender as unknown as PopulatedUser;
-        const messageData = {
+        const senderId = populatedSender._id.toString();
+        const buyerId = thread.buyer.toString();
+        const sellerId = thread.seller.toString();
+        
+        const baseMessageData = {
           id: (message._id as mongoose.Types.ObjectId).toString(),
           threadId: threadId,
           text: message.text,
           sender: {
-            id: populatedSender._id.toString(),
+            id: senderId,
             name: populatedSender.name,
           },
-          sender_is_me: userId === populatedSender._id.toString(),
           createdAt: message.createdAt,
           created_at_hhmm: new Date(message.createdAt).toLocaleTimeString([], {
             hour: "2-digit",
@@ -147,8 +150,19 @@ export const initializeSocket = (httpServer: HttpServer) => {
           }),
         };
 
-        // Emit to all users in the thread room
-        io.to(`thread:${threadId}`).emit("new_message", messageData);
+        // Emit to buyer with correct sender_is_me value
+        io.to(`user:${buyerId}`).emit("new_message", {
+          ...baseMessageData,
+          sender_is_me: buyerId === senderId,
+        });
+
+        // Emit to seller with correct sender_is_me value (only if different from buyer)
+        if (buyerId !== sellerId) {
+          io.to(`user:${sellerId}`).emit("new_message", {
+            ...baseMessageData,
+            sender_is_me: sellerId === senderId,
+          });
+        }
 
         // Emit thread update to both users
         const threadUpdate = {
