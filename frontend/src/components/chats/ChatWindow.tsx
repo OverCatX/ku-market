@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import ChatHeader from "./ChatHeader";
 import MessageBubble from "./MessageBubble";
 import Composer from "./Composer";
@@ -27,6 +28,29 @@ export default function ChatWindow({
   onSendMessage: (text: string) => void;
   onBack: () => void;
 }) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const previousMessagesLengthRef = useRef(messages.length);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (!messagesEndRef.current) return;
+
+    const hasNewMessage = messages.length > previousMessagesLengthRef.current;
+
+    // Always scroll when a new message arrives
+    if (hasNewMessage || messages.length === 1) {
+      // Use requestAnimationFrame for better performance
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      });
+    }
+
+    previousMessagesLengthRef.current = messages.length;
+  }, [messages]);
+
   return (
     <div
       className="flex h-full min-h-0 flex-col overflow-hidden rounded-none"
@@ -40,7 +64,10 @@ export default function ChatWindow({
       />
 
       {/* Message list */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6 space-y-4">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 min-h-0 overflow-y-auto px-6 py-6 space-y-4"
+      >
         {messages.length === 0 && (
           <div className="text-xs text-slate-400 italic">
             No messages yet. Say hi!
@@ -50,6 +77,9 @@ export default function ChatWindow({
         {messages.map((m) => (
           <MessageBubble key={m.id} who={m.who} text={m.text} time={m.time} />
         ))}
+        
+        {/* Scroll anchor */}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Composer */}
