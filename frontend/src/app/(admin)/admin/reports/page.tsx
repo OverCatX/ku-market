@@ -65,7 +65,7 @@ const ReportCard = memo(function ReportCard({ report, onUpdate, updating }: Repo
 
   const handleSubmit = async () => {
     if (status === report.status && notes.trim() === (report.adminNotes || "")) {
-      toast("No changes to update", { icon: "ℹ️" });
+      toast("No changes to update");
       return;
     }
 

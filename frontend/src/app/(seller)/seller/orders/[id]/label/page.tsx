@@ -277,7 +277,7 @@ export default function SellerOrderLabelPage(): ReactElement {
       toast.error(error instanceof Error ? error.message : "Failed to save sender address");
       // Still save to localStorage as backup
       setIsEditingSender(false);
-      toast("Saved locally as backup", { icon: "⚠️" });
+      toast("Saved locally as backup");
     }
   };
 

@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { login } from "@/config/auth";
 import { clearAuthTokens, setAuthToken } from "@/lib/auth";
-import toast from "react-hot-toast";
+import { showError, showSuccess } from "@/utils/toast";
 import { aboutColors } from "@/components/aboutus/SectionColors";
 import { API_BASE } from "@/config/constants";
 
@@ -66,7 +66,7 @@ export function LoginForm() {
       setAuthToken(res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
 
-      toast.success("Login successful!");
+      showSuccess("Login successful!");
 
       setTimeout(() => {
         window.location.href = redirectTo;
@@ -97,7 +97,7 @@ export function LoginForm() {
       }
 
       setApiError(message);
-      toast.error(message, {
+      showError(message, {
         duration: 4000,
         style: {
           background: "#FEE2E2",
@@ -127,7 +127,7 @@ export function LoginForm() {
     );
 
     if (!popup) {
-      toast.error("Please allow popups for this site to login with Google");
+      showError("Please allow popups for this site to login with Google");
       setGoogleLoading(false);
       return;
     }
@@ -149,7 +149,7 @@ export function LoginForm() {
         setAuthToken(token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        toast.success("Login successful with Google!");
+        showSuccess("Login successful with Google!");
 
         // Close popup
         popup.close();
@@ -163,7 +163,7 @@ export function LoginForm() {
           window.location.href = redirectTo;
         }, 500);
       } else if (event.data.type === "GOOGLE_OAUTH_ERROR") {
-        toast.error(
+        showError(
           event.data.error || "Google login failed. Please try again.",
           {
             duration: 4000,

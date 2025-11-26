@@ -125,3 +125,321 @@ body {
 .leaflet-bottom {
   z-index: 7 !important;
 }
+
+/* Custom Toast Styles - Beautiful & Modern */
+/* Toast container - responsive positioning */
+.toast-container {
+  z-index: 10000 !important;
+  pointer-events: none;
+  position: fixed !important;
+}
+
+.toast-container > div {
+  pointer-events: auto;
+}
+
+/* Responsive positioning */
+@media (max-width: 640px) {
+  .toast-container {
+    top: 10px !important;
+    right: 8px !important;
+    left: 8px !important;
+    max-width: calc(100% - 16px) !important;
+  }
+  
+  .toast-container > div {
+    max-width: 100% !important;
+  }
+  
+  div[id^="react-hot-toast"],
+  .react-hot-toast {
+    max-width: 100% !important;
+    width: 100% !important;
+    touch-action: pan-y;
+  }
+  
+  div[id^="react-hot-toast"] > div,
+  .react-hot-toast > div {
+    padding-right: 44px !important;
+  }
+}
+
+/* Target react-hot-toast elements - Performance optimized */
+div[id^="react-hot-toast"],
+.react-hot-toast {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative;
+  padding-right: 48px !important;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform, opacity;
+  contain: layout style paint;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Swipe to dismiss on mobile */
+@media (max-width: 640px) {
+  div[id^="react-hot-toast"],
+  .react-hot-toast {
+    touch-action: pan-y;
+    padding-right: 52px !important;
+  }
+}
+
+div[id^="react-hot-toast"]:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2), 0 10px 20px -8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Toast content layout */
+div[id^="react-hot-toast"] > div {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+/* Close button styling - make it bigger and easier to click */
+div[id^="react-hot-toast"] button,
+div[id^="react-hot-toast"] button[type="button"],
+div[id^="react-hot-toast"] > button,
+.react-hot-toast button,
+.react-hot-toast button[type="button"],
+.react-hot-toast > button,
+button[aria-label*="Close"],
+button[aria-label*="close"],
+button[title*="Close"],
+button[title*="close"] {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  background: rgba(74, 81, 48, 0.25) !important;
+  border: 1px solid rgba(74, 81, 48, 0.3) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: #4A5130 !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: rgba(74, 81, 48, 0.3) !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  /* Ensure button is clickable */
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+div[id^="react-hot-toast"] button:hover,
+div[id^="react-hot-toast"] button[type="button"]:hover,
+.react-hot-toast button:hover,
+.react-hot-toast button[type="button"]:hover,
+button[aria-label*="Close"]:hover,
+button[aria-label*="close"]:hover {
+  background: rgba(74, 81, 48, 0.4) !important;
+  border-color: rgba(74, 81, 48, 0.5) !important;
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+div[id^="react-hot-toast"] button:active,
+div[id^="react-hot-toast"] button[type="button"]:active,
+.react-hot-toast button:active,
+.react-hot-toast button[type="button"]:active,
+button[aria-label*="Close"]:active,
+button[aria-label*="close"]:active {
+  transform: scale(0.95);
+  background: rgba(74, 81, 48, 0.6) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+div[id^="react-hot-toast"] button svg,
+div[id^="react-hot-toast"] button[type="button"] svg,
+.react-hot-toast button svg,
+.react-hot-toast button[type="button"] svg,
+button[aria-label*="Close"] svg,
+button[aria-label*="close"] svg {
+  width: 16px !important;
+  height: 16px !important;
+  pointer-events: none;
+  display: block !important;
+}
+
+/* Mobile: Make close button even bigger */
+@media (max-width: 640px) {
+  div[id^="react-hot-toast"] button,
+  div[id^="react-hot-toast"] button[type="button"],
+  .react-hot-toast button,
+  .react-hot-toast button[type="button"],
+  button[aria-label*="Close"],
+  button[aria-label*="close"] {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    top: 10px !important;
+    right: 10px !important;
+  }
+  
+  div[id^="react-hot-toast"] button svg,
+  div[id^="react-hot-toast"] button[type="button"] svg,
+  .react-hot-toast button svg,
+  .react-hot-toast button[type="button"] svg,
+  button[aria-label*="Close"] svg,
+  button[aria-label*="close"] svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+}
+
+/* Icon styling - Only show checkmark (success) and X (error) */
+div[id^="react-hot-toast"] > div > svg:not(button svg),
+.react-hot-toast > div > svg:not(button svg) {
+  flex-shrink: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Show only checkmark icon for success (viewBox contains "20" for checkmark) */
+div[id^="react-hot-toast"] > div > svg[viewBox*="20"]:not(button svg),
+.react-hot-toast > div > svg[viewBox*="20"]:not(button svg) {
+  display: block !important;
+}
+
+/* Show only X icon for error (viewBox contains "24" for X) */
+div[id^="react-hot-toast"] > div > svg[viewBox*="24"]:not(button svg),
+.react-hot-toast > div > svg[viewBox*="24"]:not(button svg) {
+  display: block !important;
+}
+
+/* Hide all other icons (loading spinner, default icons, etc.) */
+div[id^="react-hot-toast"] > div > svg:not(button svg):not([viewBox*="20"]):not([viewBox*="24"]),
+.react-hot-toast > div > svg:not(button svg):not([viewBox*="20"]):not([viewBox*="24"]) {
+  display: none !important;
+}
+
+/* Hide loading spinner specifically */
+div[id^="react-hot-toast"] > div > svg[class*="animate-spin"]:not(button svg),
+.react-hot-toast > div > svg[class*="animate-spin"]:not(button svg) {
+  display: none !important;
+}
+
+/* Success toast - green checkmark animation (only for checkmark icon) */
+div[id^="react-hot-toast"]:has(svg[viewBox*="20"]):not(:has(button)) > div > svg[viewBox*="20"]:first-of-type,
+.react-hot-toast:has(svg[viewBox*="20"]):not(:has(button)) > div > svg[viewBox*="20"]:first-of-type {
+  animation: toastSuccessPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: block !important;
+}
+
+@keyframes toastSuccessPop {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Error toast - X icon shake animation (only for X icon) */
+div[id^="react-hot-toast"]:has(svg[viewBox*="24"]):not(:has(button)) > div > svg[viewBox*="24"]:first-of-type,
+.react-hot-toast:has(svg[viewBox*="24"]):not(:has(button)) > div > svg[viewBox*="24"]:first-of-type {
+  animation: toastErrorShake 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: block !important;
+}
+
+@keyframes toastErrorShake {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px) rotate(-8deg);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px) rotate(8deg);
+  }
+}
+
+/* Hide loading spinner - no icon for loading */
+div[id^="react-hot-toast"]:has(svg[class*="animate-spin"]) > div > svg[class*="animate-spin"],
+div[id^="react-hot-toast"]:has(svg[style*="animation"]):not(:has(svg[viewBox*="20"])):not(:has(svg[viewBox*="24"])) > div > svg[style*="animation"],
+.react-hot-toast:has(svg[class*="animate-spin"]) > div > svg[class*="animate-spin"] {
+  display: none !important;
+}
+
+@keyframes toastSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Progress bar at bottom of toast */
+div[id^="react-hot-toast"] > div > div:last-child {
+  background: linear-gradient(90deg, rgba(105, 119, 61, 0.4), rgba(132, 176, 103, 0.4)) !important;
+  height: 3px !important;
+  border-radius: 0 0 12px 12px !important;
+  animation: progressShimmer 2s ease-in-out infinite;
+}
+
+@keyframes progressShimmer {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Text styling */
+div[id^="react-hot-toast"] > div > div:first-of-type {
+  line-height: 1.5 !important;
+  letter-spacing: 0.01em;
+  font-weight: 500;
+  flex: 1;
+}
+
+/* Alternative selectors for better compatibility */
+.react-hot-toast {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative;
+  padding-right: 40px !important;
+}
+
+.react-hot-toast:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2), 0 10px 20px -8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.react-hot-toast > div {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.react-hot-toast > div > svg:not(button svg) {
+  flex-shrink: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+}

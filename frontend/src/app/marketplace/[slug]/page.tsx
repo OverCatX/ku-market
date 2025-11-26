@@ -187,7 +187,7 @@ export default function Page() {
         await updateQuantity(item._id, qty);
       }
 
-      toast.success(`Added ${qty} item(s) to cart!`, { icon: "🛒" });
+      toast.success(`Added ${qty} item(s) to cart!`);
       setQty(1); // Reset quantity to 1
     } catch (error) {
       const message = error instanceof Error ? error.message : "";

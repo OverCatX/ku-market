@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import ChatThread from "./data/models/ChatThread";
 import ChatMessage from "./data/models/ChatMessage";
+import { createNotification } from "./lib/notifications";
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -129,17 +130,20 @@ export const initializeSocket = (httpServer: HttpServer) => {
 
         await thread.save();
 
-        // Prepare message response
+        // Prepare base message data (without sender_is_me - will be different for each user)
         const populatedSender = message.sender as unknown as PopulatedUser;
-        const messageData = {
+        const senderId = populatedSender._id.toString();
+        const buyerId = thread.buyer.toString();
+        const sellerId = thread.seller.toString();
+        
+        const baseMessageData = {
           id: (message._id as mongoose.Types.ObjectId).toString(),
           threadId: threadId,
           text: message.text,
           sender: {
-            id: populatedSender._id.toString(),
+            id: senderId,
             name: populatedSender.name,
           },
-          sender_is_me: userId === populatedSender._id.toString(),
           createdAt: message.createdAt,
           created_at_hhmm: new Date(message.createdAt).toLocaleTimeString([], {
             hour: "2-digit",
@@ -147,8 +151,49 @@ export const initializeSocket = (httpServer: HttpServer) => {
           }),
         };
 
-        // Emit to all users in the thread room
-        io.to(`thread:${threadId}`).emit("new_message", messageData);
+        // Emit to buyer with correct sender_is_me value
+        io.to(`user:${buyerId}`).emit("new_message", {
+          ...baseMessageData,
+          sender_is_me: buyerId === senderId,
+        });
+
+        // Emit to seller with correct sender_is_me value (only if different from buyer)
+        if (buyerId !== sellerId) {
+          io.to(`user:${sellerId}`).emit("new_message", {
+            ...baseMessageData,
+            sender_is_me: sellerId === senderId,
+          });
+        }
+
+        // Create notification for the recipient (if they're not the sender and not viewing the chat)
+        const recipientId = isBuyer ? thread.seller.toString() : thread.buyer.toString();
+        
+        // Check if recipient is currently viewing this thread (joined the thread room)
+        const threadRoom = io.sockets.adapter.rooms.get(`thread:${threadId}`);
+        const recipientSocketId = activeUsers.get(recipientId);
+        const isRecipientViewingThread = recipientSocketId && threadRoom?.has(recipientSocketId);
+        
+        // Only create notification if recipient is not viewing the thread
+        if (!isRecipientViewingThread) {
+          const senderName = populatedSender.name || "Someone";
+          
+          // Truncate message text for notification (max 100 chars)
+          const notificationText = text.trim().length > 100 
+            ? text.trim().substring(0, 100) + "..." 
+            : text.trim();
+          
+          // Create notification for recipient (fire-and-forget, don't block)
+          createNotification(
+            recipientId,
+            "message",
+            `New message from ${senderName}`,
+            notificationText,
+            `/chats?threadId=${threadId}`
+          ).catch((err) => {
+            console.error("Failed to create message notification:", err);
+            // Non-critical, continue execution
+          });
+        }
 
         // Emit thread update to both users
         const threadUpdate = {
